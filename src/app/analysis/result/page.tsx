@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { updateLastRoute } from "@/lib/authState";
 
 interface QuizAnswers {
   [key: string]: string | string[];
@@ -62,6 +63,10 @@ const averageScore = 45;
 export default function AnalysisResultPage() {
   const router = useRouter();
   const [userScore, setUserScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    updateLastRoute("/analysis/result");
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

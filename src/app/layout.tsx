@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import AppGuard from "@/components/AppGuard";
 
 export const metadata: Metadata = {
   title: "StopHaram",
@@ -15,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="antialiased">
-        {children}
+        <AppGuard>{children}</AppGuard>
       </body>
     </html>
   );

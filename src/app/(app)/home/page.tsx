@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/lib/storage";
+import { getState } from "@/lib/authState";
 
 const LAST_STREAK_START_KEY = "last_streak_start_iso";
 
@@ -93,7 +94,10 @@ export default function HomePage() {
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => router.push("/parcours")}
+            onClick={() => {
+              const last = typeof window !== "undefined" ? getState()?.lastRoute : undefined;
+              router.push(last || "/parcours");
+            }}
             className="w-full rounded-xl bg-white py-4 text-gray-900 font-semibold text-base hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-colors"
           >
             Continuer mon parcours

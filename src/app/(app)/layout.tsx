@@ -3,11 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
+import { isLoggedIn } from "@/lib/authState";
 
-const STORAGE_KEYS = {
-  is_logged_in: "is_logged_in",
-  last_rechute_check: "last_rechute_check",
-} as const;
+const LAST_RECHUTE_KEY = "last_rechute_check";
 
 function getTodayISO(): string {
   return new Date().toISOString().slice(0, 10);
@@ -15,14 +13,9 @@ function getTodayISO(): string {
 
 function hasRechuteCheckedToday(): boolean {
   if (typeof window === "undefined") return false;
-  const raw = window.localStorage.getItem(STORAGE_KEYS.last_rechute_check);
+  const raw = window.localStorage.getItem(LAST_RECHUTE_KEY);
   if (!raw) return false;
   return raw === getTodayISO();
-}
-
-function isLoggedIn(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(STORAGE_KEYS.is_logged_in) === "true";
 }
 
 export default function AppLayout({
@@ -35,7 +28,7 @@ export default function AppLayout({
 
   useEffect(() => {
     if (!isLoggedIn()) {
-      router.replace("/login");
+      router.replace("/start");
       return;
     }
     if (!hasRechuteCheckedToday()) {

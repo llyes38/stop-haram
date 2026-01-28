@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { updateLastRoute } from "@/lib/authState";
 
 export default function AnalysisPage() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    updateLastRoute("/analysis");
+  }, []);
 
   useEffect(() => {
     const duration = 2500; // 2.5 secondes

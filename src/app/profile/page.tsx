@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ensureUserDefaults, saveUser, domainsToSins } from "@/lib/storage";
 import { generatePlan } from "@/lib/programEngine";
+import { setAuth, setProfile, setState, updateLastRoute } from "@/lib/authState";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -13,18 +14,23 @@ export default function ProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (typeof window === "undefined" || !firstName.trim() || !age.trim()) return;
+    const name = firstName.trim();
     const profile = {
-      firstName: firstName.trim(),
+      firstName: name,
       age: parseInt(age, 10),
     };
     window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+    setProfile({ name, ...profile });
+    setAuth({ isLoggedIn: true });
+    setState({ onboardingComplete: false, lastRoute: "/profile", startDate: new Date().toISOString().slice(0, 10), dayCount: 0 });
+    updateLastRoute("/profile");
     const domainLabelsRaw = window.localStorage.getItem("stopharam_domains");
     const domainLabels = domainLabelsRaw ? (JSON.parse(domainLabelsRaw) as string[]) : [];
     const selectedSins = domainsToSins(domainLabels);
     const scores: Record<string, number> = {};
     selectedSins.forEach((sin) => { scores[sin] = 50; });
     const user = ensureUserDefaults({
-      name: firstName.trim(),
+      name,
       selectedSins,
       scores,
       startDateISO: new Date().toISOString().slice(0, 10),
@@ -34,9 +40,8 @@ export default function ProfilePage() {
       user.plan = generatePlan(user);
     }
     saveUser(user);
-    window.localStorage.setItem("is_logged_in", "true");
-    window.localStorage.setItem("user_name", firstName.trim());
-    router.push("/home");
+    window.localStorage.setItem("user_name", name);
+    router.push("/quiz");
   };
 
   return (

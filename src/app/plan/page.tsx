@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { updateLastRoute } from "@/lib/authState";
 
 type Profile = {
   firstName?: string;
@@ -47,6 +48,7 @@ export default function PlanPage() {
   const [objectiveDate, setObjectiveDate] = useState<string>(() => getObjectiveDate());
 
   useEffect(() => {
+    updateLastRoute("/plan");
     setFirstName(getFirstNameFromProfile());
   }, []);
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { updateLastRoute } from "@/lib/authState";
 
 // Tarif mensuel normal 9,99 € → annuel 119,88 € ; -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -15,6 +17,10 @@ function formatPrice(value: number): string {
 
 export default function OfferPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    updateLastRoute("/offer");
+  }, []);
 
   const handleClaim = () => {
     router.push("/checkout");

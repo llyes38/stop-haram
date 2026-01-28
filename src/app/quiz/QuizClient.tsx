@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ensureUserDefaults, saveUser, domainsToSins } from "@/lib/storage";
+import { ensureUserDefaults, getUser, saveUser, domainsToSins } from "@/lib/storage";
 import { generatePlan } from "@/lib/programEngine";
+import { updateLastRoute, setProfile } from "@/lib/authState";
 
 const GENDER_QUESTION = {
   id: "gender",
@@ -177,9 +178,11 @@ export default function QuizClient() {
     if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
+  const fromAccount = searchParams.get("from") === "account";
+
   const handleBack = () => {
     if (currentStep > 0) goPrevious();
-    else router.push("/");
+    else router.push(fromAccount ? "/account" : "/");
   };
 
   const handleSkip = () => router.push("/profile");
@@ -188,19 +191,35 @@ export default function QuizClient() {
     const profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+      updateLastRoute("/quiz");
       const selectedSins = domainsToSins(selectedDomains);
       const scores: Record<string, number> = {};
       selectedSins.forEach((sin) => { scores[sin] = 50; });
-      const user = ensureUserDefaults({
-        name: firstName.trim(),
-        selectedSins,
-        scores,
-        answers: answers as Record<string, unknown>,
-        startDateISO: new Date().toISOString().slice(0, 10),
-        streakDays: 0,
-      });
+      const existingUser = getUser();
+      const isModifyFromAccount = searchParams.get("from") === "account";
+      const user = isModifyFromAccount && existingUser
+        ? ensureUserDefaults({
+            ...existingUser,
+            name: firstName.trim() || existingUser.name,
+            selectedSins,
+            scores: { ...existingUser.scores, ...scores },
+            answers: answers as Record<string, unknown>,
+          })
+        : ensureUserDefaults({
+            name: firstName.trim(),
+            selectedSins,
+            scores,
+            answers: answers as Record<string, unknown>,
+            startDateISO: new Date().toISOString().slice(0, 10),
+            streakDays: 0,
+          });
       user.plan = generatePlan(user);
       saveUser(user);
+      if (isModifyFromAccount) {
+        setProfile({ name: user.name });
+        router.replace("/account");
+        return;
+      }
     }
     router.push("/analysis");
   };

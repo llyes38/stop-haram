@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { completeOnboarding, updateLastRoute } from "@/lib/authState";
 
 const STORAGE_KEYS = {
   last_rechute_check: "last_rechute_check",
@@ -40,6 +41,8 @@ export default function RechutePage() {
         window.localStorage.setItem("stopharam_user", JSON.stringify({ ...u, streakDays: next, lastCheckinISO: getTodayISO() }));
       }
     } catch (_) {}
+    completeOnboarding();
+    updateLastRoute("/rechute");
     router.replace("/home");
   };
 

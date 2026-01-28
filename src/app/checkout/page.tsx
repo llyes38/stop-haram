@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { updateLastRoute } from "@/lib/authState";
 
 // Tarifs : mensuel 9,99 € ; annuel -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -120,6 +121,10 @@ export default function CheckoutPage() {
 
   const goToSlide = useCallback((index: number) => {
     setSlideIndex((Math.max(0, Math.min(index, SLIDES.length - 1))));
+  }, []);
+
+  useEffect(() => {
+    updateLastRoute("/checkout");
   }, []);
 
   useEffect(() => {

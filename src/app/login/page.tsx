@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-const STORAGE_KEYS = {
-  is_logged_in: "is_logged_in",
-  user_name: "user_name",
-} as const;
+import { setAuth, setProfile, getState, FIRST_PARCOURS_STEP } from "@/lib/authState";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,10 +12,16 @@ export default function LoginPage() {
     const trimmed = name.trim();
     const displayName = trimmed || "Utilisateur";
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEYS.is_logged_in, "true");
-      window.localStorage.setItem(STORAGE_KEYS.user_name, displayName);
+      setAuth({ isLoggedIn: true });
+      setProfile({ name: displayName });
+      window.localStorage.setItem("user_name", displayName);
+      const state = getState();
+      if (state?.onboardingComplete) {
+        router.replace("/home");
+      } else {
+        router.replace(FIRST_PARCOURS_STEP);
+      }
     }
-    router.replace("/rechute");
   };
 
   return (

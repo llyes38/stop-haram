@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { setAuth, setProfile, updateLastRoute } from "@/lib/authState";
 
 const STORAGE_KEYS = { is_logged_in: "is_logged_in", user_name: "user_name" } as const;
 
@@ -9,8 +10,9 @@ function getProfileFirstName(): string {
   try {
     const raw = window.localStorage.getItem("stopharam_profile");
     if (!raw) return "";
-    const parsed = JSON.parse(raw) as { firstName?: string };
-    return typeof parsed.firstName === "string" ? parsed.firstName.trim() : "";
+    const parsed = JSON.parse(raw) as { firstName?: string; name?: string };
+    const n = parsed.firstName ?? parsed.name;
+    return typeof n === "string" ? n.trim() : "";
   } catch {
     return "";
   }
@@ -21,9 +23,12 @@ export default function SignupPage() {
 
   const connectAndGoToRechute = () => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEYS.is_logged_in, "true");
+      setAuth({ isLoggedIn: true });
       const name = getProfileFirstName() || "Utilisateur";
+      setProfile({ name });
+      window.localStorage.setItem(STORAGE_KEYS.is_logged_in, "true");
       window.localStorage.setItem(STORAGE_KEYS.user_name, name);
+      updateLastRoute("/signup");
     }
     router.replace("/rechute");
   };

@@ -12,6 +12,7 @@ import {
 } from "@/lib/storage";
 import { generatePlan } from "@/lib/programEngine";
 import type { StopHaramUser } from "@/lib/storage";
+import { getState, setAuth, resetOnboarding } from "@/lib/authState";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -131,17 +132,34 @@ export default function AccountPage() {
         <div className="flex flex-col gap-2 mt-3">
           <button
             type="button"
-            onClick={() => router.push("/parcours")}
+            onClick={() => router.push(getState()?.lastRoute || "/parcours")}
             className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-gray-100 transition-colors"
+          >
+            Continuer mon parcours
+          </button>
+          <button
+            type="button"
+            onClick={() => router.push("/parcours")}
+            className="w-full rounded-xl bg-white/10 py-3 text-white/90 font-medium text-sm hover:bg-white/15 transition-colors border border-white/10"
           >
             Voir tout le plan
           </button>
           <button
             type="button"
-            onClick={() => router.push("/profile")}
+            onClick={() => router.push("/quiz?from=account")}
             className="w-full rounded-xl bg-white/10 py-3 text-white/90 font-medium text-sm hover:bg-white/15 transition-colors border border-white/10"
           >
             Modifier mes réponses
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              resetOnboarding();
+              router.replace("/profile");
+            }}
+            className="w-full rounded-xl bg-amber-500/20 py-3 text-amber-200 font-medium text-sm hover:bg-amber-500/30 transition-colors border border-amber-400/30"
+          >
+            Refaire le parcours complet
           </button>
         </div>
       </section>
@@ -149,8 +167,8 @@ export default function AccountPage() {
       <button
         type="button"
         onClick={() => {
-          if (typeof window !== "undefined") window.localStorage.setItem("is_logged_in", "false");
-          router.replace("/login");
+          setAuth({ isLoggedIn: false });
+          router.replace("/start");
         }}
         className="w-full rounded-xl bg-white/10 py-3.5 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors border border-white/10 mt-4"
       >
