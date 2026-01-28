@@ -2,8 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { getUser, saveUser, getDayNumber } from "@/lib/storage";
+import { getUser, saveUser, getDayNumber, getDailyActionLabels, getSinLabel } from "@/lib/storage";
+import type { SelectedSin } from "@/lib/storage";
 import { getTemptationStats, incrementTempted } from "@/lib/temptationStats";
+import { getCurrentStatut, isStatutUnlocked, STATUTS, type Statut } from "@/lib/statuts";
+import {
+  getTodayActionsState,
+  toggleTodayAction,
+  type ActionId,
+  type DailyActionsState,
+} from "@/lib/dailyActions";
+import PrayerTimesCard from "@/components/PrayerTimesCard";
 
 const DEFI_JOURS = 30;
 
@@ -29,6 +38,19 @@ export default function HomePage() {
   const [whyStopEditing, setWhyStopEditing] = useState(false);
   const [whyStopDraft, setWhyStopDraft] = useState("");
   const [challengeDay, setChallengeDay] = useState<number>(0);
+  const [statutModalOpen, setStatutModalOpen] = useState(false);
+  const [actionLabels, setActionLabels] = useState<[string, string, string]>([
+    "Faire mon intention du jour",
+    "Lire un rappel ou une invocation",
+    "Une action concrète vers mon objectif",
+  ]);
+  const [actionsState, setActionsState] = useState<DailyActionsState>({
+    "1": false,
+    "2": false,
+    "3": false,
+  });
+  const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
+  const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
 
   useEffect(() => {
     const u = getUser();
@@ -39,6 +61,12 @@ export default function HomePage() {
     } else {
       setChallengeDay(0);
     }
+    const labels = getDailyActionLabels(u ?? null);
+    setActionLabels(labels);
+    const actionsCount = labels.length;
+    setActionsState(getTodayActionsState(actionsCount));
+    setFocusSin(u?.plan?.focusSin ?? null);
+    setBaseSin(u?.plan?.baseSin ?? null);
   }, [pathname]);
 
   useEffect(() => {
@@ -77,6 +105,7 @@ export default function HomePage() {
   const displayName = name || null;
   const messageText = displayName ? `${displayName}, tu es toujours debout.` : "Tu es sur le bon chemin.";
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
+  const currentStatut = getCurrentStatut(streakDays ?? null);
 
   const ratio = stats.tempted > 0 ? Math.round((100 * stats.resisted) / stats.tempted) : null;
 
@@ -108,6 +137,13 @@ export default function HomePage() {
     setWhyStopDraft("");
   };
 
+  const handleToggleAction = (id: ActionId) => {
+    toggleTodayAction(id);
+    const u = getUser();
+    const labels = getDailyActionLabels(u ?? null);
+    setActionsState(getTodayActionsState(labels.length));
+  };
+
   return (
     <div className="w-full flex flex-col px-6 pt-12 pb-12 text-white">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -119,15 +155,118 @@ export default function HomePage() {
           80% { transform: translateX(1px) rotate(2deg); }
         }
         .stress-emoji { display: inline-block; animation: stress-shake 0.8s ease-in-out infinite; }
+        @keyframes statut-bounce {
+          0%, 100% { transform: scale(1) translateY(0); }
+          50% { transform: scale(1.1) translateY(-3px); }
+        }
+        .statut-icon-animated { animation: statut-bounce 1.2s ease-in-out infinite; }
+        @keyframes action-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+          50% { opacity: 0.95; transform: scale(1.01); box-shadow: 0 0 12px 2px rgba(52, 211, 153, 0.25); }
+        }
+        .action-todo { animation: action-pulse 2s ease-in-out infinite; }
+        .action-todo:hover { animation: none; }
       `}} />
 
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-white">StopHaram</h1>
-        <p className="text-white/60 text-sm mt-1">Un pas à la fois</p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white">StopHaram</h1>
+          <p className="text-white/60 text-sm mt-1">Un pas à la fois</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStatutModalOpen(true)}
+          className="statut-icon-animated flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 border border-white/20 text-xl hover:bg-white/15 hover:animate-none transition-colors"
+          aria-label="Voir mon statut"
+          title={currentStatut.label}
+        >
+          {currentStatut.emoji}
+        </button>
       </header>
 
+      {/* Modal Réalisations / Statuts */}
+      {statutModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-8 pt-8"
+          onClick={() => setStatutModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="statut-modal-title"
+        >
+          <div
+            className="w-full max-w-[420px] max-h-[85vh] overflow-y-auto rounded-2xl bg-[#0a1f12] border border-white/20 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-white/10 bg-[#0a1f12]/95 px-5 py-4 backdrop-blur-sm">
+              <h2 id="statut-modal-title" className="text-lg font-bold text-white">
+                Réalisations
+              </h2>
+              <button
+                type="button"
+                onClick={() => setStatutModalOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 hover:bg-white/15"
+                aria-label="Fermer"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-white/70 text-sm">Ton statut actuel</p>
+              <div className="rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{currentStatut.emoji}</span>
+                  <div>
+                    <p className="font-semibold text-white">{currentStatut.label}</p>
+                    <p className="text-emerald-200/90 text-sm mt-0.5">{currentStatut.description}</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-white/70 text-sm pt-2">Tous les statuts</p>
+              <div className="space-y-2">
+                {STATUTS.map((s) => {
+                  const unlocked = isStatutUnlocked(s, streakDays ?? null);
+                  return (
+                    <div
+                      key={s.id}
+                      className={`rounded-xl border px-4 py-3 ${
+                        unlocked
+                          ? "bg-white/10 border-white/20"
+                          : "bg-white/5 border-white/10 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">{unlocked ? s.emoji : "🔒"}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-medium ${unlocked ? "text-white" : "text-white/60"}`}>
+                            {s.label}
+                          </p>
+                          <p className="text-white/50 text-xs mt-0.5">
+                            {unlocked ? s.description : `Débloque en tenant ${s.minDays} jour${s.minDays > 1 ? "s" : ""} sans rechute`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="flex flex-col gap-6 pb-28">
-        <p className="text-xl sm:text-2xl font-medium text-white leading-snug">{messageText}</p>
+        <div className="flex items-start justify-between gap-4">
+          <p className="text-xl sm:text-2xl font-medium text-white leading-snug flex-1">{messageText}</p>
+          <button
+            type="button"
+            onClick={() => router.push("/fonctionnement")}
+            className="text-emerald-400/90 hover:text-emerald-300 text-sm font-medium underline transition-colors whitespace-nowrap shrink-0"
+          >
+            Comment ça marche ?
+          </button>
+        </div>
 
         {/* Bloc : Défi 30 jours */}
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
@@ -144,6 +283,70 @@ export default function HomePage() {
           <p className="text-white/50 text-xs mt-1.5">
             {challengeDay >= DEFI_JOURS ? "Challenge terminé 🎉" : challengeDay === 0 ? "Commence ton parcours pour lancer le défi" : `Jour ${challengeDay} sur ${DEFI_JOURS}`}
           </p>
+
+          {/* Actions du jour — cliquables, validées ou pas ; journée validée = toutes faites */}
+          <div className="mt-5 pt-5 border-t border-white/10">
+            {(() => {
+              const actionsCount = actionLabels.length;
+              const allDone = actionLabels.every((_, i) => {
+                const id = String(i + 1) as ActionId;
+                return actionsState[id];
+              });
+              return (
+                <>
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <p className="text-emerald-200/90 text-sm font-semibold">{actionsCount} actions du jour</p>
+                    {allDone && (
+                      <span className="rounded-full bg-emerald-500/30 px-3 py-1 text-emerald-200 text-xs font-semibold">
+                        Journée validée ✓
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount}. Si tu rechutes, tu perds la validation du jour.</p>
+                  <div className="space-y-3">
+                    {actionLabels.map((label, i) => {
+                      const id = String(i + 1) as ActionId;
+                      const done = actionsState[id];
+                      const sinContext = i === 1 && focusSin ? getSinLabel(focusSin) : i === 2 && baseSin ? getSinLabel(baseSin) : null;
+                      const circleColor = i === 1 ? "bg-amber-500/25 text-amber-200" : i === 2 ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70";
+                      const circleColorDone = "bg-emerald-500/30 text-emerald-200";
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => handleToggleAction(id)}
+                          className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-start gap-3 transition-all ${
+                            done
+                              ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
+                              : "action-todo bg-emerald-500/15 border-emerald-400/35 hover:bg-emerald-500/20"
+                          }`}
+                        >
+                          <span
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                              done ? circleColorDone : circleColor
+                            }`}
+                            aria-hidden
+                          >
+                            {done ? "✓" : i + 1}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <span className={`text-sm font-medium ${done ? "text-white/80 line-through" : "text-white"}`}>
+                              {label}
+                            </span>
+                            {sinContext && (
+                              <p className={`text-xs mt-0.5 ${i === 1 ? "text-amber-200/70" : "text-emerald-200/70"}`}>
+                                → {sinContext}
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
         </div>
 
         {/* Bloc : Vous êtes sur la bonne voie depuis */}
@@ -256,6 +459,28 @@ export default function HomePage() {
             </p>
           )}
         </div>
+
+        {/* Bloc : Acheter ou offrir — rappel islamique + CTA */}
+        <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-5">
+          <p className="text-violet-200/95 text-sm font-medium text-center mb-1">
+            Rappel islamique
+          </p>
+          <p className="text-white/90 text-sm leading-relaxed text-center italic mb-4">
+            « Celui qui participe à une bonne œuvre aura la même récompense que celui qui l&apos;accomplit. »
+          </p>
+          <p className="text-white/70 text-xs text-center mb-4">
+            Aide d&apos;autres à avancer : offre StopHaram à un proche. Mensuel 9,99 €/mois · Annuel 4,99 €/mois (-50 %).
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/checkout?mode=offrir")}
+            className="w-full rounded-xl bg-violet-500/30 border border-violet-400/50 py-3.5 text-violet-200 font-semibold text-sm hover:bg-violet-500/40 transition-colors"
+          >
+            Offrir à un proche
+          </button>
+        </div>
+
+        <PrayerTimesCard />
 
         <button
           type="button"

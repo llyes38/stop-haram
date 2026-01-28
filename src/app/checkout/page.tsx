@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
+import { getUser, saveUser } from "@/lib/storage";
 
 // Tarifs : mensuel 9,99 € ; annuel -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -116,6 +117,8 @@ const SLIDES = [
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isOffrir = searchParams.get("mode") === "offrir";
   const [slideIndex, setSlideIndex] = useState(0);
   const [plan, setPlan] = useState<Plan>("annual");
 
@@ -135,7 +138,15 @@ export default function CheckoutPage() {
   }, []);
 
   const handlePay = () => {
-    // Après abonnement → page créer compte / s'identifier
+    const forfait: "mensuel" | "annuel" = plan === "annual" ? "annuel" : "mensuel";
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("stopharam_forfait", forfait);
+      const u = getUser();
+      if (u) {
+        u.profileInfo = { ...u.profileInfo, forfait };
+        saveUser(u);
+      }
+    }
     router.push("/signup");
   };
 
@@ -152,14 +163,21 @@ export default function CheckoutPage() {
       <div className="relative z-10 flex flex-col min-h-screen max-w-[420px] mx-auto w-full px-5 pt-6 pb-8">
         <header className="flex items-center justify-between mb-2">
           <span className="text-lg font-bold tracking-tight text-white">StopHaram</span>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 transition-colors"
-            aria-label="Fermer"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-          </button>
+          <div className="flex items-center gap-2">
+            {isOffrir && (
+              <span className="rounded-full bg-emerald-500/30 px-3 py-1 text-emerald-200 text-xs font-semibold">
+                Offrir
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40 transition-colors"
+              aria-label="Fermer"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
         </header>
 
         {/* Carousel */}
@@ -244,12 +262,23 @@ export default function CheckoutPage() {
 
         {/* CTA */}
         <section className="mt-auto space-y-3 pt-2">
+          {isOffrir && (
+            <p className="text-emerald-200/90 text-sm text-center">
+              Tu offres StopHaram à un proche — celui qui participe à une bonne œuvre aura la même récompense.
+            </p>
+          )}
           <button
             type="button"
             onClick={handlePay}
             className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 py-4 text-base font-bold text-white shadow-lg hover:from-violet-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-violet-400/60 active:opacity-90 transition-all"
           >
-            {plan === "annual" ? "Profiter de l'offre annuelle" : "S'abonner mensuellement"}
+            {isOffrir
+              ? plan === "annual"
+                ? "Offrir l'offre annuelle"
+                : "Offrir l'abonnement mensuel"
+              : plan === "annual"
+              ? "Profiter de l'offre annuelle"
+              : "S'abonner mensuellement"}
           </button>
           <p className="text-xs text-center text-white/70">
             Annulable à tout moment · Paiement sécurisé

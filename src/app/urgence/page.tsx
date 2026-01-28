@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser, saveUser, getSinLabel } from "@/lib/storage";
 import { getAideForSin } from "@/lib/urgenceAide";
 import { incrementResisted } from "@/lib/temptationStats";
+import { clearTodayActions } from "@/lib/dailyActions";
 import type { SelectedSin, StopHaramUser } from "@/lib/storage";
 
 const LAST_STREAK_START_KEY = "last_streak_start_iso";
@@ -37,6 +38,19 @@ export default function UrgencePage() {
     }
   }, []);
 
+  /** Vibration répétée tant que l'utilisateur est sur /urgence — s'arrête à la sortie */
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.vibrate) return;
+    const pattern = [80, 60, 80, 60, 80];
+    const id = setInterval(() => {
+      navigator.vibrate(pattern);
+    }, 400);
+    return () => {
+      clearInterval(id);
+      navigator.vibrate(0);
+    };
+  }, []);
+
   const handleSelectSinCraquer = (sin: SelectedSin) => {
     setSelectedSinCraquer(sin);
     setView("aide");
@@ -63,6 +77,9 @@ export default function UrgencePage() {
       },
     };
     saveUser(updatedUser);
+    const user = getUser();
+    const labels = getDailyActionLabels(user);
+    clearTodayActions(labels.length);
     if (typeof window !== "undefined") {
       window.localStorage.setItem(LAST_STREAK_START_KEY, new Date().toISOString());
       window.localStorage.setItem(LAST_RECHUTE_KEY, getTodayISO());

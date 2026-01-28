@@ -20,8 +20,10 @@ import type {
   TypeLogement,
   Converti,
 } from "@/lib/storage";
-import { generatePlan } from "@/lib/programEngine";
+import { generatePlan, ACTION_1 } from "@/lib/programEngine";
 import { setAuth, resetOnboarding } from "@/lib/authState";
+import { updateLastRoute } from "@/lib/authState";
+import type { SelectedSin } from "@/lib/storage";
 
 type Tab = "profil" | "objectifs" | "plan";
 
@@ -104,6 +106,19 @@ export default function AccountPage() {
         saveUser(u);
       }
     }
+    
+    // S'assurer que actionsPerDay est défini (par défaut 3)
+    if (u && !u.profileInfo?.actionsPerDay) {
+      u = {
+        ...u,
+        profileInfo: {
+          ...u.profileInfo,
+          actionsPerDay: 3,
+        },
+      };
+      saveUser(u);
+    }
+    
     setUser(u);
     if (u) {
       setEditName(u.name || "");
@@ -356,6 +371,64 @@ export default function AccountPage() {
           >
             {saved ? "Enregistré ✓" : "Enregistrer"}
           </button>
+
+          {/* Section Forfait */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <h2 className="text-white/80 text-sm font-medium mb-4">Ton forfait</h2>
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/25 px-4 py-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                      <path d="M2 17l10 5 10-5" />
+                      <path d="M2 12l10 5 10-5" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="text-emerald-200 font-semibold text-sm">
+                      {user.profileInfo?.forfait === "annuel"
+                        ? "Forfait Annuel"
+                        : user.profileInfo?.forfait === "mensuel"
+                        ? "Forfait Mensuel"
+                        : "—"}
+                    </p>
+                    <p className="text-white/60 text-xs">
+                      {user.profileInfo?.forfait === "annuel"
+                        ? "12 mois · renouvelé chaque année"
+                        : user.profileInfo?.forfait === "mensuel"
+                        ? "Résiliable à tout moment"
+                        : "Choisi au checkout (mensuel ou annuel)"}
+                    </p>
+                  </div>
+                </div>
+                {user.profileInfo?.forfait && (
+                  <span className="rounded-full bg-emerald-500/30 px-2.5 py-1 text-emerald-200 text-xs font-semibold">Actif</span>
+                )}
+              </div>
+              {user.profileInfo?.forfait && (
+                <div className="mt-3 pt-3 border-t border-emerald-400/20">
+                  <ul className="space-y-1.5 text-white/80 text-xs">
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-400">✓</span> Plan personnalisé de 30 jours
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-400">✓</span> 3, 5 ou 10 actions par jour
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-400">✓</span> Suivi de progression
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-400">✓</span> Aide d&apos;urgence
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="text-emerald-400">✓</span> Statuts et récompenses
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 
@@ -408,48 +481,91 @@ export default function AccountPage() {
       {tab === "plan" && (
         <section className="space-y-6">
           <h2 className="text-white/80 text-sm font-medium">Ton plan</h2>
-          <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4 space-y-3">
-            <p className="text-white/90 text-sm">Plan : 28 jours</p>
-            <p className="text-white/80 text-sm">Focus : {getSinLabel(user.plan.focusSin)}</p>
-            <p className="text-white/80 text-sm">Jour : {Math.min(dayNum, 28)}/28</p>
-            {dayPlan && (
-              <div className="pt-2 space-y-2 border-t border-white/10">
-                <div>
-                  <p className="text-white/60 text-xs font-medium">Focus</p>
-                  <p className="text-white/90 text-sm font-medium">{dayPlan.focus.title}</p>
-                </div>
-                <div>
-                  <p className="text-white/60 text-xs font-medium">Base</p>
-                  <p className="text-white/90 text-sm font-medium">{dayPlan.base.title}</p>
-                </div>
+          
+          {/* Sélecteur du nombre d'actions par jour */}
+          <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4 space-y-4">
+            <div>
+              <p className="text-white/90 text-sm font-medium mb-2">Nombre d'actions par jour</p>
+              <p className="text-white/60 text-xs mb-3">Avec le temps et les efforts, on s'améliore. Tu peux augmenter progressivement le nombre d'actions pour renforcer ta discipline.</p>
+              <div className="flex gap-2">
+                {([3, 5, 10] as const).map((count) => {
+                  const isSelected = (user.profileInfo?.actionsPerDay ?? 3) === count;
+                  return (
+                    <button
+                      key={count}
+                      type="button"
+                      onClick={() => {
+                        const updatedUser = {
+                          ...user,
+                          profileInfo: {
+                            ...user.profileInfo,
+                            actionsPerDay: count,
+                          },
+                        };
+                        updatedUser.plan = generatePlan(updatedUser);
+                        saveUser(updatedUser);
+                        setUser(updatedUser);
+                      }}
+                      className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                        isSelected
+                          ? "bg-emerald-500/30 text-emerald-200 border-2 border-emerald-400/50"
+                          : "bg-white/5 text-white/70 border-2 border-white/10 hover:bg-white/10"
+                      }`}
+                    >
+                      {count}
+                    </button>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          </div>
+          
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/25 px-4 py-4 space-y-3">
+            <p className="text-emerald-200/90 text-sm font-medium">Chaque jour = {user.profileInfo?.actionsPerDay ?? 3} actions</p>
+            <p className="text-white/80 text-sm">Tu valides ta journée en accomplissant les {user.profileInfo?.actionsPerDay ?? 3}. Si tu rechutes, tu perds la validation du jour.</p>
+          </div>
+          <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4 space-y-3">
+            <p className="text-white/90 text-sm">Plan : 30 jours · Focus : {getSinLabel(user.plan.focusSin)}</p>
+            <p className="text-white/80 text-sm">Jour actuel : {Math.min(dayNum, 30)}/30</p>
+            {dayPlan && (() => {
+              // Si pas d'intention ou ancienne intention fixe, utiliser ACTION_1 basé sur le numéro du jour
+              let intentionTitle = dayPlan.intention?.title;
+              if (!intentionTitle || intentionTitle === "Faire mon intention du jour" || intentionTitle.startsWith("Intention :")) {
+                const focusSin: SelectedSin = user.plan.focusSin ?? "autre";
+                const action1List = ACTION_1[focusSin] ?? ACTION_1.autre;
+                const dayNum = dayPlan.day;
+                const actionIdx = (dayNum - 1) % action1List.length;
+                intentionTitle = action1List[actionIdx]?.title ?? "Faire mon intention du jour";
+              }
+              
+              const actionsPerDay = user.profileInfo?.actionsPerDay ?? 3;
+              const allActions = [
+                    intentionTitle,
+                    dayPlan.focus.title,
+                    dayPlan.base.title,
+                    ...(dayPlan.additionalActions?.map(a => a.title) ?? [])
+                  ].slice(0, actionsPerDay);
+              
+              return (
+                <div className="pt-2 space-y-2 border-t border-white/10">
+                  <p className="text-white/60 text-xs font-medium">{actionsPerDay} actions du jour</p>
+                  <ol className="space-y-1.5 text-sm font-medium list-decimal list-inside text-white/90">
+                    {allActions.map((action, idx) => (
+                      <li key={idx}>{action}</li>
+                    ))}
+                  </ol>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="flex flex-col gap-2">
             <button
               type="button"
               onClick={() => router.push("/parcours")}
-              className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-semibold hover:bg-gray-100 transition-colors"
-            >
-              Continuer mon parcours
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/parcours")}
               className="w-full rounded-xl bg-white/10 py-3 text-white/90 font-medium hover:bg-white/15 transition-colors border border-white/10"
             >
               Voir tout le plan
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                resetOnboarding();
-                router.replace("/profile");
-              }}
-              className="w-full rounded-xl bg-amber-500/20 py-3 text-amber-200 font-medium hover:bg-amber-500/30 transition-colors border border-amber-400/30"
-            >
-              Refaire le parcours complet
             </button>
           </div>
 

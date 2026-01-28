@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ensureUserDefaults, getUser, saveUser, domainsToSins } from "@/lib/storage";
 import { generatePlan } from "@/lib/programEngine";
 import { updateLastRoute, setProfile } from "@/lib/authState";
+import type { SelectedSin } from "@/lib/storage";
 
 const GENDER_QUESTION = {
   id: "gender",
@@ -25,6 +26,24 @@ const DOMAINS = [
   "Réseaux sociaux / addiction téléphone",
   "Autre / je ne sais pas encore",
 ];
+
+// Fonction pour convertir les péchés en domaines
+const SIN_TO_DOMAIN: Record<SelectedSin, string> = {
+  priere: "Prière / retard / négligence",
+  regard: "Regards / contenu explicite",
+  porno: "Relations illicites",
+  drogue: "Alcool / drogues",
+  mensonge: "Mensonge / double vie",
+  colere: "Colère / insultes",
+  musique: "Musique / temps perdu",
+  jeux: "Réseaux sociaux / addiction téléphone",
+  alcool: "Alcool / drogues",
+  autre: "Autre / je ne sais pas encore",
+};
+
+function sinsToDomains(sins: SelectedSin[]): string[] {
+  return sins.map((sin) => SIN_TO_DOMAIN[sin] || "").filter(Boolean);
+}
 
 const QUESTIONS = [
   { id: "q1", text: "À quelle fréquence tu retombes (tous domaines confondus) ?", options: ["Plusieurs fois par jour", "Une fois par jour", "Quelques fois par semaine", "Rarement"], multiSelect: false },
@@ -78,6 +97,32 @@ export default function QuizClient() {
       setCurrentStep(11);
       router.replace("/quiz");
     }
+    
+    // Si on vient de parcours, charger les données utilisateur existantes
+    if (from === "parcours") {
+      const existingUser = getUser();
+      if (existingUser) {
+        // Pré-remplir les domaines avec les péchés actuels
+        const domains = sinsToDomains(existingUser.selectedSins);
+        setSelectedDomains(domains);
+        
+        // Pré-remplir les réponses du quiz
+        if (existingUser.answers) {
+          setAnswers(existingUser.answers as Record<string, string | string[]>);
+        }
+        
+        // Pré-remplir nom et âge depuis le profil
+        setFirstName(existingUser.name || "");
+        if (existingUser.profileInfo?.age) {
+          setAge(String(existingUser.profileInfo.age));
+        }
+        
+        // Commencer directement à l'étape de sélection des domaines
+        setCurrentStep(1);
+      }
+      return;
+    }
+    
     const savedQuiz = window.localStorage.getItem("stopharam_quiz");
     const savedDomains = window.localStorage.getItem("stopharam_domains");
     const savedProfile = window.localStorage.getItem("stopharam_profile");
@@ -148,7 +193,12 @@ export default function QuizClient() {
     if (currentStep < 11) {
       setCurrentStep(currentStep + 1);
     } else {
-      setCurrentStep(12);
+      // Si on vient de parcours, sauter le profil et finir directement
+      if (fromParcours) {
+        handleFinishQuiz();
+      } else {
+        setCurrentStep(12);
+      }
     }
   };
 
@@ -170,19 +220,38 @@ export default function QuizClient() {
     if (currentStep < 11) {
       setCurrentStep(currentStep + 1);
     } else {
-      setCurrentStep(12);
+      // Si on vient de parcours, sauter le profil et finir directement
+      if (fromParcours) {
+        handleFinishQuiz();
+      } else {
+        setCurrentStep(12);
+      }
     }
   };
 
   const goPrevious = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
+    // Si on vient de parcours, ne pas permettre de revenir à step 0
+    if (currentStep > (fromParcours ? 1 : 0)) {
+      setCurrentStep(currentStep - 1);
+    }
   };
 
   const fromAccount = searchParams.get("from") === "account";
+  const fromParcours = searchParams.get("from") === "parcours";
 
   const handleBack = () => {
-    if (currentStep > 0) goPrevious();
-    else router.push(fromAccount ? "/account" : "/");
+    if (currentStep > 0) {
+      // Si on vient de parcours et qu'on est à step 1, retourner à parcours
+      if (fromParcours && currentStep === 1) {
+        router.push("/parcours");
+        return;
+      }
+      goPrevious();
+    } else {
+      if (fromAccount) router.push("/account");
+      else if (fromParcours) router.push("/parcours");
+      else router.push("/");
+    }
   };
 
   const handleSkip = () => router.push("/profile");
@@ -190,34 +259,48 @@ export default function QuizClient() {
   const handleFinishQuiz = () => {
     const profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+      // Si on vient de parcours, ne pas sauvegarder le profil (garder l'existant)
+      if (!fromParcours) {
+        window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+      }
       updateLastRoute("/quiz");
       const selectedSins = domainsToSins(selectedDomains);
       const scores: Record<string, number> = {};
       selectedSins.forEach((sin) => { scores[sin] = 50; });
       const existingUser = getUser();
       const isModifyFromAccount = searchParams.get("from") === "account";
-      const user = isModifyFromAccount && existingUser
-        ? ensureUserDefaults({
-            ...existingUser,
-            name: firstName.trim() || existingUser.name,
-            selectedSins,
-            scores: { ...existingUser.scores, ...scores },
-            answers: answers as Record<string, unknown>,
-          })
-        : ensureUserDefaults({
-            name: firstName.trim(),
-            selectedSins,
-            scores,
-            answers: answers as Record<string, unknown>,
-            startDateISO: new Date().toISOString().slice(0, 10),
-            streakDays: 0,
-          });
+      const isModifyFromParcours = searchParams.get("from") === "parcours";
+      
+      let user;
+      if ((isModifyFromAccount || isModifyFromParcours) && existingUser) {
+        // Conserver toutes les données existantes, juste mettre à jour les péchés et réponses
+        user = ensureUserDefaults({
+          ...existingUser,
+          name: isModifyFromParcours ? existingUser.name : (firstName.trim() || existingUser.name),
+          selectedSins,
+          scores: { ...existingUser.scores, ...scores },
+          answers: answers as Record<string, unknown>,
+        });
+      } else {
+        user = ensureUserDefaults({
+          name: firstName.trim(),
+          selectedSins,
+          scores,
+          answers: answers as Record<string, unknown>,
+          startDateISO: new Date().toISOString().slice(0, 10),
+          streakDays: 0,
+        });
+      }
       user.plan = generatePlan(user);
       saveUser(user);
+      
       if (isModifyFromAccount) {
         setProfile({ name: user.name });
         router.replace("/account");
+        return;
+      }
+      if (isModifyFromParcours) {
+        router.replace("/parcours");
         return;
       }
     }
@@ -255,8 +338,8 @@ export default function QuizClient() {
           </button>
         </div>
 
-        {/* Step 0: Gender */}
-        {currentStep === 0 && (
+        {/* Step 0: Gender - sautée si on vient de parcours */}
+        {currentStep === 0 && !fromParcours && (
           <div className="flex-1 flex flex-col">
             <h2 className="text-white text-xl sm:text-2xl font-bold mb-2">{GENDER_QUESTION.text}</h2>
             <div className="space-y-3 mb-6">
@@ -382,8 +465,8 @@ export default function QuizClient() {
           );
         })()}
 
-        {/* Step 12: Profile */}
-        {currentStep === 12 && (
+        {/* Step 12: Profile - sautée si on vient de parcours */}
+        {currentStep === 12 && !fromParcours && (
           <div className="flex-1 flex flex-col">
             <h2 className="text-white text-xl sm:text-2xl font-bold mb-6">Un peu plus sur toi</h2>
             <div className="space-y-4 mb-6">

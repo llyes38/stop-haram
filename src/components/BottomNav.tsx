@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { incrementTempted } from "@/lib/temptationStats";
 
 const TABS = [
   { href: "/home", label: "Accueil", icon: "home" },
   { href: "/parcours", label: "Parcours", icon: "play" },
+  { craquer: true as const },
   { href: "/progress", label: "Progrès", icon: "chart" },
   { href: "/account", label: "Compte", icon: "user" },
 ] as const;
@@ -55,14 +57,36 @@ function TabIcon({ icon, active }: { icon: string; active: boolean }) {
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleCraquer = () => {
+    incrementTempted();
+    router.push("/urgence");
+  };
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-30 max-w-[420px] mx-auto bg-[#0a0f1a]/90 border-t border-white/10 backdrop-blur-sm safe-area-pb"
       aria-label="Navigation principale"
     >
-      <div className="flex items-center justify-around h-16 px-2">
-        {TABS.map(({ href, label, icon }) => {
+      <div className="flex items-center justify-around h-16 px-2 gap-1">
+        {TABS.map((tab, i) => {
+          if ("craquer" in tab && tab.craquer) {
+            return (
+              <button
+                key="craquer"
+                type="button"
+                onClick={handleCraquer}
+                className="flex flex-col items-center justify-center gap-0.5 min-w-[64px] py-2 rounded-xl bg-red-900/50 border-2 border-red-500/60 text-white hover:bg-red-900/60 hover:border-red-500/70 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                aria-label="Je vais craquer"
+              >
+                <span className="text-xl leading-none">
+                  <span className="stress-emoji">😰</span>
+                </span>
+              </button>
+            );
+          }
+          const { href, label, icon } = tab as { href: string; label: string; icon: string };
           const active = pathname === href;
           return (
             <Link

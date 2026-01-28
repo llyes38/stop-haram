@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { completeOnboarding, updateLastRoute } from "@/lib/authState";
+import { clearTodayActions } from "@/lib/dailyActions";
+import { getUser, getDailyActionLabels } from "@/lib/storage";
 
 const STORAGE_KEYS = {
   last_rechute_check: "last_rechute_check",
@@ -32,6 +34,9 @@ export default function RechutePage() {
     } else {
       window.localStorage.setItem(STORAGE_KEYS.days_clean, "0");
       window.localStorage.setItem(STORAGE_KEYS.last_streak_start_iso, nowIso);
+      const user = getUser();
+      const labels = getDailyActionLabels(user);
+      clearTodayActions(labels.length);
     }
     try {
       const raw = window.localStorage.getItem("stopharam_user");

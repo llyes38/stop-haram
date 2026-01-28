@@ -12,9 +12,12 @@ export type SelectedSin =
 
 export interface PlanDay {
   day: number;
+  intention?: { title: string; desc: string };
   focus: { title: string; desc: string };
   base: { title: string; desc: string };
   optional?: { title: string; desc: string };
+  /** Actions supplémentaires pour les plans avec 5 ou 10 actions par jour */
+  additionalActions?: Array<{ title: string; desc: string }>;
 }
 
 export type SituationFamiliale = "marie" | "celibataire" | "divorce" | "veuf" | "autre" | "";
@@ -37,6 +40,8 @@ export interface ProfileInfo {
   converti?: Converti;
   /** "Mon but en arrêtant mes péchés est de..." — motivation personnelle */
   whyStop?: string;
+  /** Forfait choisi au début (checkout) : mensuel ou annuel */
+  forfait?: "mensuel" | "annuel";
 }
 
 export interface StopHaramUser {
@@ -50,7 +55,7 @@ export interface StopHaramUser {
   streakDays: number;
   perSinStreak?: Record<string, number>;
   plan: {
-    durationDays: 28;
+    durationDays: 30;
     focusSin: SelectedSin;
     baseSin?: SelectedSin;
     days: PlanDay[];
@@ -105,10 +110,18 @@ export function ensureUserDefaults(partial: Partial<StopHaramUser>): StopHaramUs
     if (scores[sin] === undefined) scores[sin] = 50;
   });
   const plan = partial.plan ?? existing?.plan;
+  let profileInfo = partial.profileInfo ?? existing?.profileInfo;
+  if (typeof window !== "undefined") {
+    const pending = window.localStorage.getItem("stopharam_forfait");
+    if ((pending === "mensuel" || pending === "annuel") && !profileInfo?.forfait) {
+      profileInfo = { ...profileInfo, forfait: pending };
+      window.localStorage.removeItem("stopharam_forfait");
+    }
+  }
   const baseUser: StopHaramUser = {
     name: partial.name ?? existing?.name ?? "",
     selectedSins,
-    profileInfo: partial.profileInfo ?? existing?.profileInfo,
+    profileInfo,
     answers: partial.answers ?? existing?.answers,
     scores,
     startDateISO,
@@ -116,7 +129,7 @@ export function ensureUserDefaults(partial: Partial<StopHaramUser>): StopHaramUs
     streakDays: partial.streakDays ?? existing?.streakDays ?? 0,
     perSinStreak: partial.perSinStreak ?? existing?.perSinStreak,
     plan: plan ?? {
-      durationDays: 28,
+      durationDays: 30,
       focusSin: selectedSins[0] ?? "autre",
       baseSin: selectedSins[1],
       days: [],
@@ -183,4 +196,43 @@ export function getSituationLabel(s: SituationFamiliale): string {
 
 export function getStatutLabel(s: StatutPro): string {
   return (s && STATUT_LABELS[s]) || "—";
+}
+
+import { ACTION_1 } from "./programEngine";
+
+/** Labels des actions du jour : retourne toutes les actions selon actionsPerDay. */
+export function getDailyActionLabels(user: StopHaramUser | null): string[] {
+  const defaultFocus = "Lire un rappel ou une invocation";
+  const defaultBase = "Une action concrète vers mon objectif";
+  const defaultIntention = "Faire mon intention du jour";
+
+  if (!user?.plan?.days?.length || !user.startDateISO) {
+    return [defaultIntention, defaultFocus, defaultBase];
+  }
+
+  const dayNum = getDayNumber(user.startDateISO);
+  const idx = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
+  const d = user.plan.days[idx];
+  
+  // Si pas d'intention dans le plan ou si c'est l'ancienne intention fixe, générer une action variée depuis ACTION_1
+  let action1Title = d.intention?.title;
+  if (!action1Title || action1Title === "Faire mon intention du jour" || action1Title.startsWith("Intention :")) {
+    const focusSin: SelectedSin = user.plan.focusSin ?? "autre";
+    const action1List = ACTION_1[focusSin] ?? ACTION_1.autre;
+    const dayNum = d.day;
+    const actionIdx = (dayNum - 1) % action1List.length;
+    action1Title = action1List[actionIdx]?.title ?? defaultIntention;
+  }
+  
+  const actionsPerDay = user.profileInfo?.actionsPerDay ?? 3;
+  const baseActions = [
+    action1Title,
+    d.focus?.title ?? defaultFocus,
+    d.base?.title ?? defaultBase,
+  ];
+  
+  const additionalActions = d.additionalActions?.map(a => a.title) ?? [];
+  const allActions = [...baseActions, ...additionalActions].slice(0, actionsPerDay);
+  
+  return allActions;
 }
