@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { ensureUserDefaults, saveUser, domainsToSins } from "@/lib/storage";
+import { generatePlan } from "@/lib/programEngine";
 
 const GENDER_QUESTION = {
   id: "gender",
@@ -186,6 +188,19 @@ export default function QuizClient() {
     const profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+      const selectedSins = domainsToSins(selectedDomains);
+      const scores: Record<string, number> = {};
+      selectedSins.forEach((sin) => { scores[sin] = 50; });
+      const user = ensureUserDefaults({
+        name: firstName.trim(),
+        selectedSins,
+        scores,
+        answers: answers as Record<string, unknown>,
+        startDateISO: new Date().toISOString().slice(0, 10),
+        streakDays: 0,
+      });
+      user.plan = generatePlan(user);
+      saveUser(user);
     }
     router.push("/analysis");
   };

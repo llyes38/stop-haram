@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ensureUserDefaults, saveUser, domainsToSins } from "@/lib/storage";
+import { generatePlan } from "@/lib/programEngine";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -10,14 +12,31 @@ export default function ProfilePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (firstName.trim() && age.trim()) {
-      const profile = {
-        firstName: firstName.trim(),
-        age: parseInt(age, 10),
-      };
-      localStorage.setItem("stopharam_profile", JSON.stringify(profile));
-      router.push("/summary");
+    if (typeof window === "undefined" || !firstName.trim() || !age.trim()) return;
+    const profile = {
+      firstName: firstName.trim(),
+      age: parseInt(age, 10),
+    };
+    window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
+    const domainLabelsRaw = window.localStorage.getItem("stopharam_domains");
+    const domainLabels = domainLabelsRaw ? (JSON.parse(domainLabelsRaw) as string[]) : [];
+    const selectedSins = domainsToSins(domainLabels);
+    const scores: Record<string, number> = {};
+    selectedSins.forEach((sin) => { scores[sin] = 50; });
+    const user = ensureUserDefaults({
+      name: firstName.trim(),
+      selectedSins,
+      scores,
+      startDateISO: new Date().toISOString().slice(0, 10),
+      streakDays: 0,
+    });
+    if (!user.plan?.days?.length) {
+      user.plan = generatePlan(user);
     }
+    saveUser(user);
+    window.localStorage.setItem("is_logged_in", "true");
+    window.localStorage.setItem("user_name", firstName.trim());
+    router.push("/home");
   };
 
   return (

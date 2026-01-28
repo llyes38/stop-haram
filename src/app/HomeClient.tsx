@@ -157,7 +157,7 @@ function WelcomeScreen() {
             href="/quiz"
             className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-gray-900 font-semibold text-base shadow-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-colors"
           >
-            Commencer l'introspection
+            Commencer l&apos;introspection
             <span aria-hidden className="text-lg leading-none">→</span>
           </Link>
           <Link
@@ -166,6 +166,14 @@ function WelcomeScreen() {
           >
             Déjà inscrit ?
           </Link>
+          {(process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_ENABLE_TEST_LINK === "true") && (
+            <Link
+              href="/test"
+              className="text-white/50 text-xs font-normal hover:text-white/70 focus:outline-none focus:underline transition-colors"
+            >
+              Accès test (aller à l&apos;app sans parcours)
+            </Link>
+          )}
         </footer>
       </div>
     </main>

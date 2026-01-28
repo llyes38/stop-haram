@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 500" fill="none" class="w-full h-full">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a0a2e"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>
+    <linearGradient id="ring2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8b5cf6"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient>
+  </defs>
+  <rect width="280" height="500" rx="24" fill="url(#bg2)" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+  <rect x="12" y="12" width="256" height="476" rx="16" fill="rgba(0,0,0,0.3)"/>
+  <text x="24" y="36" fill="rgba(255,255,255,0.9)" font-size="14" font-family="system-ui">9:41</text>
+  <text x="140" y="80" fill="rgba(255,255,255,0.9)" font-size="15" font-weight="600" text-anchor="middle" font-family="system-ui">Suis tes progrès</text>
+  <!-- Progress circle -->
+  <circle cx="140" cy="200" r="70" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="8"/>
+  <circle cx="140" cy="200" r="70" fill="none" stroke="url(#ring2)" stroke-width="8" stroke-dasharray="330 440" stroke-linecap="round" transform="rotate(-90 140 200)"/>
+  <text x="140" y="205" fill="white" font-size="28" font-weight="700" text-anchor="middle" font-family="system-ui">90%</text>
+  <text x="140" y="295" fill="rgba(255,255,255,0.8)" font-size="14" text-anchor="middle" font-family="system-ui">Récupération · 80 jours</text>
+  <rect x="40" y="320" width="200" height="8" rx="4" fill="rgba(255,255,255,0.1)"/>
+  <rect x="40" y="320" width="150" height="8" rx="4" fill="url(#ring2)"/>
+  <text x="140" y="370" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Visualise ta progression</text>
+</svg>

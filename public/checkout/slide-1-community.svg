@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 500" fill="none" class="w-full h-full">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a0a2e"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>
+    <linearGradient id="acc1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981"/><stop offset="100%" stop-color="#059669"/></linearGradient>
+  </defs>
+  <rect width="280" height="500" rx="24" fill="url(#bg1)" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+  <rect x="12" y="12" width="256" height="476" rx="16" fill="rgba(0,0,0,0.3)"/>
+  <!-- Status -->
+  <text x="24" y="36" fill="rgba(255,255,255,0.9)" font-size="14" font-family="system-ui">9:41</text>
+  <text x="220" y="36" fill="rgba(255,255,255,0.7)" font-size="12" font-family="system-ui">StopHaram</text>
+  <!-- Content -->
+  <circle cx="140" cy="120" r="28" fill="url(#acc1)" opacity="0.4"/>
+  <path d="M128 108l8 8 16-16" stroke="#10b981" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="140" y="180" fill="rgba(255,255,255,0.95)" font-size="16" font-weight="600" text-anchor="middle" font-family="system-ui">Session en direct</text>
+  <text x="140" y="210" fill="rgba(255,255,255,0.7)" font-size="13" text-anchor="middle" font-family="system-ui">Reprends le contrôle, pas à pas.</text>
+  <circle cx="90" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="140" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
+  <circle cx="190" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
+  <text x="140" y="350" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Trouve ta communauté</text>
+</svg>

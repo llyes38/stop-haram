@@ -152,7 +152,7 @@ export default function TestimonialsPage() {
       <div className="relative z-10 flex w-full justify-center border-t border-white/10 bg-gradient-to-t from-[#0a1628] to-transparent px-4 py-4">
         <button
           type="button"
-          onClick={() => router.push("/objectives")}
+          onClick={() => router.push("/plan")}
           className="flex w-full max-w-[320px] items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 active:bg-gray-200"
         >
           Commencer mon parcours
