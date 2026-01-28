@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" fill="none" aria-hidden="true">
+  <text x="0" y="30" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700" font-size="26" fill="#F2F5F3">Stop</text>
+  <text x="56" y="30" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-weight="700" font-size="26" fill="#0F3D2E">Haram</text>
+  <g fill="#C9A24D">
+    <path fill-rule="evenodd" d="M70 10a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm2.5 0a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4z"/>
+    <circle cx="76" cy="8" r="1.2"/>
+  </g>
+</svg>

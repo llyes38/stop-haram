@@ -23,7 +23,8 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     const isParcours = isParcoursRoute(pathname);
 
     if (isPublic) {
-      if (loggedIn && onboardingComplete) {
+      const isLogoDemo = pathname === "/logo" || pathname.startsWith("/logo/");
+      if (loggedIn && onboardingComplete && !isLogoDemo) {
         router.replace("/home");
         return;
       }

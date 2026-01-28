@@ -122,7 +122,7 @@ const PARCOURS_ROUTES = [
   "/urgence",
 ];
 
-const PUBLIC_ROUTES = ["/start", "/login"];
+const PUBLIC_ROUTES = ["/start", "/login", "/logo"];
 
 export const FIRST_PARCOURS_STEP = "/profile";
 

@@ -38,9 +38,11 @@ export default function UrgencePage() {
     }
   }, []);
 
-  /** Vibration répétée tant que l'utilisateur est sur /urgence — s'arrête à la sortie */
+  const [vibrationActive, setVibrationActive] = useState(false);
+
+  /** Vibration uniquement après "Malheureusement je suis faible, je rechute" — s'arrête à la sortie de la page */
   useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.vibrate) return;
+    if (!vibrationActive || typeof navigator === "undefined" || !navigator.vibrate) return;
     const pattern = [80, 60, 80, 60, 80];
     const id = setInterval(() => {
       navigator.vibrate(pattern);
@@ -49,7 +51,7 @@ export default function UrgencePage() {
       clearInterval(id);
       navigator.vibrate(0);
     };
-  }, []);
+  }, [vibrationActive]);
 
   const handleSelectSinCraquer = (sin: SelectedSin) => {
     setSelectedSinCraquer(sin);
@@ -57,6 +59,7 @@ export default function UrgencePage() {
   };
 
   const handleRechute = () => {
+    setVibrationActive(true);
     setView("selectSin");
   };
 
