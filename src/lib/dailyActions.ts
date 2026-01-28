@@ -28,27 +28,33 @@ function saveRaw(data: Record<string, DailyActionsState>): void {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-export function getTodayActionsState(): DailyActionsState {
+export function getTodayActionsState(count: number = 3): DailyActionsState {
   const key = getTodayKey();
   const data = loadRaw();
   const day = data[key];
-  return {
-    "1": day?.["1"] ?? false,
-    "2": day?.["2"] ?? false,
-    "3": day?.["3"] ?? false,
+  const n = Math.min(Math.max(1, count), 10);
+  const out: DailyActionsState = {
+    "1": false, "2": false, "3": false, "4": false, "5": false,
+    "6": false, "7": false, "8": false, "9": false, "10": false,
   };
+  for (let i = 1; i <= n; i++) {
+    const id = String(i) as ActionId;
+    out[id] = day?.[id] ?? false;
+  }
+  return out;
 }
 
 export function setTodayActionDone(id: ActionId, done: boolean): void {
   const key = getTodayKey();
   const data = loadRaw();
-  const day = { ...getTodayActionsState(), [id]: done };
+  const existing = (data[key] ?? {}) as Record<string, boolean>;
+  const day = { ...existing, [id]: done } as DailyActionsState;
   data[key] = day;
   saveRaw(data);
 }
 
-export function toggleTodayAction(id: ActionId): void {
-  const state = getTodayActionsState();
+export function toggleTodayAction(id: ActionId, count: number = 10): void {
+  const state = getTodayActionsState(count);
   setTodayActionDone(id, !state[id]);
 }
 

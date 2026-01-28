@@ -13,6 +13,7 @@ import {
   type DailyActionsState,
 } from "@/lib/dailyActions";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
+import { todayKey } from "@/lib/date";
 
 const DEFI_JOURS = 30;
 
@@ -51,6 +52,7 @@ export default function HomePage() {
   });
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
   const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
+  const [dhikrDoneToday, setDhikrDoneToday] = useState(false);
 
   useEffect(() => {
     const u = getUser();
@@ -67,6 +69,10 @@ export default function HomePage() {
     setActionsState(getTodayActionsState(actionsCount));
     setFocusSin(u?.plan?.focusSin ?? null);
     setBaseSin(u?.plan?.baseSin ?? null);
+    if (typeof window !== "undefined") {
+      const raw = window.localStorage.getItem("dhikr_matin_done");
+      setDhikrDoneToday(raw === todayKey());
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -138,9 +144,9 @@ export default function HomePage() {
   };
 
   const handleToggleAction = (id: ActionId) => {
-    toggleTodayAction(id);
     const u = getUser();
     const labels = getDailyActionLabels(u ?? null);
+    toggleTodayAction(id, labels.length);
     setActionsState(getTodayActionsState(labels.length));
   };
 
@@ -288,9 +294,10 @@ export default function HomePage() {
           <div className="mt-5 pt-5 border-t border-white/10">
             {(() => {
               const actionsCount = actionLabels.length;
-              const allDone = actionLabels.every((_, i) => {
+              const allDone = actionLabels.every((label, i) => {
                 const id = String(i + 1) as ActionId;
-                return actionsState[id];
+                const isDhikr = /dhikr|invocation/i.test(label);
+                return isDhikr ? dhikrDoneToday : actionsState[id];
               });
               return (
                 <>
@@ -306,7 +313,8 @@ export default function HomePage() {
                   <div className="space-y-3">
                     {actionLabels.map((label, i) => {
                       const id = String(i + 1) as ActionId;
-                      const done = actionsState[id];
+                      const isDhikr = /dhikr|invocation/i.test(label);
+                      const done = isDhikr ? dhikrDoneToday : actionsState[id];
                       const sinContext = i === 1 && focusSin ? getSinLabel(focusSin) : i === 2 && baseSin ? getSinLabel(baseSin) : null;
                       const circleColor = i === 1 ? "bg-amber-500/25 text-amber-200" : i === 2 ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70";
                       const circleColorDone = "bg-emerald-500/30 text-emerald-200";
@@ -314,7 +322,13 @@ export default function HomePage() {
                         <button
                           key={id}
                           type="button"
-                          onClick={() => handleToggleAction(id)}
+                          onClick={() => {
+                            if (isDhikr) {
+                              router.push("/dhikr/matin");
+                              return;
+                            }
+                            handleToggleAction(id);
+                          }}
                           className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-start gap-3 transition-all ${
                             done
                               ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
@@ -337,6 +351,11 @@ export default function HomePage() {
                               <p className={`text-xs mt-0.5 ${i === 1 ? "text-amber-200/70" : "text-emerald-200/70"}`}>
                                 → {sinContext}
                               </p>
+                            )}
+                            {isDhikr && done && (
+                              <span className="inline-block mt-1 rounded-full bg-emerald-500/30 px-2 py-0.5 text-emerald-200 text-xs font-semibold">
+                                Terminé
+                              </span>
                             )}
                           </div>
                         </button>
