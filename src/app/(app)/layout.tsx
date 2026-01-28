@@ -48,7 +48,7 @@ export default function AppLayout({
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e]">
-      <main className="flex-1 w-full max-w-[420px] mx-auto pb-20">
+      <main className="flex-1 min-h-0 w-full max-w-[420px] mx-auto pb-20 overflow-y-auto overflow-x-hidden">
         {children}
       </main>
       <BottomNav />

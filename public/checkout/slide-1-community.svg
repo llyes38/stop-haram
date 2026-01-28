@@ -12,9 +12,9 @@
   <circle cx="140" cy="120" r="28" fill="url(#acc1)" opacity="0.4"/>
   <path d="M128 108l8 8 16-16" stroke="#10b981" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
   <text x="140" y="180" fill="rgba(255,255,255,0.95)" font-size="16" font-weight="600" text-anchor="middle" font-family="system-ui">Session en direct</text>
-  <text x="140" y="210" fill="rgba(255,255,255,0.7)" font-size="13" text-anchor="middle" font-family="system-ui">Reprends le contrôle, pas à pas.</text>
+  <text x="140" y="210" fill="rgba(255,255,255,0.7)" font-size="13" text-anchor="middle" font-family="system-ui">Reprends le contrÃ´le, pas Ã  pas.</text>
   <circle cx="90" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
   <circle cx="140" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
   <circle cx="190" cy="280" r="24" fill="rgba(255,255,255,0.12)"/>
-  <text x="140" y="350" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Trouve ta communauté</text>
+  <text x="140" y="350" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Trouve ta communautÃ©</text>
 </svg>

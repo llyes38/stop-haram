@@ -6,16 +6,16 @@
   <rect width="280" height="500" rx="24" fill="url(#bg3)" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
   <rect x="12" y="12" width="256" height="476" rx="16" fill="rgba(0,0,0,0.3)"/>
   <text x="24" y="36" fill="rgba(255,255,255,0.9)" font-size="14" font-family="system-ui">9:41</text>
-  <text x="140" y="80" fill="rgba(255,255,255,0.9)" font-size="15" font-weight="600" text-anchor="middle" font-family="system-ui">Garde ta s�rie</text>
+  <text x="140" y="80" fill="rgba(255,255,255,0.9)" font-size="15" font-weight="600" text-anchor="middle" font-family="system-ui">Garde ta série</text>
   <text x="50" y="130" fill="rgba(255,255,255,0.5)" font-size="11" font-family="system-ui">L M M J V S D</text>
   <rect x="40" y="145" width="24" height="24" rx="6" fill="rgba(16,185,129,0.4)"/>
-  <text x="52" y="162" fill="#10b981" font-size="14" font-family="system-ui"></text>
+  <text x="52" y="162" fill="#10b981" font-size="14" font-family="system-ui">✓</text>
   <rect x="72" y="145" width="24" height="24" rx="6" fill="rgba(16,185,129,0.4)"/>
-  <text x="84" y="162" fill="#10b981" font-size="14" font-family="system-ui"></text>
+  <text x="84" y="162" fill="#10b981" font-size="14" font-family="system-ui">✓</text>
   <rect x="104" y="145" width="24" height="24" rx="6" fill="rgba(16,185,129,0.4)"/>
-  <text x="116" y="162" fill="#10b981" font-size="14" font-family="system-ui"></text>
+  <text x="116" y="162" fill="#10b981" font-size="14" font-family="system-ui">✓</text>
   <rect x="136" y="145" width="24" height="24" rx="6" fill="rgba(16,185,129,0.4)"/>
-  <text x="148" y="162" fill="#10b981" font-size="14" font-family="system-ui"></text>
+  <text x="148" y="162" fill="#10b981" font-size="14" font-family="system-ui">✓</text>
   <rect x="168" y="145" width="24" height="24" rx="6" fill="rgba(255,255,255,0.1)"/>
   <rect x="200" y="145" width="24" height="24" rx="6" fill="rgba(255,255,255,0.1)"/>
   <text x="140" y="220" fill="white" font-size="22" font-weight="700" text-anchor="middle" font-family="system-ui">14j 4h 23min</text>
@@ -23,5 +23,5 @@
   <rect x="40" y="290" width="200" height="56" rx="12" fill="rgba(139,92,246,0.2)" stroke="rgba(139,92,246,0.4)" stroke-width="1"/>
   <text x="140" y="315" fill="#c4b5fd" font-size="12" font-weight="600" text-anchor="middle" font-family="system-ui">Plus de discipline</text>
   <text x="140" y="335" fill="rgba(255,255,255,0.6)" font-size="11" text-anchor="middle" font-family="system-ui">Chaque jour compte.</text>
-  <text x="140" y="380" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Ne l�che rien.</text>
+  <text x="140" y="380" fill="rgba(255,255,255,0.6)" font-size="12" text-anchor="middle" font-family="system-ui">Ne lâche rien.</text>
 </svg>

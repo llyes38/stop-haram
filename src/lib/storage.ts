@@ -17,9 +17,32 @@ export interface PlanDay {
   optional?: { title: string; desc: string };
 }
 
+export type SituationFamiliale = "marie" | "celibataire" | "divorce" | "veuf" | "autre" | "";
+export type StatutPro = "etudiant" | "activite" | "sans_emploi" | "retraite" | "autre" | "";
+export type Genre = "homme" | "femme" | "";
+export type PratiqueJour = "oui" | "parfois" | "non" | "";
+export type Voilee = "oui" | "non" | "";
+export type TypeLogement = "seul" | "famille" | "colocation" | "";
+export type Converti = "oui" | "non" | "";
+
+export interface ProfileInfo {
+  genre?: Genre;
+  situation?: SituationFamiliale;
+  statut?: StatutPro;
+  age?: number | null;
+  ville?: string;
+  prie?: PratiqueJour;
+  voilee?: Voilee;
+  logement?: TypeLogement;
+  converti?: Converti;
+  /** "Mon but en arrêtant mes péchés est de..." — motivation personnelle */
+  whyStop?: string;
+}
+
 export interface StopHaramUser {
   name: string;
   selectedSins: SelectedSin[];
+  profileInfo?: ProfileInfo;
   answers?: Record<string, unknown>;
   scores: Record<string, number>;
   startDateISO: string;
@@ -85,6 +108,7 @@ export function ensureUserDefaults(partial: Partial<StopHaramUser>): StopHaramUs
   const baseUser: StopHaramUser = {
     name: partial.name ?? existing?.name ?? "",
     selectedSins,
+    profileInfo: partial.profileInfo ?? existing?.profileInfo,
     answers: partial.answers ?? existing?.answers,
     scores,
     startDateISO,
@@ -135,4 +159,28 @@ export function getScoreLabel(score: number): string {
   if (score <= 30) return "Stable";
   if (score <= 60) return "À surveiller";
   return "Prioritaire";
+}
+
+const SITUATION_LABELS: Record<Exclude<SituationFamiliale, "">, string> = {
+  marie: "Marié(e)",
+  celibataire: "Célibataire",
+  divorce: "Divorcé(e)",
+  veuf: "Veuf(ve)",
+  autre: "Autre",
+};
+
+const STATUT_LABELS: Record<Exclude<StatutPro, "">, string> = {
+  etudiant: "Étudiant(e)",
+  activite: "En activité",
+  sans_emploi: "Sans emploi",
+  retraite: "Retraité(e)",
+  autre: "Autre",
+};
+
+export function getSituationLabel(s: SituationFamiliale): string {
+  return (s && SITUATION_LABELS[s]) || "—";
+}
+
+export function getStatutLabel(s: StatutPro): string {
+  return (s && STATUT_LABELS[s]) || "—";
 }
