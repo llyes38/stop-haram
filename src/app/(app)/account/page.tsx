@@ -143,9 +143,14 @@ function PushNotificationsBlock() {
   return (
     <div className="space-y-2">
       {urlForPhone && urlForPhone !== "http://localhost:3000" && (
-        <p className="text-white/60 text-xs rounded-xl bg-white/5 px-4 py-2.5">
-          Sur ton téléphone : ouvre <a href={urlForPhone} target="_blank" rel="noopener noreferrer" className="text-emerald-300 underline break-all">{urlForPhone}</a> (même WiFi), puis clique « Activer les notifications » puis « Envoyer une notif de test » — comme sur le PC.
-        </p>
+        <div className="text-white/60 text-xs rounded-xl bg-white/5 px-4 py-2.5 space-y-1.5">
+          <p>
+            Sur ton téléphone : ouvre <a href={urlForPhone} target="_blank" rel="noopener noreferrer" className="text-emerald-300 underline break-all">{urlForPhone}</a> (même WiFi), puis « Activer les notifications » puis « Envoyer une notif de test ».
+          </p>
+          <p className="text-white/50">
+            Si « site inaccessible » : sur le PC, relance avec <code className="bg-white/10 px-1 rounded">npm run dev</code>. Si ça bloque encore : Pare-feu Windows → autoriser Node ou le port 3000.
+          </p>
+        </div>
       )}
       <button
         type="button"
