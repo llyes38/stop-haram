@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ChatMessage } from "@/hooks/useCompanionChat";
 
 interface CompanionChatDrawerProps {
@@ -22,9 +23,15 @@ export default function CompanionChatDrawer({
   onSend,
   onClearError,
 }: CompanionChatDrawerProps) {
+  const router = useRouter();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState("");
+
+  const handleAmeliorerPlan = () => {
+    onClose();
+    router.push("/quiz?from=companion");
+  };
 
   useEffect(() => {
     if (open) {
@@ -35,7 +42,7 @@ export default function CompanionChatDrawer({
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTo({ top: 0, behavior: "smooth" });
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -74,8 +81,15 @@ export default function CompanionChatDrawer({
             <h2 className="text-violet-200 font-semibold text-base">Se confier</h2>
             <p className="text-white/60 text-xs mt-0.5">Parle librement, sans jugement.</p>
             <p className="text-white/50 text-[11px] mt-1 leading-relaxed max-w-[280px]">
-              On est là pour toi, il est là pour toi. Ce n&apos;est pas une fatwa ni un avis juridique, mais on t&apos;aide religieusement — avec bienveillance et rappels.
+              Confie-toi sur ta journée, sur tes péchés ou tentations (ce que tu as tenté ou fait). On pourra améliorer ton plan personnalisé. Dis tes péchés ou tentations ; quand tu les as partagés, on te proposera d&apos;améliorer ton plan. Si tu dis oui, on l&apos;adapte et on peut ajouter des péchés à ton plan. On est là pour toi — pas de fatwa, juste bienveillance et rappels.
             </p>
+            <button
+              type="button"
+              onClick={handleAmeliorerPlan}
+              className="mt-2 rounded-lg bg-violet-500/30 border border-violet-400/50 px-3 py-1.5 text-violet-200 text-[11px] font-medium hover:bg-violet-500/40 transition-colors"
+            >
+              Améliorer mon plan
+            </button>
           </div>
           <button
             type="button"
@@ -91,7 +105,7 @@ export default function CompanionChatDrawer({
 
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 min-h-[200px] max-h-[50vh] flex flex-col-reverse gap-4"
+          className="flex-1 overflow-y-auto overscroll-contain px-4 py-4 min-h-[200px] max-h-[50vh] flex flex-col gap-4"
         >
           {error && (
             <div className="rounded-xl bg-amber-500/15 border border-amber-400/30 px-4 py-3 shrink-0">

@@ -98,8 +98,8 @@ export default function QuizClient() {
       router.replace("/quiz");
     }
     
-    // Si on vient de parcours, charger les données utilisateur existantes
-    if (from === "parcours") {
+    // Si on vient de parcours ou companion, charger les données utilisateur existantes
+    if (from === "parcours" || from === "companion") {
       const existingUser = getUser();
       if (existingUser) {
         // Pré-remplir les domaines avec les péchés actuels
@@ -238,18 +238,23 @@ export default function QuizClient() {
 
   const fromAccount = searchParams.get("from") === "account";
   const fromParcours = searchParams.get("from") === "parcours";
+  const fromCompanion = searchParams.get("from") === "companion";
 
   const handleBack = () => {
     if (currentStep > 0) {
-      // Si on vient de parcours et qu'on est à step 1, retourner à parcours
       if (fromParcours && currentStep === 1) {
         router.push("/parcours");
+        return;
+      }
+      if (fromCompanion && currentStep === 1) {
+        router.push("/home");
         return;
       }
       goPrevious();
     } else {
       if (fromAccount) router.push("/account");
       else if (fromParcours) router.push("/parcours");
+      else if (fromCompanion) router.push("/home");
       else router.push("/");
     }
   };
@@ -259,8 +264,8 @@ export default function QuizClient() {
   const handleFinishQuiz = () => {
     const profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
     if (typeof window !== "undefined") {
-      // Si on vient de parcours, ne pas sauvegarder le profil (garder l'existant)
-      if (!fromParcours) {
+      // Si on vient de parcours ou companion, ne pas sauvegarder le profil (garder l'existant)
+      if (!fromParcours && !fromCompanion) {
         window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
       }
       updateLastRoute("/quiz");
@@ -270,13 +275,15 @@ export default function QuizClient() {
       const existingUser = getUser();
       const isModifyFromAccount = searchParams.get("from") === "account";
       const isModifyFromParcours = searchParams.get("from") === "parcours";
+      const isModifyFromCompanion = searchParams.get("from") === "companion";
+      const isModify = isModifyFromAccount || isModifyFromParcours || isModifyFromCompanion;
       
       let user;
-      if ((isModifyFromAccount || isModifyFromParcours) && existingUser) {
+      if (isModify && existingUser) {
         // Conserver toutes les données existantes, juste mettre à jour les péchés et réponses
         user = ensureUserDefaults({
           ...existingUser,
-          name: isModifyFromParcours ? existingUser.name : (firstName.trim() || existingUser.name),
+          name: (isModifyFromParcours || isModifyFromCompanion) ? existingUser.name : (firstName.trim() || existingUser.name),
           selectedSins,
           scores: { ...existingUser.scores, ...scores },
           answers: answers as Record<string, unknown>,
@@ -301,6 +308,10 @@ export default function QuizClient() {
       }
       if (isModifyFromParcours) {
         router.replace("/parcours");
+        return;
+      }
+      if (isModifyFromCompanion) {
+        router.replace("/home");
         return;
       }
     }

@@ -1,13 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { incrementTempted } from "@/lib/temptationStats";
+import { usePathname } from "next/navigation";
+import { useCompanionChat } from "@/hooks/useCompanionChat";
+import CompanionChatDrawer from "@/components/companion/CompanionChatDrawer";
 
 const TABS = [
   { href: "/home", label: "Accueil", icon: "home" },
   { href: "/parcours", label: "Parcours", icon: "play" },
-  { craquer: true as const },
+  { companion: true as const },
   { href: "/progress", label: "Progrès", icon: "chart" },
   { href: "/account", label: "Compte", icon: "user" },
 ] as const;
@@ -55,38 +57,44 @@ function TabIcon({ icon, active }: { icon: string; active: boolean }) {
   }
 }
 
+function CompanionIcon() {
+  return (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleCraquer = () => {
-    incrementTempted();
-    router.push("/urgence");
-  };
+  const [companionOpen, setCompanionOpen] = useState(false);
+  const { messages, loading, error, sendMessage, clearError } = useCompanionChat();
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-30 max-w-[420px] mx-auto bg-[#0a0f1a]/90 border-t border-white/10 backdrop-blur-sm safe-area-pb"
-      aria-label="Navigation principale"
-    >
-      <div className="flex items-center justify-around h-16 px-2 gap-1">
-        {TABS.map((tab, i) => {
-          if ("craquer" in tab && tab.craquer) {
-            return (
-              <button
-                key="craquer"
-                type="button"
-                onClick={handleCraquer}
-                className="flex flex-col items-center justify-center gap-0.5 min-w-[64px] py-2 rounded-xl bg-red-900/50 border-2 border-red-500/60 text-white hover:bg-red-900/60 hover:border-red-500/70 transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                aria-label="Je vais craquer"
-              >
-                <span className="text-xl leading-none">
-                  <span className="stress-emoji">😰</span>
-                </span>
-              </button>
-            );
-          }
-          const { href, label, icon } = tab as { href: string; label: string; icon: string };
+    <>
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 max-w-[420px] mx-auto bg-[#0a0f1a]/90 border-t border-white/10 backdrop-blur-sm safe-area-pb"
+        aria-label="Navigation principale"
+      >
+        <div className="flex items-center justify-around h-16 px-2 gap-1">
+          {TABS.map((tab, i) => {
+            if ("companion" in tab && tab.companion) {
+              return (
+                <button
+                  key="companion"
+                  type="button"
+                  onClick={() => setCompanionOpen(true)}
+                  className="companion-glow flex flex-col items-center justify-center gap-0.5 min-w-[64px] py-2 rounded-xl bg-violet-500/40 border-2 border-violet-400/60 text-violet-200 shadow-[0_0_16px_rgba(139,92,246,0.4),0_0_32px_rgba(139,92,246,0.2)] hover:bg-violet-500/50 hover:scale-105 transition-all focus:outline-none focus:ring-2 focus:ring-violet-400/50"
+                  aria-label="Se confier"
+                  title="Confie-toi sur ta journée, tes péchés ou tentations. On pourra améliorer ton plan personnalisé."
+                >
+                  <CompanionIcon />
+                  <span className="text-[10px] font-medium">Se confier</span>
+                </button>
+              );
+            }
+            const { href, label, icon } = tab as { href: string; label: string; icon: string };
           const active = pathname === href;
           return (
             <Link
@@ -104,5 +112,15 @@ export default function BottomNav() {
         })}
       </div>
     </nav>
+    <CompanionChatDrawer
+      open={companionOpen}
+      onClose={() => setCompanionOpen(false)}
+      messages={messages}
+      loading={loading}
+      error={error}
+      onSend={sendMessage}
+      onClearError={clearError}
+    />
+    </>
   );
 }
