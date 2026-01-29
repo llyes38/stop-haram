@@ -1,7 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
 import OpenAI from "openai";
 
 const MODEL = "gpt-4o-mini";
+
+/** Fallback: charge OPENAI_API_KEY depuis .env.local si absente (Next peut ne pas l'avoir chargée). */
+function loadOpenAIKey(): string {
+  let key = (process.env.OPENAI_API_KEY ?? "").trim();
+  if (key) return key;
+  try {
+    const envPath = join(process.cwd(), ".env.local");
+    if (!existsSync(envPath)) return "";
+    const raw = readFileSync(envPath, "utf8");
+    for (const line of raw.split("\n")) {
+      const idx = line.indexOf("=");
+      if (idx === -1) continue;
+      const k = line.slice(0, idx).trim();
+      if (k !== "OPENAI_API_KEY") continue;
+      let v = line.slice(idx + 1).trim();
+      const c = v.startsWith('"') ? '"' : v.startsWith("'") ? "'" : null;
+      if (c) v = v.slice(1, v.endsWith(c) ? v.length - 1 : v.length).trim();
+      const hash = v.indexOf("#");
+      if (hash !== -1) v = v.slice(0, hash).trim();
+      if (v) return v;
+      break;
+    }
+  } catch {
+    /* ignore */
+  }
+  return "";
+}
 const MAX_MESSAGES = 15;
 
 const SYSTEM_PROMPT = `Tu es un compagnon musulman bienveillant pour l'app StopHaram (Se confier). Ton rôle est de répondre TOUJOURS en lien avec l'Islam, de conseiller l'utilisateur avec douceur, et d'étudier ce qu'il dit à la lumière de l'Islam.
@@ -22,10 +51,10 @@ Règles:
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = (process.env.OPENAI_API_KEY ?? "").trim();
+    let apiKey = loadOpenAIKey();
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY manquante." },
+        { error: "Le compagnon n'est pas configuré pour le moment. Réessaie plus tard ou contacte le support." },
         { status: 503 }
       );
     }
