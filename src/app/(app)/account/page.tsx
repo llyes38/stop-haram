@@ -25,6 +25,12 @@ import { setAuth, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 import { usePushNotifications } from "@/lib/usePushNotifications";
+import {
+  getNotifPriere,
+  setNotifPriere,
+  getNotifActions,
+  setNotifActions,
+} from "@/lib/notificationPrefs";
 
 type Tab = "profil" | "objectifs" | "plan";
 
@@ -81,6 +87,44 @@ const CONVERTI_OPTIONS: { value: Converti; label: string }[] = [
 const selectStyle = {
   backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='rgba(255,255,255,0.5)'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E\")",
 };
+
+function NotifToggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-white/90 text-sm font-medium">{label}</p>
+        {description && (
+          <p className="text-white/60 text-xs mt-0.5">{description}</p>
+        )}
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
+          checked ? "border-emerald-400/50 bg-emerald-500/30" : "border-white/20 bg-white/10"
+        }`}
+      >
+        <span
+          className={`pointer-events-none inline-block h-6 w-6 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
 
 function PushNotificationsBlock() {
   const { status, error, requestPermissionAndSubscribe } = usePushNotifications();
@@ -164,6 +208,8 @@ export default function AccountPage() {
   const [editLogement, setEditLogement] = useState<TypeLogement>("");
   const [editConverti, setEditConverti] = useState<Converti>("");
   const [saved, setSaved] = useState(false);
+  const [notifPriere, setNotifPriereState] = useState(true);
+  const [notifActions, setNotifActionsState] = useState(true);
 
   useEffect(() => {
     let u = getUser();
@@ -200,7 +246,18 @@ export default function AccountPage() {
       setEditLogement((u.profileInfo?.logement as TypeLogement) ?? "");
       setEditConverti((u.profileInfo?.converti as Converti) ?? "");
     }
+    setNotifPriereState(getNotifPriere());
+    setNotifActionsState(getNotifActions());
   }, []);
+
+  const handleNotifPriereChange = (v: boolean) => {
+    setNotifPriere(v);
+    setNotifPriereState(v);
+  };
+  const handleNotifActionsChange = (v: boolean) => {
+    setNotifActions(v);
+    setNotifActionsState(v);
+  };
 
   const handleSaveProfil = () => {
     if (!user) return;
@@ -495,6 +552,28 @@ export default function AccountPage() {
                   </ul>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Préférences de rappels (on/off) */}
+          <div className="mt-6 pt-6 border-t border-white/10">
+            <h2 className="text-white/80 text-sm font-medium mb-2">Rappels</h2>
+            <p className="text-white/60 text-xs mb-4">
+              Active ou désactive les rappels selon tes préférences.
+            </p>
+            <div className="space-y-3">
+              <NotifToggle
+                label="Rappel heure de prière"
+                description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
+                checked={notifPriere}
+                onChange={handleNotifPriereChange}
+              />
+              <NotifToggle
+                label="Rappel actions du jour"
+                description="Rappel pour faire tes actions du jour (matin)."
+                checked={notifActions}
+                onChange={handleNotifActionsChange}
+              />
             </div>
           </div>
 
