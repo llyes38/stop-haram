@@ -1,22 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { getUser, getSinLabel, getDayNumber } from "@/lib/storage";
 import { getTemptationStats } from "@/lib/temptationStats";
 import { getCurrentStatut } from "@/lib/statuts";
+import { getProgressStats, type ProgressStats } from "@/lib/progressStats";
 
 const DEFI_JOURS = 30;
 
 export default function ProgressPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
   const [stats, setStats] = useState<{ tempted: number; resisted: number }>({ tempted: 0, resisted: 0 });
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
 
   useEffect(() => {
     setUser(getUser());
     setStats(getTemptationStats());
-  }, []);
+    setProgressStats(getProgressStats());
+  }, [pathname]);
 
   const streakDays = user?.streakDays ?? null;
   const focusSin = user?.plan?.focusSin ? getSinLabel(user.plan.focusSin) : null;
@@ -96,6 +100,34 @@ export default function ProgressPage() {
               Tu tiens bon dans <span className="font-semibold text-emerald-300">{ratio}%</span> des cas
             </p>
           )}
+        </div>
+
+        {/* Versets lus & Invocations — en lien avec les actions quotidiennes */}
+        <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 px-5 py-4">
+          <p className="text-emerald-200 font-semibold text-sm mb-1">En lien avec tes actions du jour</p>
+          <p className="text-white/60 text-xs mb-4">
+            Versets lus et invocations / dhikr accomplis (Coran, rappels, etc.)
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+              <p className="text-2xl font-bold text-emerald-200 tabular-nums">
+                {progressStats?.versetsToday ?? 0}
+              </p>
+              <p className="text-emerald-200/80 text-xs">versets aujourd&apos;hui</p>
+              <p className="text-white/50 text-xs mt-1">
+                {progressStats?.versetsTotal ?? 0} au total
+              </p>
+            </div>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+              <p className="text-2xl font-bold text-emerald-200 tabular-nums">
+                {progressStats?.invocationsToday ?? 0}
+              </p>
+              <p className="text-emerald-200/80 text-xs">invocations aujourd&apos;hui</p>
+              <p className="text-white/50 text-xs mt-1">
+                {progressStats?.invocationsTotal ?? 0} au total
+              </p>
+            </div>
+          </div>
         </div>
 
         <button

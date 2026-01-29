@@ -124,6 +124,7 @@ export default function FonctionnementPage() {
             <ul className="list-disc list-inside space-y-1 text-white/80">
               <li>Tu dois accomplir <strong className="text-white">toutes</strong> les actions du jour (3, 5 ou 10 selon ton choix)</li>
               <li>Clique sur chaque action pour la marquer comme complétée</li>
+              <li>Tu peux ajouter une action de toi-même, par ex. <strong className="text-white">Faire une sadaqa</strong> (voir section Dons)</li>
               <li>Quand toutes les actions sont faites, ta journée est validée ✓</li>
             </ul>
             <div className="rounded-lg bg-emerald-500/20 border border-emerald-400/30 px-3 py-2 mt-3">
@@ -132,6 +133,26 @@ export default function FonctionnementPage() {
                 Si tu rechutes, tu perds la validation du jour. Les actions sont réinitialisées et tu dois recommencer.
               </p>
             </div>
+          </div>
+        </section>
+
+        {/* Section 5b : Compagnon IA — Se confier */}
+        <section className="rounded-xl bg-violet-500/10 border border-violet-400/25 px-5 py-4">
+          <h2 className="text-violet-200 font-semibold text-base mb-3 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-violet-500/30 text-violet-300 text-sm font-bold">IA</span>
+            Compagnon IA — Se confier
+          </h2>
+          <div className="space-y-2 text-sm text-white/90 pl-8">
+            <p>Un assistant IA bienveillant, pensé pour t&apos;aider au quotidien&nbsp;:</p>
+            <ul className="list-disc list-inside space-y-1 text-white/80">
+              <li>Accès via le <strong className="text-white">bouton central du menu</strong> (Se confier)</li>
+              <li>Tu peux lui parler librement, te confier sur ta journée, tes péchés ou tes tentations</li>
+              <li>Réponses en lien avec l&apos;Islam, conseils doux, rappels — sans jugement, sans fatwa</li>
+              <li>Il peut t&apos;orienter pour améliorer ton plan personnalisé</li>
+            </ul>
+            <p className="text-white/70 text-xs mt-3">
+              L&apos;IA ne remplace pas un savant ni un suivi humain. On est là pour t&apos;accompagner, pas pour donner des avis juridiques.
+            </p>
           </div>
         </section>
 
@@ -185,12 +206,31 @@ export default function FonctionnementPage() {
             <p>Si tu sens que tu vas craquer :</p>
             <ul className="list-disc list-inside space-y-1 text-white/80">
               <li>Clique sur le bouton <strong className="text-white">&quot;😰 Je vais craquer&quot;</strong> sur la page d&apos;accueil</li>
-              <li>Tu accèdes à des conseils adaptés à ton péché</li>
-              <li>Des invocations et rappels pour t&apos;aider à résister</li>
-              <li>La possibilité de déclarer une rechute si nécessaire</li>
+              <li>Tu accèdes à des conseils adaptés à ton péché, invocations et rappels</li>
+              <li>Tu peux aussi ouvrir <strong className="text-white">Se confier</strong> (menu central) pour parler à l&apos;IA et te calmer</li>
+              <li>Possibilité de déclarer une rechute si nécessaire</li>
             </ul>
             <p className="text-white/70 text-xs mt-3">
-              N&apos;hésite pas à utiliser cette fonctionnalité dès que tu ressens une tentation.
+              N&apos;hésite pas à utiliser ces outils dès que tu ressens une tentation.
+            </p>
+          </div>
+        </section>
+
+        {/* Section 8b : Sadaqa (dons) */}
+        <section className="rounded-xl bg-amber-500/10 border border-amber-400/25 px-5 py-4">
+          <h2 className="text-amber-200 font-semibold text-base mb-3 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/30 text-amber-300 text-sm font-bold">🤲</span>
+            Sadaqa (dons)
+          </h2>
+          <div className="space-y-2 text-sm text-white/90 pl-8">
+            <p>Tu peux ajouter <strong className="text-white">Faire une sadaqa</strong> comme action du jour (Accueil → Ajouter une action).</p>
+            <ul className="list-disc list-inside space-y-1 text-white/80">
+              <li>Puits, orphelins, nourriture, santé, éducation, mosquée, urgences…</li>
+              <li>Les projets sont <strong className="text-white">tracés</strong> et <strong className="text-white">mis en ligne</strong></li>
+              <li>En partenariat avec des <strong className="text-white">sponsors authentiques</strong></li>
+            </ul>
+            <p className="text-white/70 text-xs mt-3">
+              Pour l&apos;instant, le paiement est simulé. Quand les partenariats seront en place, tu pourras donner pour de vrai.
             </p>
           </div>
         </section>

@@ -12,6 +12,11 @@ import {
   type ActionId,
   type DailyActionsState,
 } from "@/lib/dailyActions";
+import {
+  addVersets,
+  isVerseAction,
+  versetsFromActionLabel,
+} from "@/lib/progressStats";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
 import QuizLudiqueBlock from "@/components/QuizLudiqueBlock";
 import { todayKey } from "@/lib/date";
@@ -21,6 +26,7 @@ import {
   getNotifActions,
   setNotifActions,
 } from "@/lib/notificationPrefs";
+import { hasDonToday } from "@/lib/sadaqaStorage";
 
 const DEFI_JOURS = 30;
 
@@ -102,6 +108,7 @@ export default function HomePage() {
   const [dhikrDoneToday, setDhikrDoneToday] = useState(false);
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
+  const [sadaqaDoneToday, setSadaqaDoneToday] = useState(false);
 
   useEffect(() => {
     const u = getUser();
@@ -124,6 +131,7 @@ export default function HomePage() {
     }
     setNotifPriereState(getNotifPriere());
     setNotifActionsState(getNotifActions());
+    setSadaqaDoneToday(hasDonToday());
   }, [pathname]);
 
   useEffect(() => {
@@ -197,6 +205,15 @@ export default function HomePage() {
   const handleToggleAction = (id: ActionId) => {
     const u = getUser();
     const labels = getDailyActionLabels(u ?? null);
+    const state = getTodayActionsState(labels.length);
+    const aboutToMarkDone = !state[id];
+    if (aboutToMarkDone) {
+      const label = labels[parseInt(id, 10) - 1];
+      if (label && isVerseAction(label)) {
+        const n = versetsFromActionLabel(label);
+        if (n > 0) addVersets(n);
+      }
+    }
     toggleTodayAction(id, labels.length);
     setActionsState(getTodayActionsState(labels.length));
   };
@@ -412,6 +429,40 @@ export default function HomePage() {
                         </button>
                       );
                     })}
+                  </div>
+                  {/* Ajouter une action de soi-même — ex. sadaqa */}
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <p className="text-emerald-200/90 text-sm font-semibold mb-2">Ajouter une action de toi-même</p>
+                    <p className="text-white/60 text-xs mb-3">Une action en plus qui compte pour ta journée.</p>
+                    <button
+                      type="button"
+                      onClick={() => router.push("/sadaqa")}
+                      className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-center gap-3 transition-all ${
+                        sadaqaDoneToday
+                          ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
+                          : "border-amber-400/35 bg-amber-500/15 hover:bg-amber-500/20"
+                      }`}
+                    >
+                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm ${sadaqaDoneToday ? "bg-emerald-500/30 text-emerald-200" : "bg-amber-500/25 text-amber-200"}`} aria-hidden>
+                        {sadaqaDoneToday ? "✓" : "🤲"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-medium ${sadaqaDoneToday ? "text-white/80 line-through" : "text-white"}`}>
+                          Faire une sadaqa (don)
+                        </p>
+                        <p className="text-amber-200/80 text-xs mt-0.5">La sadaqa efface le péché comme l&apos;eau éteint le feu.</p>
+                        {sadaqaDoneToday && (
+                          <span className="inline-block mt-1 rounded-full bg-emerald-500/30 px-2 py-0.5 text-emerald-200 text-xs font-semibold">
+                            Terminé
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-white/40 shrink-0" aria-hidden>
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </button>
                   </div>
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <HomeNotifToggle

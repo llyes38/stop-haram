@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { dhikrMatin, type DhikrItem } from "@/lib/dhikr";
 import { todayKey } from "@/lib/date";
+import { addInvocations } from "@/lib/progressStats";
 
 const DONE_KEY = "dhikr_matin_done";
 
@@ -32,6 +33,7 @@ export default function DhikrMatinPage() {
 
   const handleDone = () => {
     if (typeof window === "undefined") return;
+    if (!doneToday) addInvocations(1);
     window.localStorage.setItem(DONE_KEY, todayKey());
     setDoneToday(true);
     router.back();
