@@ -13,6 +13,7 @@ import {
   type DailyActionsState,
 } from "@/lib/dailyActions";
 import PrayerTimesCard from "@/components/PrayerTimesCard";
+import QuizLudiqueBlock from "@/components/QuizLudiqueBlock";
 import { todayKey } from "@/lib/date";
 import {
   getNotifPriere,
@@ -573,13 +574,7 @@ export default function HomePage() {
           <PrayerTimesCard />
         </div>
 
-        <button
-          type="button"
-          onClick={() => router.push("/parcours")}
-          className="w-full rounded-xl bg-white py-4 text-gray-900 font-semibold text-base hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-colors"
-        >
-          Continuer mon parcours
-        </button>
+        <QuizLudiqueBlock />
 
         <p className="text-white/50 text-sm leading-relaxed max-w-[320px]">
           Allah voit tes efforts, même ceux que personne ne voit.
