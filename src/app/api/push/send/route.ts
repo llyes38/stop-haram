@@ -4,8 +4,8 @@ import webpush from "web-push";
 
 export async function POST(request: NextRequest) {
   try {
-    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    const privateKey = process.env.VAPID_PRIVATE_KEY;
+    const publicKey = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "").trim();
+    const privateKey = (process.env.VAPID_PRIVATE_KEY ?? "").trim();
     if (!publicKey || !privateKey) {
       return NextResponse.json(
         { error: "Clés VAPID manquantes (variables d'environnement)." },
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     webpush.setVapidDetails(
-      process.env.VAPID_MAILTO || "mailto:contact@stopharam.com",
+      (process.env.VAPID_MAILTO || "mailto:contact@stopharam.com").trim(),
       publicKey,
       privateKey
     );
