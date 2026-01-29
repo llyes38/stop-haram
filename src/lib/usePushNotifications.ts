@@ -36,7 +36,7 @@ export function usePushNotifications() {
       /* ignore */
     }
     if (!publicKey) {
-      setError("Clé VAPID manquante. Sur téléphone : ouvre l'app avec l'IP du PC (ex. http://192.168.1.x:3000), même WiFi. Sur déploiement : configure les variables d'environnement.");
+      setError("Les notifications ne sont pas disponibles pour le moment. Réessaie plus tard.");
       setStatus("error");
       return;
     }

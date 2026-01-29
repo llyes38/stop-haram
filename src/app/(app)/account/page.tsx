@@ -84,20 +84,11 @@ const selectStyle = {
 
 function PushNotificationsBlock() {
   const { status, error, requestPermissionAndSubscribe } = usePushNotifications();
-  const [urlForPhone, setUrlForPhone] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    fetch(`${window.location.origin}/api/server-url`)
-      .then((r) => r.json())
-      .then((d) => d.urlForPhone && setUrlForPhone(d.urlForPhone))
-      .catch(() => {});
-  }, []);
 
   if (status === "unsupported") {
     return (
       <p className="text-white/50 text-xs rounded-xl bg-white/5 px-4 py-3">
-        Les notifications push ne sont pas supportées sur ce navigateur.
+        Les notifications ne sont pas supportées sur ce navigateur.
       </p>
     );
   }
@@ -120,7 +111,7 @@ function PushNotificationsBlock() {
                 }),
               });
               const data = await res.json().catch(() => ({}));
-              if (res.ok) alert(`Notif envoyée (${data.sent ?? 0} destinataire(s)). Regarde ton téléphone ou ta barre des tâches.`);
+              if (res.ok) alert(`Notif envoyée (${data.sent ?? 0} destinataire(s)).`);
               else alert(data.error || "Erreur lors de l'envoi.");
             } catch (e) {
               alert("Erreur : " + (e instanceof Error ? e.message : "inconnue"));
@@ -141,17 +132,7 @@ function PushNotificationsBlock() {
     );
   }
   return (
-    <div className="space-y-2">
-      {urlForPhone && urlForPhone !== "http://localhost:3000" && (
-        <div className="text-white/60 text-xs rounded-xl bg-white/5 px-4 py-2.5 space-y-1.5">
-          <p>
-            Sur ton téléphone : ouvre <a href={urlForPhone} target="_blank" rel="noopener noreferrer" className="text-emerald-300 underline break-all">{urlForPhone}</a> (même WiFi), puis « Activer les notifications » puis « Envoyer une notif de test ».
-          </p>
-          <p className="text-white/50">
-            Si « site inaccessible » : sur le PC, relance avec <code className="bg-white/10 px-1 rounded">npm run dev</code>. Si ça bloque encore : Pare-feu Windows → autoriser Node ou le port 3000.
-          </p>
-        </div>
-      )}
+    <div>
       <button
         type="button"
         onClick={requestPermissionAndSubscribe}
@@ -159,7 +140,7 @@ function PushNotificationsBlock() {
       >
         Activer les notifications
       </button>
-      {error && <p className="text-red-200/80 text-xs">{error}</p>}
+      {error && <p className="text-red-200/80 text-xs mt-2">{error}</p>}
     </div>
   );
 }
@@ -516,11 +497,8 @@ export default function AccountPage() {
           {/* Notifications push */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <h2 className="text-white/80 text-sm font-medium mb-2">Notifications</h2>
-            <p className="text-white/60 text-xs mb-2">
-              Reçois des rappels même quand l&apos;app est fermée.
-            </p>
-            <p className="text-white/50 text-xs mb-3">
-              PC ou téléphone : même manip. Clique « Activer les notifications », puis « Envoyer une notif de test » pour vérifier.
+            <p className="text-white/60 text-xs mb-3">
+              Reçois des rappels même quand l&apos;app est fermée. Clique « Activer les notifications » et accepte quand le navigateur le demande.
             </p>
             <PushNotificationsBlock />
           </div>
