@@ -25,18 +25,18 @@ export function usePushNotifications() {
       return;
     }
 
-    let publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!publicKey) {
-      try {
-        const res = await fetch("/api/push/vapid-public");
-        const data = await res.json();
-        if (res.ok && data.publicKey) publicKey = data.publicKey;
-      } catch (_) {
-        /* ignore */
-      }
+    // Toujours récupérer la clé depuis le serveur (fonctionne sur PC et téléphone)
+    let publicKey: string | null = null;
+    try {
+      const url = typeof window !== "undefined" ? `${window.location.origin}/api/push/vapid-public` : "/api/push/vapid-public";
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok && data.publicKey) publicKey = data.publicKey;
+    } catch (_) {
+      /* ignore */
     }
     if (!publicKey) {
-      setError("Clé VAPID publique manquante. Configure .env.local (en local) ou les variables d'environnement (déploiement).");
+      setError("Clé VAPID manquante. Sur téléphone : ouvre l'app avec l'IP du PC (ex. http://192.168.1.x:3000), même WiFi. Sur déploiement : configure les variables d'environnement.");
       setStatus("error");
       return;
     }
