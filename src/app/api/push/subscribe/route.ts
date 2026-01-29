@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    addPushSubscription(subscription, userId);
+    await addPushSubscription(subscription, userId);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

@@ -111,8 +111,12 @@ function PushNotificationsBlock() {
                 }),
               });
               const data = await res.json().catch(() => ({}));
-              if (res.ok) alert(`Notif envoyée (${data.sent ?? 0} destinataire(s)).`);
-              else alert(data.error || "Erreur lors de l'envoi.");
+              if (res.ok) {
+                if ((data.sent ?? 0) > 0) alert(`Notif envoyée (${data.sent} destinataire(s)).`);
+                else alert(data.error || "Aucun destinataire. Réactive les notifications puis réessaie.");
+              } else {
+                alert(data.error || "Erreur lors de l'envoi.");
+              }
             } catch (e) {
               alert("Erreur : " + (e instanceof Error ? e.message : "inconnue"));
             }
