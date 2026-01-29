@@ -25,9 +25,18 @@ export function usePushNotifications() {
       return;
     }
 
-    const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    let publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!publicKey) {
-      setError("Clé VAPID publique manquante (configuration serveur).");
+      try {
+        const res = await fetch("/api/push/vapid-public");
+        const data = await res.json();
+        if (res.ok && data.publicKey) publicKey = data.publicKey;
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (!publicKey) {
+      setError("Clé VAPID publique manquante. Configure .env.local (en local) ou les variables d'environnement (déploiement).");
       setStatus("error");
       return;
     }
