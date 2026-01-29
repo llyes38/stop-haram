@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import PrayerTimeReminder from "@/components/PrayerTimeReminder";
+import FloatingCompanion from "@/components/companion/FloatingCompanion";
 import { isLoggedIn } from "@/lib/authState";
 
 const LAST_RECHUTE_KEY = "last_rechute_check";
@@ -54,6 +55,7 @@ export default function AppLayout({
         {children}
       </main>
       <BottomNav />
+      <FloatingCompanion />
     </div>
   );
 }

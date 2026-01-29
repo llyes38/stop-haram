@@ -331,9 +331,28 @@ function shuffle<T>(arr: T[]): T[] {
   return out;
 }
 
-/** Tire 10 questions pour le quiz, basées sur les péchés choisis par l'utilisateur. */
+/** Toutes les questions, tous péchés confondus (pour compléter le pool si < 10). */
+function getAllQuestions(): QuizQuestion[] {
+  const all: QuizQuestion[] = [];
+  const sins: SelectedSin[] = ["porno", "musique", "priere", "colere", "drogue", "alcool", "jeux", "mensonge", "regard", "autre"];
+  for (const sin of sins) {
+    const list = QUESTIONS_BY_SIN[sin];
+    if (list) all.push(...list);
+  }
+  return all;
+}
+
+/** Tire 10 questions pour le quiz, basées sur les péchés choisis par l'utilisateur. Si le pool < 10, complète avec d'autres questions. */
 export function pickQuizQuestions(selectedSins: SelectedSin[]): QuizQuestion[] {
-  const pool = getQuestionsForSins(selectedSins);
-  const shuffled = shuffle(pool);
-  return shuffled.slice(0, 10);
+  let pool = getQuestionsForSins(selectedSins);
+  const ids = new Set(pool.map((q) => q.id));
+  if (pool.length < 10) {
+    const supplement = shuffle(getAllQuestions().filter((q) => !ids.has(q.id)));
+    for (const q of supplement) {
+      if (pool.length >= 10) break;
+      pool = [...pool, q];
+      ids.add(q.id);
+    }
+  }
+  return shuffle(pool).slice(0, 10);
 }

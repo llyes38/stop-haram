@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser, getDayNumber, getSinLabel } from "@/lib/storage";
 import { ACTION_1 } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
+import { getConseilsConfession } from "@/lib/conseilsConfession";
 
 export default function ParcoursPage() {
   const router = useRouter();
@@ -14,6 +15,13 @@ export default function ParcoursPage() {
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
   const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
+  const [confierOpen, setConfierOpen] = useState(false);
+  const [confierSins, setConfierSins] = useState<SelectedSin[]>([]);
+  const [confierNote, setConfierNote] = useState("");
+  const [confierDone, setConfierDone] = useState(false);
+  const [confessedSins, setConfessedSins] = useState<SelectedSin[]>([]);
+  const [confierLoading, setConfierLoading] = useState(false);
+  const [aiResponse, setAiResponse] = useState<string | null>(null);
 
   useEffect(() => {
     const u = getUser();
@@ -53,6 +61,48 @@ export default function ParcoursPage() {
     setDays(next7);
     setCurrentDay(Math.min(dayNum, 30));
   }, []);
+
+  const toggleConfierSin = (sin: SelectedSin) => {
+    setConfierSins((prev) =>
+      prev.includes(sin) ? prev.filter((s) => s !== sin) : [...prev, sin]
+    );
+  };
+
+  const handleConfier = async () => {
+    const sinsToUse = confierSins.length > 0 ? [...confierSins] : (["autre"] as SelectedSin[]);
+    setConfessedSins(sinsToUse);
+    setConfierLoading(true);
+    setAiResponse(null);
+    try {
+      const res = await fetch("/api/ai/confier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sins: sinsToUse.map((s) => getSinLabel(s)),
+          note: confierNote || undefined,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { text?: string; useFallback?: boolean };
+      if (res.ok && data.text) {
+        setAiResponse(data.text);
+      }
+    } catch {
+      /* fallback aux conseils statiques */
+    } finally {
+      setConfierDone(true);
+      setConfierLoading(false);
+    }
+  };
+
+  const handleConfierReset = () => {
+    setConfierDone(false);
+    setConfessedSins([]);
+    setConfierSins([]);
+    setConfierNote("");
+    setAiResponse(null);
+  };
+
+  const sinsConfier = selectedSins;
 
   return (
     <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
@@ -136,6 +186,115 @@ export default function ParcoursPage() {
             <span className="block mt-1 text-emerald-200/80 italic">Allah regarde l&apos;effort sincère, pas la perfection.</span>
           </p>
         </div>
+      </div>
+
+      {/* Se confier — exutoire / introspection, 1–2 conseils par péché */}
+      <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-4 mb-6">
+        <button
+          type="button"
+          onClick={() => setConfierOpen((o) => !o)}
+          className="w-full flex items-center justify-between gap-3 text-left"
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/20 text-violet-300 text-sm" aria-hidden>💬</span>
+            <div>
+              <h2 className="text-violet-200 font-semibold text-base">Se confier</h2>
+              <p className="text-white/60 text-xs mt-0.5">Tu peux te confier et demander de l&apos;aide ici</p>
+            </div>
+          </div>
+          <span className={`text-white/50 transition-transform ${confierOpen ? "rotate-180" : ""}`} aria-hidden>
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
+        </button>
+        {confierOpen && (
+          <div className="mt-4 pt-4 border-t border-violet-400/20 space-y-4">
+            {!confierDone ? (
+              <>
+                <p className="text-white/80 text-sm">
+                  Ici, tu peux te confier et demander de l&apos;aide. Tu recevras 1 ou 2 rappels bienveillants par point — tu n&apos;es pas seul.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {sinsConfier.map((sin) => (
+                    <button
+                      key={sin}
+                      type="button"
+                      onClick={() => toggleConfierSin(sin)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                        confierSins.includes(sin)
+                          ? "bg-violet-500/30 text-violet-100 border border-violet-400/50"
+                          : "bg-white/10 text-white/70 border border-white/20 hover:bg-white/15"
+                      }`}
+                    >
+                      {getSinLabel(sin)}
+                    </button>
+                  ))}
+                </div>
+                <div>
+                  <label className="block text-white/70 text-xs font-medium mb-1.5">En quelques mots (optionnel)</label>
+                  <textarea
+                    value={confierNote}
+                    onChange={(e) => setConfierNote(e.target.value)}
+                    placeholder="Ex. moment de faiblesse, contexte..."
+                    rows={2}
+                    className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400/50 resize-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleConfier}
+                  disabled={confierLoading}
+                  className="w-full rounded-xl bg-violet-500/30 border border-violet-400/50 py-3 text-violet-100 font-semibold text-sm hover:bg-violet-500/40 disabled:opacity-70 disabled:pointer-events-none transition-colors"
+                >
+                  {confierLoading ? "Réflexion…" : "Confier"}
+                </button>
+              </>
+            ) : aiResponse ? (
+              <>
+                <p className="text-violet-200/90 text-sm font-medium">Tu n&apos;es pas seul.</p>
+                <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                  <p className="text-white/90 text-sm leading-relaxed whitespace-pre-wrap">{aiResponse}</p>
+                </div>
+                <p className="text-white/50 text-xs italic">L&apos;IA ne remplace pas un savant ni un suivi personnel. Khayr in cha Allah.</p>
+                <button
+                  type="button"
+                  onClick={handleConfierReset}
+                  className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/80 text-sm font-medium hover:bg-white/15 transition-colors"
+                >
+                  Confier à nouveau
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-violet-200/90 text-sm font-medium">Tu n&apos;es pas seul. Voici 1 ou 2 rappels bienveillants pour chaque point :</p>
+                <div className="space-y-4">
+                  {confessedSins.map((sin) => {
+                    const conseils = getConseilsConfession(sin);
+                    return (
+                      <div key={sin} className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                        <p className="text-violet-200 font-medium text-sm mb-2">{getSinLabel(sin)}</p>
+                        <ul className="space-y-1.5 text-white/85 text-xs leading-relaxed list-disc list-inside">
+                          {conseils.map((c, i) => (
+                            <li key={i}>{c}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-white/60 text-xs italic">Allah aime celui qui se repent. Khayr in cha Allah.</p>
+                <button
+                  type="button"
+                  onClick={handleConfierReset}
+                  className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/80 text-sm font-medium hover:bg-white/15 transition-colors"
+                >
+                  Confier à nouveau
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       <section className="flex-1 space-y-4">
