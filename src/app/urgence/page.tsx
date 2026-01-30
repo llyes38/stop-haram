@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getUser, saveUser, getSinLabel } from "@/lib/storage";
+import { getUser, saveUser, getSinLabel, getDailyActionLabels } from "@/lib/storage";
 import { getAideForSin } from "@/lib/urgenceAide";
 import { incrementResisted } from "@/lib/temptationStats";
 import { clearTodayActions } from "@/lib/dailyActions";
@@ -39,6 +39,7 @@ export default function UrgencePage() {
   }, []);
 
   const [vibrationActive, setVibrationActive] = useState(false);
+  const [rechuteAlertFlash, setRechuteAlertFlash] = useState(false);
 
   /** Vibration uniquement après "Malheureusement je suis faible, je rechute" — s'arrête à la sortie de la page */
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function UrgencePage() {
 
   const handleRechute = () => {
     setVibrationActive(true);
+    setRechuteAlertFlash(true);
     setView("selectSin");
   };
 
@@ -70,6 +72,7 @@ export default function UrgencePage() {
 
   const handleConfirmRechute = () => {
     if (!user || !selectedSinRechute) return;
+    setRechuteAlertFlash(false);
     const updatedUser: StopHaramUser = {
       ...user,
       streakDays: 0,
@@ -96,6 +99,7 @@ export default function UrgencePage() {
       setView("selectSin");
       setSelectedSinRechute(null);
     } else if (view === "selectSin") {
+      setRechuteAlertFlash(false);
       setView("aide");
     } else if (view === "aide") {
       if (user?.selectedSins?.length && user.selectedSins.length > 1) {
@@ -113,8 +117,15 @@ export default function UrgencePage() {
   const aide = selectedSinCraquer ? getAideForSin(selectedSinCraquer) : null;
 
   return (
-    <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white">
-      <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-8 pb-8">
+    <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white relative">
+      {/* Scintillement rouge plein écran tant que l'utilisateur n'a pas confirmé ou annulé la rechute */}
+      {rechuteAlertFlash && (
+        <div
+          className="fixed inset-0 z-[100] bg-red-600 pointer-events-none rechute-alert-overlay"
+          aria-hidden
+        />
+      )}
+      <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-8 pb-8 relative z-10">
         <header className="flex items-center gap-3 mb-8">
           <button
             type="button"

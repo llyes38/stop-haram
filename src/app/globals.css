@@ -48,3 +48,12 @@ body {
 .companion-glow {
   animation: companion-glow 2.5s ease-in-out infinite;
 }
+
+/* Alerte rechute : scintillement rouge plein écran (page Urgence) */
+@keyframes rechute-alert-flash {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+.rechute-alert-overlay {
+  animation: rechute-alert-flash 0.8s ease-in-out infinite;
+}
