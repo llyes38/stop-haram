@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import PrayerTimeReminder from "@/components/PrayerTimeReminder";
 import { isLoggedIn } from "@/lib/authState";
+import { hasDecouverteSeen } from "@/lib/decouverteStorage";
 
 const LAST_RECHUTE_KEY = "last_rechute_check";
 
@@ -25,6 +26,7 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -36,8 +38,12 @@ export default function AppLayout({
       router.replace("/rechute");
       return;
     }
+    if (!hasDecouverteSeen()) {
+      router.replace("/decouverte");
+      return;
+    }
     setReady(true);
-  }, [router]);
+  }, [router, pathname]);
 
   if (!ready) {
     return (

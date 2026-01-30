@@ -1,3 +1,5 @@
+import { clearDecouverteSeen } from "@/lib/decouverteStorage";
+
 export interface StopharamAuth {
   isLoggedIn: boolean;
   email?: string;
@@ -88,6 +90,7 @@ export function isOnboardingComplete(): boolean {
 }
 
 export function resetOnboarding(): void {
+  if (typeof window !== "undefined") clearDecouverteSeen();
   setState({
     onboardingComplete: false,
     lastRoute: undefined,

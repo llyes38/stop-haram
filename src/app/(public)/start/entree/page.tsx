@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { setAuth, setState } from "@/lib/authState";
+import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 
 const bgStyle = {
   background:
@@ -12,6 +13,7 @@ export default function StartEntreePage() {
   const router = useRouter();
 
   const handleCommencer = () => {
+    clearDecouverteSeen();
     setAuth({ isLoggedIn: true });
     setState({
       onboardingComplete: false,
