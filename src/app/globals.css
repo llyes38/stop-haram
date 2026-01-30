@@ -75,3 +75,18 @@ body {
   animation: confetti-fall 2.5s ease-out forwards;
   pointer-events: none;
 }
+
+/* Scintillement — cadre "Mon but en arrêtant mes péchés" (bien visible) */
+@keyframes but-scintille {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2), 0 0 16px rgba(52, 211, 153, 0.2);
+    border-color: rgba(52, 211, 153, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.5), 0 0 32px rgba(52, 211, 153, 0.5), 0 0 48px rgba(52, 211, 153, 0.25);
+    border-color: rgba(52, 211, 153, 0.55);
+  }
+}
+.but-scintille {
+  animation: but-scintille 2.2s ease-in-out infinite;
+}

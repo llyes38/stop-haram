@@ -507,8 +507,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Bloc : Mon but en arrêtant mes péchés */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+        {/* Bloc : Mon but en arrêtant mes péchés — scintillement léger pour attirer l'œil */}
+        <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4 but-scintille">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-white/70 text-sm font-medium" aria-hidden>?</span>
