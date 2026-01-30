@@ -175,6 +175,9 @@ export default function HomePage() {
   const ratio = stats.tempted > 0 ? Math.round((100 * stats.resisted) / stats.tempted) : null;
 
   const handleJeVaisCraquer = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([300, 100, 300, 100, 300]);
+    }
     incrementTempted();
     router.push("/urgence");
   };

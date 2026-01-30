@@ -100,6 +100,7 @@ export default function UrgencePage() {
       setSelectedSinRechute(null);
     } else if (view === "selectSin") {
       setRechuteAlertFlash(false);
+      setVibrationActive(false);
       setView("aide");
     } else if (view === "aide") {
       if (user?.selectedSins?.length && user.selectedSins.length > 1) {
