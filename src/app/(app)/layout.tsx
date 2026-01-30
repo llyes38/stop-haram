@@ -6,19 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import PrayerTimeReminder from "@/components/PrayerTimeReminder";
 import { isLoggedIn } from "@/lib/authState";
 import { hasDecouverteSeen } from "@/lib/decouverteStorage";
-
-const LAST_RECHUTE_KEY = "last_rechute_check";
-
-function getTodayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function hasRechuteCheckedToday(): boolean {
-  if (typeof window === "undefined") return false;
-  const raw = window.localStorage.getItem(LAST_RECHUTE_KEY);
-  if (!raw) return false;
-  return raw === getTodayISO();
-}
+import { hasRechuteCheckedToday, markRechuteDoneForToday } from "@/lib/rechuteCheck";
 
 export default function AppLayout({
   children,
@@ -35,8 +23,7 @@ export default function AppLayout({
       return;
     }
     if (!hasRechuteCheckedToday()) {
-      router.replace("/rechute");
-      return;
+      markRechuteDoneForToday(true);
     }
     if (!hasDecouverteSeen()) {
       router.replace("/decouverte");

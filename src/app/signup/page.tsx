@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { setAuth, setProfile, updateLastRoute } from "@/lib/authState";
+import { setAuth, setProfile } from "@/lib/authState";
+import { markRechuteDoneForToday } from "@/lib/rechuteCheck";
 
 const STORAGE_KEYS = { is_logged_in: "is_logged_in", user_name: "user_name" } as const;
 
@@ -21,30 +22,30 @@ function getProfileFirstName(): string {
 export default function SignupPage() {
   const router = useRouter();
 
-  const connectAndGoToRechute = () => {
+  const connectAndGoToHome = () => {
     if (typeof window !== "undefined") {
       setAuth({ isLoggedIn: true });
       const name = getProfileFirstName() || "Utilisateur";
       setProfile({ name });
       window.localStorage.setItem(STORAGE_KEYS.is_logged_in, "true");
       window.localStorage.setItem(STORAGE_KEYS.user_name, name);
-      updateLastRoute("/signup");
+      markRechuteDoneForToday(true);
     }
-    router.replace("/rechute");
+    router.replace("/home");
   };
 
   const handleApple = () => {
     // TODO: auth Apple
-    connectAndGoToRechute();
+    connectAndGoToHome();
   };
 
   const handleGoogle = () => {
     // TODO: auth Google
-    connectAndGoToRechute();
+    connectAndGoToHome();
   };
 
   const handleSkip = () => {
-    connectAndGoToRechute();
+    connectAndGoToHome();
   };
 
   return (

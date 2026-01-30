@@ -120,7 +120,6 @@ const PARCOURS_ROUTES = [
   "/offer",
   "/checkout",
   "/signup",
-  "/rechute",
   "/test",
   "/urgence",
 ];

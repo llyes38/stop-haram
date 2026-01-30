@@ -58,7 +58,7 @@ const QUESTIONS = [
   { id: "q10", text: "Qu'est-ce qui t'aiderait vraiment à tenir sur la durée ?", options: ["Des rappels simples", "Un cadre clair et progressif", "Un suivi quotidien", "Un accompagnement discret et bienveillant", "Je ne sais pas encore"], multiSelect: true, maxChoices: 3 },
 ];
 
-const totalSteps = 13;
+const totalSteps = 12;
 
 const bgStyle = {
   background: "linear-gradient(to bottom, #0a1f12 0%, #0d2818 30%, #0f2d22 60%, #0d2435 85%, #0a1c2e 100%)",
@@ -193,12 +193,7 @@ export default function QuizClient() {
     if (currentStep < 11) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Si on vient de parcours, sauter le profil et finir directement
-      if (fromParcours) {
-        handleFinishQuiz();
-      } else {
-        setCurrentStep(12);
-      }
+      handleFinishQuiz();
     }
   };
 
@@ -220,12 +215,7 @@ export default function QuizClient() {
     if (currentStep < 11) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Si on vient de parcours, sauter le profil et finir directement
-      if (fromParcours) {
-        handleFinishQuiz();
-      } else {
-        setCurrentStep(12);
-      }
+      handleFinishQuiz();
     }
   };
 
@@ -262,9 +252,16 @@ export default function QuizClient() {
   const handleSkip = () => router.push("/profile");
 
   const handleFinishQuiz = () => {
-    const profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
+    let profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
     if (typeof window !== "undefined") {
-      // Si on vient de parcours ou companion, ne pas sauvegarder le profil (garder l'existant)
+      const savedProfile = window.localStorage.getItem("stopharam_profile");
+      if (savedProfile && (!profile.firstName || isNaN(profile.age))) {
+        try {
+          const p = JSON.parse(savedProfile) as { firstName?: string; age?: number };
+          if (!profile.firstName && p.firstName) profile = { ...profile, firstName: p.firstName };
+          if (isNaN(profile.age) && typeof p.age === "number") profile = { ...profile, age: p.age };
+        } catch {}
+      }
       if (!fromParcours && !fromCompanion) {
         window.localStorage.setItem("stopharam_profile", JSON.stringify(profile));
       }
@@ -283,14 +280,14 @@ export default function QuizClient() {
         // Conserver toutes les données existantes, juste mettre à jour les péchés et réponses
         user = ensureUserDefaults({
           ...existingUser,
-          name: (isModifyFromParcours || isModifyFromCompanion) ? existingUser.name : (firstName.trim() || existingUser.name),
+          name: (isModifyFromParcours || isModifyFromCompanion) ? existingUser.name : (profile.firstName || existingUser.name),
           selectedSins,
           scores: { ...existingUser.scores, ...scores },
           answers: answers as Record<string, unknown>,
         });
       } else {
         user = ensureUserDefaults({
-          name: firstName.trim(),
+          name: profile.firstName || "Utilisateur",
           selectedSins,
           scores,
           answers: answers as Record<string, unknown>,
@@ -476,49 +473,7 @@ export default function QuizClient() {
           );
         })()}
 
-        {/* Step 12: Profile - sautée si on vient de parcours */}
-        {currentStep === 12 && !fromParcours && (
-          <div className="flex-1 flex flex-col">
-            <h2 className="text-white text-xl sm:text-2xl font-bold mb-6">Un peu plus sur toi</h2>
-            <div className="space-y-4 mb-6">
-              <div>
-                <label htmlFor="quiz-firstName" className="block text-white/90 text-sm font-medium mb-2">Prénom</label>
-                <input
-                  id="quiz-firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Ton prénom"
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-teal-400/50"
-                />
-              </div>
-              <div>
-                <label htmlFor="quiz-age" className="block text-white/90 text-sm font-medium mb-2">Âge</label>
-                <input
-                  id="quiz-age"
-                  type="number"
-                  min={1}
-                  max={120}
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  placeholder="Ton âge"
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-teal-400/50"
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleFinishQuiz}
-              disabled={!firstName.trim() || !age.trim()}
-              className={`w-full py-3.5 rounded-xl font-semibold text-base ${
-                firstName.trim() && age.trim() ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white/50 cursor-not-allowed"
-              }`}
-            >
-              Terminer le quiz
-            </button>
-          </div>
-        )}
-
-        {/* Skip test - always visible except on profile step */}
+        {/* Skip test */}
         {currentStep < 12 && (
           <div className="mt-auto pt-6">
             <Link
