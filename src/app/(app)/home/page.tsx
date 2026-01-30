@@ -167,8 +167,7 @@ export default function HomePage() {
     }
   }, []);
 
-  const displayName = name || null;
-  const messageText = displayName ? `${displayName}, tu es toujours debout.` : "Tu es sur le bon chemin.";
+  const displayName = name?.trim() || null;
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
   const currentStatut = getCurrentStatut(streakDays ?? null);
 
@@ -333,18 +332,42 @@ export default function HomePage() {
         </div>
       )}
 
-      <section className="flex flex-col gap-6 pb-28">
-        <div className="flex items-start justify-between gap-4">
-          <p className="text-xl sm:text-2xl font-medium text-white leading-snug flex-1">{messageText}</p>
-          <button
-            type="button"
-            onClick={() => router.push("/fonctionnement")}
-            className="text-emerald-400/90 hover:text-emerald-300 text-sm font-medium underline transition-colors whitespace-nowrap shrink-0"
-          >
-            Comment ça marche ?
-          </button>
+      {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours */}
+      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-6">
+        <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
+          {displayName ? (
+            <><span className="text-white">{displayName}</span>, tu es sur la bonne voie depuis</>
+          ) : (
+            "Tu es sur la bonne voie depuis"
+          )}
+        </p>
+        <div className="text-center">
+          {hasStreak && (
+            <p className="text-3xl sm:text-4xl font-bold text-white tabular-nums">
+              {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
+            </p>
+          )}
+          {elapsed != null && (
+            <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
+              {elapsed.days > 0 && `${elapsed.days}j `}
+              {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
+            </p>
+          )}
+          {!hasStreak && !elapsed && (
+            <p className="text-white/90 text-lg">Chaque effort compte.</p>
+          )}
         </div>
+        <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
+        <button
+          type="button"
+          onClick={() => router.push("/fonctionnement")}
+          className="block mx-auto mt-3 text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline transition-colors"
+        >
+          Comment ça marche ?
+        </button>
+      </div>
 
+      <section className="flex flex-col gap-6 pb-28">
         {/* Bloc : Défi 30 jours */}
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
           <div className="flex items-center justify-between mb-3">
@@ -482,30 +505,6 @@ export default function HomePage() {
               );
             })()}
           </div>
-        </div>
-
-        {/* Bloc : Vous êtes sur la bonne voie depuis */}
-        <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg">
-          <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
-            Vous êtes sur la bonne voie depuis
-          </p>
-          <div className="text-center">
-            {hasStreak && (
-              <p className="text-3xl sm:text-4xl font-bold text-white tabular-nums">
-                {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
-              </p>
-            )}
-            {elapsed != null && (
-              <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
-                {elapsed.days > 0 && `${elapsed.days}j `}
-                {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
-              </p>
-            )}
-            {!hasStreak && !elapsed && (
-              <p className="text-white/90 text-lg">Chaque effort compte.</p>
-            )}
-          </div>
-          <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
         </div>
 
         {/* Bloc : Mon but en arrêtant mes péchés */}
