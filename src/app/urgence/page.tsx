@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, saveUser, getSinLabel, getDailyActionLabels } from "@/lib/storage";
 import { getAideForSin } from "@/lib/urgenceAide";
@@ -40,6 +40,29 @@ export default function UrgencePage() {
 
   const [vibrationActive, setVibrationActive] = useState(false);
   const [rechuteAlertFlash, setRechuteAlertFlash] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  /** Confettis : positions et couleurs variées pour l'animation "Je tiens bon" */
+  const confettiPieces = useMemo(() => {
+    if (!showConfetti) return [];
+    const colors = [
+      "bg-emerald-400",
+      "bg-emerald-500",
+      "bg-green-400",
+      "bg-yellow-400",
+      "bg-amber-300",
+      "bg-white",
+      "bg-emerald-300",
+    ];
+    return Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      left: (i * 7 + 3) % 100,
+      delay: (i * 80) % 1200,
+      color: colors[i % colors.length],
+      duration: 2 + (i % 3) * 0.5,
+      size: i % 3 === 0 ? "w-2 h-2" : i % 3 === 1 ? "w-2.5 h-1.5" : "w-1.5 h-2.5",
+    }));
+  }, [showConfetti]);
 
   /** Vibration uniquement après "Malheureusement je suis faible, je rechute" — s'arrête à la sortie de la page */
   useEffect(() => {
@@ -70,26 +93,46 @@ export default function UrgencePage() {
     setView("confirm");
   };
 
+  const handleTiensBon = () => {
+    incrementResisted();
+    setShowConfetti(true);
+    setTimeout(() => {
+      setShowConfetti(false);
+      router.push("/home");
+    }, 2600);
+  };
+
   const handleConfirmRechute = () => {
     if (!user || !selectedSinRechute) return;
     setRechuteAlertFlash(false);
-    const updatedUser: StopHaramUser = {
-      ...user,
-      streakDays: 0,
-      lastCheckinISO: getTodayISO(),
-      perSinStreak: {
-        ...user.perSinStreak,
-        [selectedSinRechute]: 0,
-      },
-    };
-    saveUser(updatedUser);
-    const user = getUser();
-    const labels = getDailyActionLabels(user);
-    clearTodayActions(labels.length);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(LAST_STREAK_START_KEY, new Date().toISOString());
-      window.localStorage.setItem(LAST_RECHUTE_KEY, getTodayISO());
-      window.localStorage.setItem("days_clean", "0");
+    setVibrationActive(false);
+    try {
+      const updatedUser: StopHaramUser = {
+        ...user,
+        streakDays: 0,
+        lastCheckinISO: getTodayISO(),
+        perSinStreak: {
+          ...user.perSinStreak,
+          [selectedSinRechute]: 0,
+        },
+      };
+      saveUser(updatedUser);
+      const savedUser = getUser();
+      const labels = getDailyActionLabels(savedUser);
+      clearTodayActions(labels.length);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(LAST_STREAK_START_KEY, new Date().toISOString());
+        window.localStorage.setItem(LAST_RECHUTE_KEY, getTodayISO());
+        window.localStorage.setItem("days_clean", "0");
+      }
+    } catch (_) {
+      // En cas d'erreur, on sauvegarde quand même le minimum et on redirige
+      if (user) {
+        saveUser({ ...user, streakDays: 0, lastCheckinISO: getTodayISO() });
+      }
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("days_clean", "0");
+      }
     }
     router.replace("/home");
   };
@@ -119,14 +162,30 @@ export default function UrgencePage() {
 
   return (
     <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white relative">
-      {/* Scintillement rouge plein écran tant que l'utilisateur n'a pas confirmé ou annulé la rechute */}
+      {/* Confettis — joie quand il clique "Je tiens bon" */}
+      {showConfetti && (
+        <div className="fixed inset-0 z-[95] pointer-events-none overflow-hidden" aria-hidden>
+          {confettiPieces.map((p) => (
+            <div
+              key={p.id}
+              className={`confetti-piece rounded-sm ${p.color} ${p.size}`}
+              style={{
+                left: `${p.left}%`,
+                animationDelay: `${p.delay}ms`,
+                animationDuration: `${p.duration}s`,
+              }}
+            />
+          ))}
+        </div>
+      )}
+      {/* Scintillement rouge plein écran (derrière le contenu pour ne pas bloquer les clics) */}
       {rechuteAlertFlash && (
         <div
-          className="fixed inset-0 z-[100] bg-red-600 pointer-events-none rechute-alert-overlay"
+          className="fixed inset-0 z-10 bg-red-600 pointer-events-none rechute-alert-overlay"
           aria-hidden
         />
       )}
-      <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-8 pb-8 relative z-10">
+      <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-8 pb-8 relative z-20">
         <header className="flex items-center gap-3 mb-8">
           <button
             type="button"
@@ -216,10 +275,7 @@ export default function UrgencePage() {
             <div className="mt-auto space-y-3 pt-6">
               <button
                 type="button"
-                onClick={() => {
-                  incrementResisted();
-                  router.push("/home");
-                }}
+                onClick={handleTiensBon}
                 className="w-full rounded-xl bg-emerald-500/20 border border-emerald-400/40 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/30 transition-colors"
               >
                 Je tiens bon, retour à l&apos;accueil

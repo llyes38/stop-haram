@@ -213,7 +213,10 @@ export function getDailyActionLabels(user: StopHaramUser | null): string[] {
   const dayNum = getDayNumber(user.startDateISO);
   const idx = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const d = user.plan.days[idx];
-  
+  if (!d) {
+    return [defaultIntention, defaultFocus, defaultBase];
+  }
+
   // Si pas d'intention dans le plan ou si c'est l'ancienne intention fixe, générer une action variée depuis ACTION_1
   let action1Title = d.intention?.title;
   if (!action1Title || action1Title === "Faire mon intention du jour" || action1Title.startsWith("Intention :")) {
