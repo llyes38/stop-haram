@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { setDecouverteSeen } from "@/lib/decouverteStorage";
+
+const SWIPE_THRESHOLD = 50;
 
 const SLIDES = [
   {
@@ -70,7 +72,7 @@ const SLIDES = [
     ),
   },
   {
-    title: "Aide toujours là",
+    title: "Allah est avec toi",
     subtitle: "Tu n'es pas seul",
     text: "Bouton « Je vais craquer » + Se confier (IA) dans le menu. Urgence, invocations, conseils.",
     mockup: (
@@ -97,25 +99,55 @@ const SLIDES = [
 export default function DecouvertePage() {
   const router = useRouter();
   const [index, setIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const slide = SLIDES[index];
   const isLast = index === SLIDES.length - 1;
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (isLast) {
       setDecouverteSeen();
       router.replace("/home");
     } else {
       setIndex((i) => i + 1);
     }
-  };
+  }, [isLast, router]);
+
+  const handlePrev = useCallback(() => {
+    setIndex((i) => Math.max(0, i - 1));
+  }, []);
 
   const handleSkip = () => {
     setDecouverteSeen();
     router.replace("/home");
   };
 
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (touchStart == null || touchEnd == null) return;
+    const diff = touchStart - touchEnd;
+    if (Math.abs(diff) < SWIPE_THRESHOLD) return;
+    if (diff > 0) handleNext();
+    else handlePrev();
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
   return (
-    <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white overflow-hidden">
+    <main
+      className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white overflow-hidden touch-pan-y"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
         <p className="text-emerald-200/80 text-sm font-medium mb-2">{slide.subtitle}</p>
         <h1 className="text-xl sm:text-2xl font-bold text-white text-center mb-4">{slide.title}</h1>
