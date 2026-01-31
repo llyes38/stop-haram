@@ -697,18 +697,34 @@ function pick<T>(arr: T[], index: number): T {
   return arr[index % arr.length];
 }
 
-/** Choisit une action dont le titre n'est pas déjà utilisé. Si tout est pris, essaie l'index suivant. */
-function pickUnique(
+/** Choisit une action dont le titre n'est pas déjà utilisé. Essaie tous les index du pool. */
+function pickUniqueFrom(
   arr: Array<{ title: string; desc: string }>,
   usedTitles: Set<string>,
   startIndex: number
-): { title: string; desc: string } {
+): { title: string; desc: string } | null {
   for (let i = 0; i < arr.length; i++) {
     const idx = (startIndex + i) % arr.length;
     const a = arr[idx];
     if (!usedTitles.has(a.title)) return a;
   }
-  return arr[startIndex % arr.length];
+  return null;
+}
+
+/** Choisit une action unique. Si le pool principal n'a plus d'actions libres, essaie les pools de secours. */
+function pickUnique(
+  mainPool: Array<{ title: string; desc: string }>,
+  usedTitles: Set<string>,
+  startIndex: number,
+  fallbackPools: Array<Array<{ title: string; desc: string }>> = []
+): { title: string; desc: string } {
+  const found = pickUniqueFrom(mainPool, usedTitles, startIndex);
+  if (found) return found;
+  for (const pool of fallbackPools) {
+    const f = pickUniqueFrom(pool, usedTitles, startIndex);
+    if (f) return f;
+  }
+  return mainPool[startIndex % mainPool.length];
 }
 
 export function generatePlan(user: StopHaramUser): StopHaramUser["plan"] {
@@ -733,19 +749,21 @@ export function generatePlan(user: StopHaramUser): StopHaramUser["plan"] {
   // Nombre d'actions par jour (par défaut 3)
   const actionsPerDay = user.profileInfo?.actionsPerDay ?? 3;
 
+  const allPools = [action1List, focusActions, baseActions, PHYSICAL_ACTIONS];
+
   const days: PlanDay[] = [];
   for (let d = 1; d <= 30; d++) {
     const level = getLevelFromDay(d);
     const diffOffset = getLevelDifficultyOffset(level);
     const usedTitles = new Set<string>();
 
-    const action1 = pickUnique(action1List, usedTitles, d - 1 + diffOffset);
+    const action1 = pickUnique(action1List, usedTitles, d - 1 + diffOffset, [focusActions, baseActions, PHYSICAL_ACTIONS]);
     usedTitles.add(action1.title);
 
-    const focus = pickUnique(focusActions, usedTitles, d - 1 + diffOffset);
+    const focus = pickUnique(focusActions, usedTitles, d - 1 + diffOffset, [action1List, baseActions, PHYSICAL_ACTIONS]);
     usedTitles.add(focus.title);
 
-    const base = pickUnique(baseActions, usedTitles, d - 1 + diffOffset);
+    const base = pickUnique(baseActions, usedTitles, d - 1 + diffOffset, [action1List, focusActions, PHYSICAL_ACTIONS]);
     usedTitles.add(base.title);
 
     const optional =
@@ -755,7 +773,8 @@ export function generatePlan(user: StopHaramUser): StopHaramUser["plan"] {
 
     const additionalActions: Array<{ title: string; desc: string }> = [];
     const addUniqueFrom = (arr: Array<{ title: string; desc: string }>, idx: number) => {
-      const a = pickUnique(arr, usedTitles, idx);
+      const fallbacks = allPools.filter((p) => p !== arr);
+      const a = pickUnique(arr, usedTitles, idx, fallbacks);
       usedTitles.add(a.title);
       additionalActions.push(a);
     };
