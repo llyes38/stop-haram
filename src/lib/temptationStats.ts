@@ -36,3 +36,9 @@ export function incrementResisted(): void {
   s.resisted += 1;
   setTemptationStats(s);
 }
+
+/** Réinitialise les stats (nouveau profil). */
+export function resetTemptationStats(): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(KEY);
+}

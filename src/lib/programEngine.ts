@@ -1,4 +1,5 @@
 import type { SelectedSin, StopHaramUser, PlanDay } from "./storage";
+import { getLevelFromDay, getLevelDifficultyOffset } from "./defiLevels";
 
 /** Actions concrètes variées pour la première action de chaque jour, adaptées au péché focus */
 export const ACTION_1: Record<SelectedSin, Array<{ title: string; desc: string }>> = {
@@ -31,6 +32,8 @@ export const ACTION_1: Record<SelectedSin, Array<{ title: string; desc: string }
     { title: "Faire du dhikr pendant le sport", desc: "Pendant le sport ou la marche, récite du dhikr. Transforme chaque activité en adoration." },
     { title: "Réciter Coran en famille", desc: "Lis ou écoute du Coran avec ta famille pendant 15 minutes. C'est une bénédiction pour la maison." },
     { title: "Faire du dhikr en faisant le ménage", desc: "Pendant les tâches ménagères, récite du dhikr. Transforme chaque action en adoration." },
+    { title: "Va voir ton voisin et offre-lui un gâteau", desc: "Rends visite à ton voisin avec une petite attention. Le Prophète (saws) a dit : « Le meilleur des voisins auprès d'Allah est le meilleur envers son voisin. »" },
+    { title: "Appelle un membre de ta famille", desc: "Appelle ta mère, ton père ou un proche pour prendre de leurs nouvelles. Maintenir les liens de parenté est une adoration." },
   ],
   musique: [
     { title: "Écouter Coran 15 minutes", desc: "Écoute 15 minutes de Coran récité au lieu de toute musique. Le Coran apaise les cœurs et élève l'âme." },
@@ -61,6 +64,7 @@ export const ACTION_1: Record<SelectedSin, Array<{ title: string; desc: string }
     { title: "Faire du dhikr pendant le sport", desc: "Pendant le sport ou la marche, récite du dhikr au lieu d'écouter de la musique. Chaque pas devient une adoration." },
     { title: "Écouter Coran en famille", desc: "Écoute du Coran avec ta famille pendant 15 minutes. C'est une bénédiction pour la maison." },
     { title: "Apprendre par cœur 3 versets", desc: "Mémorise 3 nouveaux versets du Coran. La mémorisation du Coran est meilleure que toute musique." },
+    { title: "Marche 15 min en récitant du dhikr", desc: "Sors marcher 15 minutes en récitant du dhikr. Le mouvement et l'évocation d'Allah purifient le cœur." },
   ],
   priere: [
     { title: "Faire les ablutions avant chaque prière", desc: "Renouvelle tes ablutions avant chaque prière, même si elles sont encore valides. C'est une purification supplémentaire." },
@@ -302,6 +306,8 @@ export const ACTION_1: Record<SelectedSin, Array<{ title: string; desc: string }
     { title: "Prier les prières surérogatoires", desc: "Prie les prières surérogatoires (nafl) : Duha, Witr, Tahajjud. Ce sont des protections." },
     { title: "Remplace l'habitude par dhikr", desc: "Remplace l'habitude négative par du dhikr. Transforme chaque moment en adoration." },
     { title: "Demander pardon sincèrement", desc: "Demande pardon à Allah pour une chute récente. Le repentir sincère efface les péchés." },
+    { title: "Rends visite à tes parents", desc: "Va voir tes parents, prends de leurs nouvelles, aide-les. « Le Paradis est aux pieds des mères. »" },
+    { title: "Aide quelqu'un concrètement", desc: "Propose ton aide pour une tâche : courses, ménage, garde. La solidarité purifie le cœur." },
   ],
 };
 
@@ -647,6 +653,41 @@ const BASE_ACTIONS_PRIERE: Array<{ title: string; desc: string }> = [
   { title: "Réciter sourate Al-Mulk avant de dormir", desc: "Lis sourate Al-Mulk (67) avant de dormir. Cette sourate protège des châtiments de la tombe." },
 ];
 
+/** Actions physiques et sociales du quotidien — aident à corriger le péché par des actes concrets */
+const PHYSICAL_ACTIONS: Array<{ title: string; desc: string }> = [
+  { title: "Va voir ton voisin et offre-lui un gâteau", desc: "Rends visite à ton voisin avec une petite attention (gâteau, dattes). Le Prophète (saws) a dit : « Le meilleur des voisins auprès d'Allah est le meilleur envers son voisin. »" },
+  { title: "Appelle un membre de ta famille", desc: "Appelle ta mère, ton père, un frère ou une sœur pour prendre de leurs nouvelles. Maintenir les liens de parenté est une adoration." },
+  { title: "Rends visite à un malade ou une personne âgée", desc: "Va voir quelqu'un de malade ou une personne âgée. Le Prophète (saws) a dit : « Qui visite un malade est dans la récolte du Paradis jusqu'à son retour. »" },
+  { title: "Aide quelqu'un à porter ses courses", desc: "Si tu vois quelqu'un qui en a besoin, propose ton aide pour porter des courses ou des paquets. La charité physique efface le péché." },
+  { title: "Partage un repas avec un proche", desc: "Invite quelqu'un à manger avec toi ou partage ton repas. « Donnez à manger à celui qui a faim. » (Hadith)" },
+  { title: "Fais une promenade de 15 min en récitant du dhikr", desc: "Sors marcher 15 minutes tout en récitant du dhikr. Le mouvement physique et l'évocation d'Allah purifient le cœur." },
+  { title: "Nettoie ta chambre ou un coin de la maison", desc: "Range et nettoie ta chambre. La propreté physique reflète la pureté du cœur. « La propreté fait partie de la foi. »" },
+  { title: "Fais 20 minutes de sport ou de marche", desc: "Bouge ton corps 20 minutes : marche, étirements, pompes. Un corps actif aide à dompter les tentations." },
+  { title: "Apporte un café ou thé à quelqu'un", desc: "Offre une boisson à un collègue, un voisin ou un proche. Les petits gestes de bienveillance comptent." },
+  { title: "Raconte un hadith ou verset à quelqu'un", desc: "Partage un verset ou hadith qui t'a touché avec une personne de ton entourage. Transmettre la science est une sadaqa." },
+  { title: "Fais le ménage chez tes parents", desc: "Va chez tes parents et aide au ménage, au rangement ou aux courses. « Le Paradis est aux pieds de ta mère. »" },
+  { title: "Invite quelqu'un à la mosquée", desc: "Propose à un ami ou un voisin de venir prier avec toi à la mosquée. « Qui appelle au bien a la même récompense que ceux qui le suivent. »" },
+  { title: "Donne de l'eau ou de la nourriture à quelqu'un", desc: "Offre à manger ou à boire à quelqu'un dans le besoin. « Le meilleur des repas est celui auquel on invite des convives. »" },
+  { title: "Écris un message de soutien à un proche", desc: "Envoie un message sincère à quelqu'un pour lui demander comment il va. Maintenir les liens est une adoration." },
+  { title: "Fais une sortie en nature (parc, forêt)", desc: "Sors dans un parc ou en nature 20 minutes. Méditer la création d'Allah apaise le cœur." },
+  { title: "Aide quelqu'un dans une tâche concrète", desc: "Propose ton aide pour une tâche : déménagement, bricolage, garde d'enfants. La solidarité purifie." },
+  { title: "Va faire les courses pour quelqu'un qui ne peut pas", desc: "Propose à une personne âgée ou malade de faire ses courses. « Celui qui s'occupe des besoins de son frère, Allah s'occupe des siens. »" },
+  { title: "Cuisine et offre un plat à quelqu'un", desc: "Prépare un plat et offre-le à un voisin, un proche ou quelqu'un dans le besoin. La générosité efface le péché." },
+  { title: "Fais du jardinage ou arrose des plantes", desc: "Prends soin des plantes, du balcon ou du jardin. La création d'Allah nous rappelle à Lui." },
+  { title: "Accompagne quelqu'un à un rendez-vous", desc: "Propose d'accompagner une personne âgée ou malade à un rdv. La présence et l'accompagnement sont des actes de bien." },
+  { title: "Réconcilie-toi avec quelqu'un", desc: "Si tu as un différend, fais le premier pas pour te réconcilier. « La réconciliation entre les gens est une des meilleures aumônes. »" },
+  { title: "Fais du bénévolat 1h (mosquée, association)", desc: "Donne 1h de ton temps : aider à la mosquée, une association, un maraud. Le bénévolat purifie." },
+  { title: "Étire-toi 5 min au réveil avec dhikr", desc: "Au réveil, fais des étirements 5 minutes en récitant du dhikr. Corps et esprit s'éveillent ensemble." },
+  { title: "Marche jusqu'à la mosquée pour une prière", desc: "Va à la mosquée à pied pour au moins une prière. Chaque pas vers la mosquée efface un péché." },
+  { title: "Range et trie tes affaires", desc: "Range un placard, un tiroir ou tes vêtements. L'ordre extérieur aide à l'ordre intérieur." },
+  { title: "Rends visite à tes parents", desc: "Va voir tes parents, prends de leurs nouvelles, aide-les. « Le Paradis est aux pieds des mères. »" },
+  { title: "Fais une bonne action anonyme", desc: "Fais une bonne action sans que personne ne sache : laisse une pièce, aide en silence. La discrétion multiplie la récompense." },
+  { title: "Sors sans téléphone 30 minutes", desc: "Laisse ton téléphone chez toi et sors 30 min (marche, parc). Déconnecte pour te reconnecter à l'essentiel." },
+  { title: "Répare ou améliore quelque chose à la maison", desc: "Répare un objet, change une ampoule, accroche un cadre. Les petites actions concrètes valorisent." },
+  { title: "Prépare le repas pour ta famille", desc: "Cuisine pour ta famille. Servir les siens est une adoration et renforce les liens." },
+  { title: "Donne un vêtement en bon état à quelqu'un", desc: "Donne un vêtement que tu ne portes plus à quelqu'un dans le besoin. « Couvrir la nudité de ton frère est une sadaqa. »" },
+];
+
 function getBaseActions(sin: SelectedSin): Array<{ title: string; desc: string }> {
   if (sin === "priere") return FOCUS_ACTIONS.priere;
   return BASE_ACTIONS_PRIERE;
@@ -654,6 +695,20 @@ function getBaseActions(sin: SelectedSin): Array<{ title: string; desc: string }
 
 function pick<T>(arr: T[], index: number): T {
   return arr[index % arr.length];
+}
+
+/** Choisit une action dont le titre n'est pas déjà utilisé. Si tout est pris, essaie l'index suivant. */
+function pickUnique(
+  arr: Array<{ title: string; desc: string }>,
+  usedTitles: Set<string>,
+  startIndex: number
+): { title: string; desc: string } {
+  for (let i = 0; i < arr.length; i++) {
+    const idx = (startIndex + i) % arr.length;
+    const a = arr[idx];
+    if (!usedTitles.has(a.title)) return a;
+  }
+  return arr[startIndex % arr.length];
 }
 
 export function generatePlan(user: StopHaramUser): StopHaramUser["plan"] {
@@ -680,34 +735,43 @@ export function generatePlan(user: StopHaramUser): StopHaramUser["plan"] {
 
   const days: PlanDay[] = [];
   for (let d = 1; d <= 30; d++) {
-    const action1 = pick(action1List, d - 1);
-    const focus = pick(focusActions, d - 1);
-    const base = pick(baseActions, d - 1);
+    const level = getLevelFromDay(d);
+    const diffOffset = getLevelDifficultyOffset(level);
+    const usedTitles = new Set<string>();
+
+    const action1 = pickUnique(action1List, usedTitles, d - 1 + diffOffset);
+    usedTitles.add(action1.title);
+
+    const focus = pickUnique(focusActions, usedTitles, d - 1 + diffOffset);
+    usedTitles.add(focus.title);
+
+    const base = pickUnique(baseActions, usedTitles, d - 1 + diffOffset);
+    usedTitles.add(base.title);
+
     const optional =
       hasOptional && (d % 7 === 3 || d % 7 === 6)
         ? { title: "Action optionnelle", desc: "Choisis une action parmi tes objectifs secondaires." }
         : undefined;
-    
-    // Générer des actions supplémentaires si nécessaire (5 ou 10 actions)
+
     const additionalActions: Array<{ title: string; desc: string }> = [];
+    const addUniqueFrom = (arr: Array<{ title: string; desc: string }>, idx: number) => {
+      const a = pickUnique(arr, usedTitles, idx);
+      usedTitles.add(a.title);
+      additionalActions.push(a);
+    };
+
     if (actionsPerDay >= 5) {
-      // Pour 5 actions : ajouter 2 actions supplémentaires
-      // Utiliser ACTION_1 avec un offset différent pour varier
-      const extra1 = pick(action1List, (d - 1 + 7) % action1List.length);
-      const extra2 = pick(focusActions, (d - 1 + 14) % focusActions.length);
-      additionalActions.push(extra1, extra2);
+      addUniqueFrom(action1List, d - 1 + 7 + diffOffset);
+      addUniqueFrom(PHYSICAL_ACTIONS, d - 1 + 14 + diffOffset);
     }
     if (actionsPerDay >= 10) {
-      // Pour 10 actions : ajouter 5 actions supplémentaires de plus
-      // Utiliser différentes listes pour varier
-      const extra3 = pick(action1List, (d - 1 + 21) % action1List.length);
-      const extra4 = pick(baseActions, (d - 1 + 7) % baseActions.length);
-      const extra5 = pick(focusActions, (d - 1 + 21) % focusActions.length);
-      const extra6 = pick(action1List, (d - 1 + 14) % action1List.length);
-      const extra7 = pick(baseActions, (d - 1 + 14) % baseActions.length);
-      additionalActions.push(extra3, extra4, extra5, extra6, extra7);
+      addUniqueFrom(focusActions, d - 1 + 21 + diffOffset);
+      addUniqueFrom(baseActions, d - 1 + 7 + diffOffset);
+      addUniqueFrom(PHYSICAL_ACTIONS, d - 1 + 18 + diffOffset);
+      addUniqueFrom(action1List, d - 1 + 14 + diffOffset);
+      addUniqueFrom(focusActions, d - 1 + 25 + diffOffset);
     }
-    
+
     days.push({ day: d, intention: action1, focus, base, optional, additionalActions: additionalActions.length > 0 ? additionalActions : undefined });
   }
 

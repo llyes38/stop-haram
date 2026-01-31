@@ -1,4 +1,6 @@
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
+import { resetTemptationStats } from "@/lib/temptationStats";
+import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 
 export interface StopharamAuth {
   isLoggedIn: boolean;
@@ -90,7 +92,11 @@ export function isOnboardingComplete(): boolean {
 }
 
 export function resetOnboarding(): void {
-  if (typeof window !== "undefined") clearDecouverteSeen();
+  if (typeof window !== "undefined") {
+    clearDecouverteSeen();
+    resetTemptationStats();
+    clearDefiDaysStatus();
+  }
   setState({
     onboardingComplete: false,
     lastRoute: undefined,

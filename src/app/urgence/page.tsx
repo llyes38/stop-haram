@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser, saveUser, getSinLabel, getDailyActionLabels } from "@/lib/storage";
 import { getAideForSin } from "@/lib/urgenceAide";
 import { incrementResisted } from "@/lib/temptationStats";
+import { setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { clearTodayActions } from "@/lib/dailyActions";
 import type { SelectedSin, StopHaramUser } from "@/lib/storage";
 
@@ -106,6 +107,10 @@ export default function UrgencePage() {
     if (!user || !selectedSinRechute) return;
     setRechuteAlertFlash(false);
     setVibrationActive(false);
+    if (user.startDateISO) {
+      const day = getDayNumber(user.startDateISO);
+      if (day >= 1 && day <= 30) setDefiDayStatus(day, "failed");
+    }
     try {
       const updatedUser: StopHaramUser = {
         ...user,

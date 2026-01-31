@@ -1,19 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ensureUserDefaults, saveUser, domainsToSins } from "@/lib/storage";
 import { generatePlan } from "@/lib/programEngine";
 import { setAuth, setProfile, setState, updateLastRoute } from "@/lib/authState";
+import { resetTemptationStats } from "@/lib/temptationStats";
+import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
   const [age, setAge] = useState("");
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem("stopharam_profile");
+    if (raw) {
+      try {
+        const p = JSON.parse(raw) as { firstName?: string; age?: number };
+        if (p.firstName) setFirstName(p.firstName);
+        if (p.age != null) setAge(String(p.age));
+      } catch {}
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (typeof window === "undefined" || !firstName.trim() || !age.trim()) return;
+    resetTemptationStats();
+    clearDefiDaysStatus();
     const name = firstName.trim();
     const profile = {
       firstName: name,
@@ -33,7 +49,7 @@ export default function ProfilePage() {
       name,
       selectedSins,
       scores,
-      startDateISO: new Date().toISOString().slice(0, 10),
+      startDateISO: "",
       streakDays: 0,
     });
     if (!user.plan?.days?.length) {
@@ -105,6 +121,7 @@ export default function ProfilePage() {
                 required
               />
             </div>
+
           </div>
 
           <button

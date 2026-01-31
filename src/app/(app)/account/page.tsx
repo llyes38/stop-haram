@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   getUser,
   ensureUserDefaults,
@@ -9,6 +9,7 @@ import {
   getDayNumber,
   getSinLabel,
   getScoreLabel,
+  hasDefiStarted,
 } from "@/lib/storage";
 import type {
   StopHaramUser,
@@ -195,8 +196,14 @@ function PushNotificationsBlock() {
 
 export default function AccountPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<StopHaramUser | null>(null);
   const [tab, setTab] = useState<Tab>("profil");
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "plan" || t === "objectifs" || t === "profil") setTab(t);
+  }, [searchParams]);
   const [editName, setEditName] = useState("");
   const [editGenre, setEditGenre] = useState<Genre>("");
   const [editSituation, setEditSituation] = useState<SituationFamiliale>("");
@@ -207,6 +214,8 @@ export default function AccountPage() {
   const [editVoilee, setEditVoilee] = useState<Voilee>("");
   const [editLogement, setEditLogement] = useState<TypeLogement>("");
   const [editConverti, setEditConverti] = useState<Converti>("");
+  const [editEnfantsFilles, setEditEnfantsFilles] = useState("");
+  const [editEnfantsGarcons, setEditEnfantsGarcons] = useState("");
   const [saved, setSaved] = useState(false);
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
@@ -245,6 +254,8 @@ export default function AccountPage() {
       setEditVoilee((u.profileInfo?.voilee as Voilee) ?? "");
       setEditLogement((u.profileInfo?.logement as TypeLogement) ?? "");
       setEditConverti((u.profileInfo?.converti as Converti) ?? "");
+      setEditEnfantsFilles(u.profileInfo?.enfantsFilles != null ? String(u.profileInfo.enfantsFilles) : "");
+      setEditEnfantsGarcons(u.profileInfo?.enfantsGarcons != null ? String(u.profileInfo.enfantsGarcons) : "");
     }
     setNotifPriereState(getNotifPriere());
     setNotifActionsState(getNotifActions());
@@ -276,6 +287,8 @@ export default function AccountPage() {
         voilee: editGenre === "femme" && editVoilee ? editVoilee : undefined,
         logement: editLogement || undefined,
         converti: editConverti || undefined,
+        enfantsFilles: Math.max(0, parseInt(editEnfantsFilles, 10) || 0),
+        enfantsGarcons: Math.max(0, parseInt(editEnfantsGarcons, 10) || 0),
       },
     };
     saveUser(updated);
@@ -390,6 +403,40 @@ export default function AccountPage() {
               placeholder="Ex. 28"
               className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
+          </div>
+
+          {/* Enfants */}
+          <div>
+            <label className="block text-white/70 text-xs font-medium mb-1.5">As-tu des enfants ?</label>
+            <p className="text-white/50 text-xs mb-2">Indique le nombre (0 si aucun)</p>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label htmlFor="enfantsFilles" className="sr-only">Filles</label>
+                <input
+                  type="number"
+                  id="enfantsFilles"
+                  min={0}
+                  max={20}
+                  value={editEnfantsFilles}
+                  onChange={(e) => setEditEnfantsFilles(e.target.value)}
+                  placeholder="Filles"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="enfantsGarcons" className="sr-only">Garçons</label>
+                <input
+                  type="number"
+                  id="enfantsGarcons"
+                  min={0}
+                  max={20}
+                  value={editEnfantsGarcons}
+                  onChange={(e) => setEditEnfantsGarcons(e.target.value)}
+                  placeholder="Garçons"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Situation familiale */}
@@ -682,7 +729,11 @@ export default function AccountPage() {
           </div>
           <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4 space-y-3">
             <p className="text-white/90 text-sm">Plan : 30 jours · Focus : {getSinLabel(user.plan.focusSin)}</p>
-            <p className="text-white/80 text-sm">Jour actuel : {Math.min(dayNum, 30)}/30</p>
+            {!hasDefiStarted(user) ? (
+              <p className="text-amber-200/90 text-sm">Défi pas encore commencé — va dans <button type="button" onClick={() => router.push("/parcours")} className="underline font-medium">Parcours</button> et clique sur &quot;Commencer&quot; quand tu es prêt.</p>
+            ) : (
+              <p className="text-white/80 text-sm">Jour actuel : {Math.min(dayNum, 30)}/30</p>
+            )}
             {dayPlan && (() => {
               // Si pas d'intention ou ancienne intention fixe, utiliser ACTION_1 basé sur le numéro du jour
               let intentionTitle = dayPlan.intention?.title;

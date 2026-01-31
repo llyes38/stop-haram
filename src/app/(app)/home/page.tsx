@@ -27,6 +27,9 @@ import {
   setNotifActions,
 } from "@/lib/notificationPrefs";
 import { hasDonToday } from "@/lib/sadaqaStorage";
+import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
+import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
+import { getActionIcon } from "@/components/ActionIcon";
 
 const DEFI_JOURS = 30;
 
@@ -92,6 +95,7 @@ export default function HomePage() {
   const [whyStopEditing, setWhyStopEditing] = useState(false);
   const [whyStopDraft, setWhyStopDraft] = useState("");
   const [challengeDay, setChallengeDay] = useState<number>(0);
+  const [startDateISO, setStartDateISO] = useState<string | null>(null);
   const [statutModalOpen, setStatutModalOpen] = useState(false);
   const [actionLabels, setActionLabels] = useState<[string, string, string]>([
     "Faire mon intention du jour",
@@ -109,14 +113,17 @@ export default function HomePage() {
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
   const [sadaqaDoneToday, setSadaqaDoneToday] = useState(false);
+  const [defiStatus, setDefiStatus] = useState<Record<number, "validated" | "failed">>({});
 
   useEffect(() => {
     const u = getUser();
     setWhyStop(u?.profileInfo?.whyStop?.trim() || "");
     if (u?.startDateISO) {
+      setStartDateISO(u.startDateISO);
       const day = getDayNumber(u.startDateISO);
       setChallengeDay(Math.min(Math.max(1, day), DEFI_JOURS));
     } else {
+      setStartDateISO(null);
       setChallengeDay(0);
     }
     const labels = getDailyActionLabels(u ?? null);
@@ -132,11 +139,27 @@ export default function HomePage() {
     setNotifPriereState(getNotifPriere());
     setNotifActionsState(getNotifActions());
     setSadaqaDoneToday(hasDonToday());
+    setDefiStatus(getDefiDaysStatus());
   }, [pathname]);
 
   useEffect(() => {
     setStats(getTemptationStats());
   }, [pathname]);
+
+  useEffect(() => {
+    const allDone = actionLabels.every((label, i) => {
+      const id = String(i + 1) as ActionId;
+      const isDhikr = /dhikr|invocation/i.test(label);
+      return isDhikr ? dhikrDoneToday : actionsState[id];
+    });
+    if (allDone && challengeDay >= 1 && challengeDay <= 30) {
+      const status = getDefiDaysStatus();
+      if (status[challengeDay] !== "validated") {
+        setDefiDayStatus(challengeDay, "validated");
+        setDefiStatus({ ...status, [challengeDay]: "validated" });
+      }
+    }
+  }, [actionLabels, actionsState, dhikrDoneToday, challengeDay]);
 
   useEffect(() => {
     const user = getUser();
@@ -370,23 +393,84 @@ export default function HomePage() {
       <section className="flex flex-col gap-6 pb-28">
         {/* Bloc : Défi 30 jours */}
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-white/80 text-sm font-semibold">Défi 30 jours</span>
-            <span className="text-white font-bold tabular-nums">{challengeDay}/{DEFI_JOURS}</span>
+          <div className="flex flex-col gap-1 mb-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-white/80 text-sm font-semibold">Défi 30 jours</span>
+                {challengeDay >= 1 && challengeDay <= DEFI_JOURS && (
+                  <span
+                    className="flex h-7 items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 px-2 text-sm"
+                    title={LEVEL_NAMES[getLevelFromDay(challengeDay)] ?? ""}
+                  >
+                    <span>{LEVEL_EMOJIS[getLevelFromDay(challengeDay)] ?? "⭐"}</span>
+                    <span className="text-amber-200 font-medium">Niveau {getLevelFromDay(challengeDay)}</span>
+                  </span>
+                )}
+              </div>
+              {challengeDay >= 1 && challengeDay <= DEFI_JOURS && (
+                <span className="text-white/60 text-xs tabular-nums">Jour {challengeDay}/{DEFI_JOURS}</span>
+              )}
+            </div>
+            {startDateISO && (
+              <p className="text-white/50 text-xs">
+                Depuis le {new Date(startDateISO + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            )}
           </div>
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-emerald-400/80 transition-all duration-500"
-              style={{ width: `${(challengeDay / DEFI_JOURS) * 100}%` }}
-            />
+          <div className="grid grid-cols-10 gap-1.5 mb-3">
+            {Array.from({ length: DEFI_JOURS }, (_, i) => {
+              const d = i + 1;
+              const status = defiStatus[d];
+              const isPast = d < challengeDay;
+              const isCurrent = d === challengeDay;
+              const showCheck = status === "validated";
+              const showCross = status === "failed" || (isPast && status !== "validated");
+              return (
+                <div
+                  key={d}
+                  className={`flex h-8 w-full min-w-0 items-center justify-center rounded-md text-sm font-bold ${
+                    showCheck
+                      ? "bg-emerald-500/50 text-emerald-100 border border-emerald-400/60"
+                      : showCross
+                      ? "bg-red-500/40 text-red-100 border border-red-400/50"
+                      : isCurrent
+                      ? "bg-white/25 text-white border border-white/40 ring-1 ring-emerald-400/50"
+                      : "bg-white/5 text-white/30 border border-white/10"
+                  }`}
+                  title={
+                    showCheck
+                      ? `Jour ${d} validé`
+                      : showCross
+                      ? `Jour ${d} échoué`
+                      : isCurrent
+                      ? `Jour ${d} en cours`
+                      : `Jour ${d}`
+                  }
+                  aria-label={showCheck ? `Jour ${d} validé` : showCross ? `Jour ${d} échoué` : `Jour ${d}`}
+                >
+                  {showCheck ? "✓" : showCross ? "✗" : isCurrent ? d : ""}
+                </div>
+              );
+            })}
           </div>
-          <p className="text-white/50 text-xs mt-1.5">
-            {challengeDay >= DEFI_JOURS ? "Challenge terminé 🎉" : challengeDay === 0 ? "Commence ton parcours pour lancer le défi" : `Jour ${challengeDay} sur ${DEFI_JOURS}`}
+          <p className="text-white/50 text-xs text-center">
+            {challengeDay >= DEFI_JOURS ? "Challenge terminé 🎉" : challengeDay === 0 ? "Va dans Parcours et clique sur Commencer quand tu es prêt" : "✓ validé · ✗ échoué"}
           </p>
 
           {/* Actions du jour — cliquables, validées ou pas ; journée validée = toutes faites */}
           <div className="mt-5 pt-5 border-t border-white/10">
-            {(() => {
+            {challengeDay === 0 ? (
+              <div className="text-center py-4">
+                <p className="text-white/70 text-sm mb-3">Commence ton défi dans Parcours pour débloquer tes actions du jour.</p>
+                <button
+                  type="button"
+                  onClick={() => router.push("/parcours")}
+                  className="rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 px-5 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+                >
+                  Aller dans Parcours
+                </button>
+              </div>
+            ) : (() => {
               const actionsCount = actionLabels.length;
               const allDone = actionLabels.every((label, i) => {
                 const id = String(i + 1) as ActionId;

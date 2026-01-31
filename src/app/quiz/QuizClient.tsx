@@ -291,7 +291,7 @@ export default function QuizClient() {
           selectedSins,
           scores,
           answers: answers as Record<string, unknown>,
-          startDateISO: new Date().toISOString().slice(0, 10),
+          startDateISO: "",
           streakDays: 0,
         });
       }

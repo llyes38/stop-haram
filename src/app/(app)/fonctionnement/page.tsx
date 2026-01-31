@@ -163,6 +163,12 @@ export default function FonctionnementPage() {
             Le défi 30 jours
           </h2>
           <div className="space-y-2 text-sm text-white/90 pl-8">
+            <div className="rounded-lg bg-amber-500/15 border border-amber-400/25 px-3 py-2 mb-3">
+              <p className="text-amber-200/95 text-xs font-medium">⚠️ Important</p>
+              <p className="text-white/90 text-xs mt-1">
+                Le défi <strong className="text-white">ne démarre pas automatiquement</strong>. Va dans l&apos;onglet <strong className="text-white">Parcours</strong> et clique sur <strong className="text-white">&quot;Commencer mon défi&quot;</strong> quand tu es prêt. Le jour 1 sera compté à partir de ce moment.
+              </p>
+            </div>
             <p>Ton parcours dure <strong className="text-white">30 jours</strong>, qu&apos;il y ait des réussites ou des rechutes.</p>
             <ul className="list-disc list-inside space-y-1 text-white/80">
               <li>Le parcours continue jusqu&apos;au bout, même en cas de rechute</li>

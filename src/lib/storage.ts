@@ -42,6 +42,10 @@ export interface ProfileInfo {
   whyStop?: string;
   /** Forfait choisi au début (checkout) : mensuel ou annuel */
   forfait?: "mensuel" | "annuel";
+  /** Nombre d'enfants filles */
+  enfantsFilles?: number;
+  /** Nombre d'enfants garçons */
+  enfantsGarcons?: number;
 }
 
 export interface StopHaramUser {
@@ -93,6 +97,7 @@ export function saveUser(user: StopHaramUser): void {
 }
 
 export function getDayNumber(startDateISO: string): number {
+  if (!startDateISO || startDateISO.trim() === "") return 0;
   const start = new Date(startDateISO);
   const today = new Date();
   start.setHours(0, 0, 0, 0);
@@ -101,9 +106,13 @@ export function getDayNumber(startDateISO: string): number {
   return Math.max(1, diff + 1);
 }
 
+export function hasDefiStarted(user: StopHaramUser | null): boolean {
+  return !!(user?.startDateISO && user.startDateISO.trim() !== "");
+}
+
 export function ensureUserDefaults(partial: Partial<StopHaramUser>): StopHaramUser {
   const existing = getUser();
-  const startDateISO = partial.startDateISO ?? existing?.startDateISO ?? new Date().toISOString().slice(0, 10);
+  const startDateISO = partial.startDateISO ?? existing?.startDateISO ?? "";
   const selectedSins = partial.selectedSins ?? existing?.selectedSins ?? [];
   const scores: Record<string, number> = { ...existing?.scores, ...partial.scores };
   selectedSins.forEach((sin) => {
