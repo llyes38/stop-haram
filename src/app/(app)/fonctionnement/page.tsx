@@ -26,6 +26,28 @@ export default function FonctionnementPage() {
       </header>
 
       <div className="flex-1 space-y-6 pb-24">
+        {/* Section : Installer l'app */}
+        <section className="rounded-xl bg-white/5 border border-white/10 px-5 py-4 overflow-hidden">
+          <h2 className="text-emerald-200 font-semibold text-base mb-3 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-bold">📲</span>
+            Installer l&apos;application
+          </h2>
+          <p className="text-sm text-white/90 mb-4 pl-8">
+            StopHaram fonctionne comme une vraie application. Ajoute-la à ton écran d&apos;accueil pour y accéder rapidement.
+          </p>
+          <div className="rounded-lg overflow-hidden border border-white/10 bg-black/30">
+            <video
+              src="/vid%C3%A9o/story%20installation%20app.mp4"
+              controls
+              playsInline
+              className="w-full aspect-video"
+              aria-label="Vidéo expliquant comment installer l'application"
+            >
+              Ton navigateur ne prend pas en charge la lecture vidéo.
+            </video>
+          </div>
+        </section>
+
         {/* Section 1 : Création du profil */}
         <section className="rounded-xl bg-white/5 border border-white/10 px-5 py-4">
           <h2 className="text-emerald-200 font-semibold text-base mb-3 flex items-center gap-2">

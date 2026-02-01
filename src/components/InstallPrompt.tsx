@@ -114,6 +114,22 @@ export default function InstallPrompt() {
               </p>
             </div>
           )}
+
+          {/* Vidéo démo installation */}
+          <div className="mt-4 rounded-xl overflow-hidden border border-white/10 bg-black/30">
+            <p className="px-4 py-2 text-sm font-semibold text-white bg-white/5">
+              Voir la démo
+            </p>
+            <video
+              src="/vid%C3%A9o/story%20installation%20app.mp4"
+              controls
+              playsInline
+              className="w-full aspect-video"
+              aria-label="Vidéo expliquant comment installer l'application"
+            >
+              Ton navigateur ne prend pas en charge la lecture vidéo.
+            </video>
+          </div>
         </div>
 
         <div className="flex flex-col gap-2 border-t border-white/10 px-5 py-4">
