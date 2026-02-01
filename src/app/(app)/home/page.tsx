@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { getUser, saveUser, getDayNumber, getDailyActionLabels, getSinLabel } from "@/lib/storage";
+import { getUser, saveUser, getDayNumber, getDailyActionLabels, getDailyActionsWithSins, getSinLabel } from "@/lib/storage";
+import { generatePlan } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
 import { getTemptationStats, incrementTempted } from "@/lib/temptationStats";
 import { getCurrentStatut, isStatutUnlocked, STATUTS, type Statut } from "@/lib/statuts";
@@ -34,6 +35,146 @@ import { getActionIcon } from "@/components/ActionIcon";
 const DEFI_JOURS = 30;
 
 const LAST_STREAK_START_KEY = "last_streak_start_iso";
+
+/** Versets et hadiths en rapport précis avec le thème de l'action. */
+type VerseRef = { text: string; ref: string };
+const VERSETS_PAR_THEME: Array<{ keywords: RegExp; verses: VerseRef[] }> = [
+  {
+    keywords: /\b(dhikr|invocation|Subhanallah|Alhamdulillah|Astaghfirullah|La ilaha illa Allah|évocation)\b/i,
+    verses: [
+      { text: "N'est-ce pas par l'évocation d'Allah que s'apaisent les cœurs ?", ref: "Sourate Ar-Ra'd, v.28" },
+      { text: "Le dhikr d'Allah est ce qu'il y a de plus grand.", ref: "Sourate Al-'Ankabût, v.45" },
+      { text: "Invoque ton Seigneur en toi-même, en humilité et crainte.", ref: "Sourate Al-A'râf, v.205" },
+    ],
+  },
+  {
+    keywords: /\b(ablutions?|wudu|ghusl|propreté)\b/i,
+    verses: [
+      { text: "La propreté est la moitié de la foi.", ref: "Rapporté par Muslim" },
+      { text: "Allah aime ceux qui se repentent et ceux qui se purifient.", ref: "Sourate Al-Baqara, v.222" },
+    ],
+  },
+  {
+    keywords: /\b(prière|prier|raka'at|Duha|Witr|Tahajjud|sunan)\b/i,
+    verses: [
+      { text: "La prière préserve de la turpitude et du blâmable.", ref: "Sourate Al-'Ankabût, v.45" },
+      { text: "Celui qui accomplit une prière surérogatoire sincèrement, ses péchés lui seront pardonnés.", ref: "Rapporté par Al-Bukhârî" },
+      { text: "Le Prophète (saws) ne délaissait jamais la prière Witr.", ref: "Rapporté par Al-Bukhârî" },
+    ],
+  },
+  {
+    keywords: /\b(Coran|sourate|réciter|récite|Ya-Sin|Al-Mulk|Al-Ikhlas|Al-Kahf|verset)\b/i,
+    verses: [
+      { text: "Récitez le Coran, car il viendra intercéder pour ses lecteurs au Jour de la Résurrection.", ref: "Rapporté par Muslim" },
+      { text: "Ce Coran guide vers ce qu'il y a de plus droit.", ref: "Sourate Al-Isra, v.9" },
+      { text: "Et récite ce qui t'est révélé du Livre.", ref: "Sourate Al-'Ankabût, v.45" },
+    ],
+  },
+  {
+    keywords: /\b(sadaqa|aumône|don)\b/i,
+    verses: [
+      { text: "L'aumône éteint le péché comme l'eau éteint le feu.", ref: "Rapporté par At-Tirmidhî" },
+      { text: "Ce que vous dépensez du bien, c'est pour vous-mêmes.", ref: "Sourate Al-Baqara, v.272" },
+    ],
+  },
+  {
+    keywords: /\b(voisin)\b/i,
+    verses: [
+      { text: "Le meilleur des voisins auprès d'Allah est le meilleur envers son voisin.", ref: "Rapporté par At-Tirmidhî" },
+      { text: "Jibril ne cessa de me recommander le voisin.", ref: "Rapporté par Al-Bukhârî" },
+    ],
+  },
+  {
+    keywords: /\b(famille|mère|père|parent|proche)\b/i,
+    verses: [
+      { text: "Et ton Seigneur a décrété de n'adorer que Lui et d'être bienfaisant envers les parents.", ref: "Sourate Al-Isra, v.23" },
+      { text: "Maintenir les liens de parenté prolonge la vie et étend la subsistance.", ref: "Rapporté par Al-Bukhârî" },
+    ],
+  },
+  {
+    keywords: /\b(colère|colère)\b/i,
+    verses: [
+      { text: "La colère vient de Shaytan, et Shaytan est créé de feu. Le feu s'éteint avec l'eau.", ref: "Rapporté par Abû Dâwûd" },
+      { text: "Le fort n'est pas celui qui terrasse, mais celui qui se maîtrise dans la colère.", ref: "Rapporté par Al-Bukhârî" },
+    ],
+  },
+  {
+    keywords: /\b(intention|niyyah)\b/i,
+    verses: [
+      { text: "Les actes ne valent que par leurs intentions.", ref: "Rapporté par Al-Bukhârî et Muslim" },
+      { text: "Allah ne regarde pas vos apparences ni vos biens, mais Il regarde vos cœurs et vos œuvres.", ref: "Rapporté par Muslim" },
+    ],
+  },
+  {
+    keywords: /\b(salawat|Prophète|Muhammad)\b/i,
+    verses: [
+      { text: "Allah et Ses anges prient sur le Prophète. Ô vous qui croyez, priez sur lui.", ref: "Sourate Al-Ahzâb, v.56" },
+      { text: "Celui qui envoie une prière sur moi, Allah envoie dix sur lui.", ref: "Rapporté par Muslim" },
+    ],
+  },
+  {
+    keywords: /\b(Ayat al-Kursi|Al-Falaq|An-Nas|protection|Shaytan)\b/i,
+    verses: [
+      { text: "Quiconque récite Ayat al-Kursi le soir, une garde sera établie sur lui jusqu'au matin.", ref: "Rapporté par Al-Bukhârî" },
+      { text: "Dis : Je me réfugie auprès du Seigneur de l'aube naissante.", ref: "Sourate Al-Falaq, v.1" },
+    ],
+  },
+  {
+    keywords: /\b(istighfar|repentir|Astaghfirullah)\b/i,
+    verses: [
+      { text: "Quiconque se repent et accomplit de bonnes œuvres, Allah transforme ses mauvaises actions en bonnes.", ref: "Sourate Al-Furqân, v.70" },
+      { text: "Par Allah, je demande pardon à Allah et je me repens plus de soixante-dix fois par jour.", ref: "Rapporté par Al-Bukhârî (parole du Prophète)" },
+    ],
+  },
+  {
+    keywords: /\b(sourire|sourire|geste amical|amical|bienveillance|douceur)\b/i,
+    verses: [
+      { text: "La douceur n'orne une chose sans l'embellir.", ref: "Rapporté par Muslim" },
+      { text: "Un sourire envers ton frère est une aumône.", ref: "Rapporté par At-Tirmidhî" },
+    ],
+  },
+  {
+    keywords: /\b(musique|Coran|écouter|nasheed)\b/i,
+    verses: [
+      { text: "N'est-ce pas par l'évocation d'Allah que s'apaisent les cœurs ?", ref: "Sourate Ar-Ra'd, v.28" },
+      { text: "Le Coran apaise les cœurs et élève l'âme.", ref: "Sourate Ar-Ra'd, v.28" },
+    ],
+  },
+  {
+    keywords: /\b(mosquée)\b/i,
+    verses: [
+      { text: "Chaque pas vers la mosquée efface un péché et élève d'un degré.", ref: "Rapporté par Muslim" },
+    ],
+  },
+  {
+    keywords: /\b(marche|marcher|sport)\b/i,
+    verses: [
+      { text: "Transforme chaque pas en dhikr : « Subhanallah, Alhamdulillah, La ilaha illa Allah, Allahu Akbar ».", ref: "Rapporté par Muslim (dhikr en marchant)" },
+    ],
+  },
+];
+
+const VERSETS_GENERIQUES: VerseRef[] = [
+  { text: "Les bonnes actions effacent les mauvaises.", ref: "Sourate Houd, v.114" },
+  { text: "Quiconque accomplit une bonne action en aura dix fois autant.", ref: "Sourate Al-An'am, v.160" },
+  { text: "Celui qui se rapproche de Moi d'un empan, Je me rapproche de lui d'une coudée.", ref: "Hadith Qudsi" },
+];
+
+function getVerseOuHadithPourAction(
+  actionTitle: string,
+  actionDesc: string | undefined,
+  actionIndex: number
+): VerseRef {
+  const texte = `${actionTitle} ${actionDesc ?? ""}`.toLowerCase();
+  for (const { keywords, verses } of VERSETS_PAR_THEME) {
+    if (keywords.test(texte)) {
+      const idx = actionIndex % verses.length;
+      return verses[idx];
+    }
+  }
+  const idx = actionIndex % VERSETS_GENERIQUES.length;
+  return VERSETS_GENERIQUES[idx];
+}
 
 function HomeNotifToggle({
   label,
@@ -97,11 +238,13 @@ export default function HomePage() {
   const [challengeDay, setChallengeDay] = useState<number>(0);
   const [startDateISO, setStartDateISO] = useState<string | null>(null);
   const [statutModalOpen, setStatutModalOpen] = useState(false);
-  const [actionLabels, setActionLabels] = useState<[string, string, string]>([
+  const [actionLabels, setActionLabels] = useState<string[]>([
     "Faire mon intention du jour",
     "Lire un rappel ou une invocation",
     "Une action concrète vers mon objectif",
   ]);
+  const [actionItems, setActionItems] = useState<Array<{ title: string; desc?: string; sin?: SelectedSin }>>([]);
+  const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null);
   const [actionsState, setActionsState] = useState<DailyActionsState>({
     "1": false,
     "2": false,
@@ -114,9 +257,14 @@ export default function HomePage() {
   const [notifActions, setNotifActionsState] = useState(true);
   const [sadaqaDoneToday, setSadaqaDoneToday] = useState(false);
   const [defiStatus, setDefiStatus] = useState<Record<number, "validated" | "failed">>({});
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
 
   useEffect(() => {
-    const u = getUser();
+    let u = getUser();
+    if (u?.plan && u?.selectedSins?.length) {
+      u = { ...u, plan: generatePlan(u) };
+      saveUser(u);
+    }
     setWhyStop(u?.profileInfo?.whyStop?.trim() || "");
     if (u?.startDateISO) {
       setStartDateISO(u.startDateISO);
@@ -126,9 +274,10 @@ export default function HomePage() {
       setStartDateISO(null);
       setChallengeDay(0);
     }
-    const labels = getDailyActionLabels(u ?? null);
-    setActionLabels(labels);
-    const actionsCount = labels.length;
+    const items = getDailyActionsWithSins(u ?? null);
+    setActionItems(items);
+    setActionLabels(items.map((i) => i.title));
+    const actionsCount = items.length;
     setActionsState(getTodayActionsState(actionsCount));
     setFocusSin(u?.plan?.focusSin ?? null);
     setBaseSin(u?.plan?.baseSin ?? null);
@@ -140,6 +289,7 @@ export default function HomePage() {
     setNotifActionsState(getNotifActions());
     setSadaqaDoneToday(hasDonToday());
     setDefiStatus(getDefiDaysStatus());
+    setProfilePhoto(u?.profileInfo?.profilePhoto ?? null);
   }, [pathname]);
 
   useEffect(() => {
@@ -268,9 +418,25 @@ export default function HomePage() {
       `}} />
 
       <header className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">StopHaram</h1>
-          <p className="text-white/60 text-sm mt-1">Un pas à la fois</p>
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={() => router.push("/account")}
+            className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+            aria-label="Aller au compte"
+          >
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="h-full w-full bg-white/10 flex items-center justify-center text-white/60 text-sm font-semibold">
+                {(name || "?")[0]?.toUpperCase()}
+              </div>
+            )}
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight text-white">StopHaram</h1>
+            <p className="text-white/60 text-sm mt-0.5">Un pas à la fois</p>
+          </div>
         </div>
         <button
           type="button"
@@ -489,24 +655,19 @@ export default function HomePage() {
                   </div>
                   <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount}. Si tu rechutes, tu perds la validation du jour.</p>
                   <div className="space-y-3">
-                    {actionLabels.map((label, i) => {
-                      const id = String(i + 1) as ActionId;
-                      const isDhikr = /dhikr|invocation/i.test(label);
-                      const done = isDhikr ? dhikrDoneToday : actionsState[id];
-                      const sinContext = i === 1 && focusSin ? getSinLabel(focusSin) : i === 2 && baseSin ? getSinLabel(baseSin) : null;
-                      const circleColor = i === 1 ? "bg-amber-500/25 text-amber-200" : i === 2 ? "bg-emerald-500/20 text-emerald-200" : "bg-white/10 text-white/70";
-                      const circleColorDone = "bg-emerald-500/30 text-emerald-200";
-                      return (
+                    {(() => {
+                      const u = getUser();
+                      const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
+                      return itemsToShow.map((item, i) => {
+                        const id = String(i + 1) as ActionId;
+                        const isDhikr = /dhikr|invocation/i.test(item.title);
+                        const done = isDhikr ? dhikrDoneToday : actionsState[id];
+                        const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
+                        return (
                         <button
                           key={id}
                           type="button"
-                          onClick={() => {
-                            if (isDhikr) {
-                              router.push("/dhikr/matin");
-                              return;
-                            }
-                            handleToggleAction(id);
-                          }}
+                          onClick={() => setSelectedActionIndex(i)}
                           className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-start gap-3 transition-all ${
                             done
                               ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
@@ -515,7 +676,11 @@ export default function HomePage() {
                         >
                           <span
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                              done ? circleColorDone : circleColor
+                              done
+                                ? "bg-emerald-500/30 text-emerald-200"
+                                : item.sin === focusSin
+                                  ? "bg-amber-500/25 text-amber-200"
+                                  : "bg-emerald-500/20 text-emerald-200"
                             }`}
                             aria-hidden
                           >
@@ -523,11 +688,11 @@ export default function HomePage() {
                           </span>
                           <div className="flex-1 min-w-0">
                             <span className={`text-sm font-medium ${done ? "text-white/80 line-through" : "text-white"}`}>
-                              {label}
+                              {item.title}
                             </span>
-                            {sinContext && (
-                              <p className={`text-xs mt-0.5 ${i === 1 ? "text-amber-200/70" : "text-emerald-200/70"}`}>
-                                → {sinContext}
+                            {sinLabel && (
+                              <p className="text-xs mt-0.5 text-emerald-200/70">
+                                → {sinLabel}
                               </p>
                             )}
                             {isDhikr && done && (
@@ -538,7 +703,8 @@ export default function HomePage() {
                           </div>
                         </button>
                       );
-                    })}
+                    });
+                    })()}
                   </div>
                   {/* Ajouter une action de soi-même — ex. sadaqa */}
                   <div className="mt-4 pt-4 border-t border-white/10">
@@ -732,6 +898,126 @@ export default function HomePage() {
           <span className="text-red-200 font-medium text-xs">O Allah aide-moi 🤲</span>
         </button>
       </div>
+
+      {/* Modal détail action — explication + bouton Validée */}
+      {selectedActionIndex !== null && (() => {
+        const u = getUser();
+        const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
+        const item = itemsToShow[selectedActionIndex];
+        if (!item) return null;
+        const id = String(selectedActionIndex + 1) as ActionId;
+        const isDhikr = /dhikr|invocation/i.test(item.title);
+        const done = isDhikr ? dhikrDoneToday : actionsState[id];
+        const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm px-4 pb-8 sm:pb-0"
+            onClick={() => setSelectedActionIndex(null)}
+            role="presentation"
+          >
+            <div
+              className="w-full max-w-lg rounded-2xl bg-slate-900 border border-white/15 shadow-xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="action-detail-title"
+            >
+              <div className="p-6 max-h-[85vh] overflow-y-auto">
+                <div className="flex items-start justify-between gap-3 mb-4">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/25 text-emerald-200 text-lg font-bold">
+                    {selectedActionIndex + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedActionIndex(null)}
+                    className="text-white/50 hover:text-white/80 transition-colors p-1"
+                    aria-label="Fermer"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <h2 id="action-detail-title" className="text-xl font-semibold text-white mb-2">
+                  {item.title}
+                </h2>
+                {sinLabel && (
+                  <p className="text-emerald-200/80 text-sm mb-4">→ {sinLabel}</p>
+                )}
+                <div className="prose prose-invert prose-sm max-w-none mb-5">
+                  <p className="text-white/90 leading-relaxed">
+                    {item.desc ?? "Accomplis cette action avec sincérité pour te rapprocher d'Allah."}
+                  </p>
+                </div>
+                {(() => {
+                  const { text, ref } = getVerseOuHadithPourAction(
+                    item.title,
+                    item.desc,
+                    selectedActionIndex
+                  );
+                  return (
+                    <blockquote className="border-l-4 border-emerald-500/50 pl-4 py-2 text-white/70 text-sm italic">
+                      « {text} » — {ref}
+                    </blockquote>
+                  );
+                })()}
+              </div>
+              <div className="p-4 pt-0 flex flex-col gap-2">
+                {done ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedActionIndex(null)}
+                      className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/40 py-3.5 text-emerald-200 font-semibold"
+                    >
+                      ✓ Validée
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isDhikr) {
+                          if (typeof window !== "undefined") {
+                            window.localStorage.removeItem("dhikr_matin_done");
+                            setDhikrDoneToday(false);
+                          }
+                        } else {
+                          handleToggleAction(id);
+                        }
+                        setSelectedActionIndex(null);
+                      }}
+                      className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/70 text-sm font-medium hover:bg-white/15 hover:text-white/90 transition-colors"
+                    >
+                      Recommencer cette action
+                    </button>
+                  </>
+                ) : isDhikr ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedActionIndex(null);
+                      router.push("/dhikr/matin");
+                    }}
+                    className="w-full rounded-xl bg-amber-500/30 border border-amber-400/50 py-3.5 text-amber-200 font-semibold hover:bg-amber-500/40 transition-colors"
+                  >
+                    Aller au dhikr
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleToggleAction(id);
+                      setSelectedActionIndex(null);
+                    }}
+                    className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/40 transition-colors"
+                  >
+                    Validée
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

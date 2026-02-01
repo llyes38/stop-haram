@@ -23,7 +23,7 @@ export default function ProgressPage() {
   }, [pathname]);
 
   const streakDays = user?.streakDays ?? null;
-  const focusSin = user?.plan?.focusSin ? getSinLabel(user.plan.focusSin) : null;
+  const focusSin = user?.plan?.focusSin ? getSinLabel(user.plan.focusSin, user) : null;
   const challengeDay = user?.startDateISO
     ? Math.min(Math.max(getDayNumber(user.startDateISO), 1), DEFI_JOURS)
     : 0;

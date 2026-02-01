@@ -53,7 +53,7 @@ const SLIDES = [
       <div className="w-full max-w-[280px] mx-auto rounded-xl bg-white/5 border border-white/10 px-4 py-4 scale-90">
         <p className="text-white/80 text-xs font-semibold mb-2">Parcours quotidien</p>
         <div className="flex gap-2 mb-2">
-          {["Porno", "Musique"].map((s, i) => (
+          {["Relations illicites", "Musique"].map((s, i) => (
             <span key={i} className="rounded-full bg-amber-500/20 px-2 py-0.5 text-amber-200 text-xs">🎯 {s}</span>
           ))}
         </div>

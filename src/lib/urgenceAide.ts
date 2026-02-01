@@ -23,18 +23,18 @@ const AIDE_PAR_PECHE: Record<SelectedSin, AideContenu> = {
     ],
   },
   porno: {
-    rappel: "Chaque minute où tu résistes compte.",
+    rappel: "Chaque minute où tu préserves ta chasteté compte.",
     verset: {
       texte: "« Et ceux qui préservent leur chasteté… Allah les récompensera au-delà de ce qu'ils ont œuvré. »",
       ref: "Sourate An-Nour, 24-33",
     },
     tips: [
-      "Ferme tout et range ton téléphone dans une autre pièce.",
+      "Quitte la situation immédiatement : sors de la pièce, change de lieu.",
       "Fais tes ablutions et prie 2 raka'at si tu peux.",
-      "Douche froide ou eau froide sur le visage et les avant-bras.",
-      "Sors dehors : marche, course, vélo.",
-      "Écoute du dhikr ou une lecture islamique.",
-      "Rappelle-toi pourquoi tu as arrêté : écris une phrase sur ton téléphone.",
+      "Évite d'être seul(e) avec la personne : va dans un lieu public ou appelle quelqu'un.",
+      "Coupe la conversation ou les messages : ne prolonge pas l'échange.",
+      "Écoute du dhikr ou une lecture islamique pour recentrer ton cœur.",
+      "Rappelle-toi : le seul cadre permis est le mariage halal. Tout le reste est haram.",
     ],
   },
   priere: {

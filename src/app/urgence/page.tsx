@@ -224,7 +224,7 @@ export default function UrgencePage() {
                   onClick={() => handleSelectSinCraquer(sin)}
                   className="w-full rounded-xl bg-white/10 border border-white/20 py-4 px-4 text-white/90 font-medium text-left hover:bg-white/15 transition-colors flex items-center justify-between"
                 >
-                  <span>{getSinLabel(sin)}</span>
+                  <span>{getSinLabel(sin, user)}</span>
                   <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -254,7 +254,7 @@ export default function UrgencePage() {
               </p>
               {user?.selectedSins?.length && user.selectedSins.length > 1 && (
                 <p className="text-emerald-300/70 text-xs mt-2">
-                  Aide pour : {getSinLabel(selectedSinCraquer)}
+                  Aide pour : {getSinLabel(selectedSinCraquer, user)}
                 </p>
               )}
             </div>
@@ -310,7 +310,7 @@ export default function UrgencePage() {
                   onClick={() => handleSelectSinRechute(sin)}
                   className="w-full rounded-xl bg-white/10 border border-white/20 py-4 px-4 text-white/90 font-medium text-left hover:bg-white/15 transition-colors flex items-center justify-between"
                 >
-                  <span>{getSinLabel(sin)}</span>
+                  <span>{getSinLabel(sin, user)}</span>
                   <svg className="w-5 h-5 text-white/50" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -335,7 +335,7 @@ export default function UrgencePage() {
                 Tu confirmes avoir rechuté dans :
               </p>
               <p className="text-xl font-semibold text-red-200">
-                {getSinLabel(selectedSinRechute)}
+                {getSinLabel(selectedSinRechute, user)}
               </p>
             </div>
 

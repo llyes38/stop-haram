@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ensureUserDefaults, getUser, saveUser, domainsToSins } from "@/lib/storage";
-import { generatePlan } from "@/lib/programEngine";
+import { generatePlan, needsAIActionsForCustomSin } from "@/lib/programEngine";
 import { updateLastRoute, setProfile } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 
@@ -83,6 +83,8 @@ export default function QuizClient() {
   const [tempMultiSelect, setTempMultiSelect] = useState<string[]>([]);
   const [firstName, setFirstName] = useState("");
   const [age, setAge] = useState("");
+  const [customSinDescription, setCustomSinDescription] = useState("");
+  const [isUpdatingPlan, setIsUpdatingPlan] = useState(false);
 
   const saveToLocalStorage = () => {
     if (typeof window === "undefined") return;
@@ -98,8 +100,8 @@ export default function QuizClient() {
       router.replace("/quiz");
     }
     
-    // Si on vient de parcours ou companion, charger les données utilisateur existantes
-    if (from === "parcours" || from === "companion") {
+    // Si on vient de parcours, companion ou account, charger les données utilisateur existantes
+    if (from === "parcours" || from === "companion" || from === "account") {
       const existingUser = getUser();
       if (existingUser) {
         // Pré-remplir les domaines avec les péchés actuels
@@ -116,9 +118,10 @@ export default function QuizClient() {
         if (existingUser.profileInfo?.age) {
           setAge(String(existingUser.profileInfo.age));
         }
+        setCustomSinDescription(existingUser.profileInfo?.customSinDescription || "");
         
-        // Commencer directement à l'étape de sélection des domaines
-        setCurrentStep(1);
+        // Commencer à l'étape de sélection des domaines (sauter le genre si on modifie)
+        setCurrentStep(from === "account" ? 1 : 1);
       }
       return;
     }
@@ -126,8 +129,10 @@ export default function QuizClient() {
     const savedQuiz = window.localStorage.getItem("stopharam_quiz");
     const savedDomains = window.localStorage.getItem("stopharam_domains");
     const savedProfile = window.localStorage.getItem("stopharam_profile");
+    const savedCustomSin = window.localStorage.getItem("stopharam_custom_sin");
     if (savedQuiz) setAnswers(JSON.parse(savedQuiz));
     if (savedDomains) setSelectedDomains(JSON.parse(savedDomains));
+    if (savedCustomSin) setCustomSinDescription(savedCustomSin);
     if (savedProfile) {
       const p = JSON.parse(savedProfile) as { firstName?: string; age?: number };
       setFirstName(p.firstName ?? "");
@@ -160,13 +165,23 @@ export default function QuizClient() {
   };
 
   const handleDomainToggle = (domain: string) => {
-    setSelectedDomains((prev) =>
-      prev.includes(domain) ? prev.filter((d) => d !== domain) : [...prev, domain]
-    );
+    setSelectedDomains((prev) => {
+      const next = prev.includes(domain) ? prev.filter((d) => d !== domain) : [...prev, domain];
+      if (!next.includes("Autre / je ne sais pas encore")) {
+        setCustomSinDescription("");
+        if (typeof window !== "undefined") window.localStorage.removeItem("stopharam_custom_sin");
+      }
+      return next;
+    });
   };
 
   const handleContinueFromDomains = () => {
     if (selectedDomains.length === 0) return;
+    const hasAutre = selectedDomains.includes("Autre / je ne sais pas encore");
+    if (hasAutre && !customSinDescription.trim()) return;
+    if (typeof window !== "undefined" && hasAutre) {
+      window.localStorage.setItem("stopharam_custom_sin", customSinDescription.trim());
+    }
     saveToLocalStorage();
     setCurrentStep(2);
   };
@@ -251,9 +266,11 @@ export default function QuizClient() {
 
   const handleSkip = () => router.push("/profile");
 
-  const handleFinishQuiz = () => {
-    let profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
-    if (typeof window !== "undefined") {
+  const handleFinishQuiz = async () => {
+    setIsUpdatingPlan(true);
+    try {
+      let profile = { firstName: firstName.trim(), age: parseInt(age, 10) };
+      if (typeof window !== "undefined") {
       const savedProfile = window.localStorage.getItem("stopharam_profile");
       if (savedProfile && (!profile.firstName || isNaN(profile.age))) {
         try {
@@ -269,6 +286,8 @@ export default function QuizClient() {
       const selectedSins = domainsToSins(selectedDomains);
       const scores: Record<string, number> = {};
       selectedSins.forEach((sin) => { scores[sin] = 50; });
+      const hasAutre = selectedSins.includes("autre");
+      const customSin = hasAutre && customSinDescription.trim() ? customSinDescription.trim() : undefined;
       const existingUser = getUser();
       const isModifyFromAccount = searchParams.get("from") === "account";
       const isModifyFromParcours = searchParams.get("from") === "parcours";
@@ -277,13 +296,16 @@ export default function QuizClient() {
       
       let user;
       if (isModify && existingUser) {
-        // Conserver toutes les données existantes, juste mettre à jour les péchés et réponses
         user = ensureUserDefaults({
           ...existingUser,
           name: (isModifyFromParcours || isModifyFromCompanion) ? existingUser.name : (profile.firstName || existingUser.name),
           selectedSins,
           scores: { ...existingUser.scores, ...scores },
           answers: answers as Record<string, unknown>,
+          profileInfo: {
+            ...existingUser.profileInfo,
+            customSinDescription: customSin,
+          },
         });
       } else {
         user = ensureUserDefaults({
@@ -293,7 +315,30 @@ export default function QuizClient() {
           answers: answers as Record<string, unknown>,
           startDateISO: "",
           streakDays: 0,
+          profileInfo: { customSinDescription: customSin },
         });
+      }
+      if (customSin && needsAIActionsForCustomSin(customSin)) {
+        try {
+          const res = await fetch("/api/custom-sin-actions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ customSin }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (data.action1?.length >= 5 && data.focus?.length >= 3) {
+            const cacheKey = customSin.toLowerCase();
+            user.profileInfo = {
+              ...user.profileInfo,
+              customSinActionsCache: {
+                ...user.profileInfo?.customSinActionsCache,
+                [cacheKey]: { action1: data.action1, focus: data.focus },
+              },
+            };
+          }
+        } catch {
+          /* utilise les actions génériques "autre" en cas d'erreur */
+        }
       }
       user.plan = generatePlan(user);
       saveUser(user);
@@ -311,8 +356,11 @@ export default function QuizClient() {
         router.replace("/home");
         return;
       }
+      }
+      router.push("/analysis");
+    } finally {
+      setIsUpdatingPlan(false);
     }
-    router.push("/analysis");
   };
 
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -322,6 +370,22 @@ export default function QuizClient() {
       className="min-h-screen w-full flex flex-col px-6 pt-6 pb-8 relative overflow-hidden"
       style={bgStyle}
     >
+      {isUpdatingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="mx-6 w-full max-w-[320px] rounded-2xl bg-emerald-900/95 border border-emerald-400/30 px-6 py-8 text-center shadow-xl">
+            <div className="mb-4 h-12 w-12 mx-auto rounded-full border-2 border-emerald-300/60 border-t-emerald-200 animate-spin" />
+            <p className="text-emerald-100 font-semibold mb-2">Ton plan est en cours de mise à jour…</p>
+            <p className="text-white/70 text-sm mb-5">Personnalisation selon tes péchés. Un instant.</p>
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full w-1/3 rounded-full bg-emerald-400/90"
+                style={{ animation: "quiz-loading-bar 1.2s ease-in-out infinite" }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      <style dangerouslySetInnerHTML={{ __html: "@keyframes quiz-loading-bar{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}" }} />
       {stars}
       <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 relative z-10">
         {/* Progress bar */}
@@ -398,11 +462,33 @@ export default function QuizClient() {
                 </label>
               ))}
             </div>
+            {selectedDomains.includes("Autre / je ne sais pas encore") && (
+              <div className="mb-4">
+                <label htmlFor="custom-sin" className="block text-white/90 text-sm font-medium mb-2">
+                  Décris ton péché en quelques mots
+                </label>
+                <input
+                  id="custom-sin"
+                  type="text"
+                  value={customSinDescription}
+                  onChange={(e) => setCustomSinDescription(e.target.value)}
+                  placeholder="Ex. médisance, paresse, tricherie…"
+                  className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-teal-400/50"
+                />
+                <p className="text-white/60 text-xs mt-1">Ton plan sera adapté selon ce que tu écris.</p>
+              </div>
+            )}
             <button
               onClick={handleContinueFromDomains}
-              disabled={selectedDomains.length === 0}
+              disabled={
+                selectedDomains.length === 0 ||
+                (selectedDomains.includes("Autre / je ne sais pas encore") && !customSinDescription.trim())
+              }
               className={`w-full py-3.5 rounded-xl font-semibold text-base ${
-                selectedDomains.length > 0 ? "bg-white text-gray-900 hover:bg-gray-100" : "bg-white/20 text-white/50 cursor-not-allowed"
+                selectedDomains.length > 0 &&
+                (!selectedDomains.includes("Autre / je ne sais pas encore") || customSinDescription.trim())
+                  ? "bg-white text-gray-900 hover:bg-gray-100"
+                  : "bg-white/20 text-white/50 cursor-not-allowed"
               }`}
             >
               Continuer

@@ -10,8 +10,8 @@ const CONSEILS_PAR_PECHE: Record<SelectedSin, string[]> = {
     "Fais wudhu et répète « Astaghfirullah ». Change de pièce ou sors marcher quelques minutes.",
   ],
   porno: [
-    "Chaque minute où tu résistes compte. Fais tes ablutions, prie 2 raka'at si tu peux, et range ton téléphone dans une autre pièce.",
-    "Rappelle-toi pourquoi tu as arrêté. Allah aime celui qui se repent : « Ô Mon serviteur, tant que tu M’invoques et M’implores, Je te pardonne. »",
+    "Chaque minute où tu préserves ta chasteté compte. Quitte la situation, fais tes ablutions, prie 2 raka'at. Évite d'être seul(e) avec la personne.",
+    "Rappelle-toi : le seul cadre permis est le mariage halal. Allah aime celui qui se repent : « Ô Mon serviteur, tant que tu M’invoques et M’implores, Je te pardonne. »",
   ],
   priere: [
     "La prochaine prière est une nouvelle chance. Fais-la tout de suite, même en retard ; n’attends pas la suivante.",

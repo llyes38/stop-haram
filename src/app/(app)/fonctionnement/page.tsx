@@ -52,7 +52,7 @@ export default function FonctionnementPage() {
           <div className="space-y-2 text-sm text-white/90 pl-8">
             <p>Tu sélectionnes les domaines sur lesquels tu veux travailler :</p>
             <ul className="list-disc list-inside space-y-1 text-white/80">
-              <li>Pornographie / Relations illicites</li>
+              <li>Relations illicites (fréquentation, fornication)</li>
               <li>Musique / Temps perdu</li>
               <li>Prière / Retard / Négligence</li>
               <li>Regards / Contenu explicite</li>

@@ -17,7 +17,7 @@ export interface PlanDay {
   base: { title: string; desc: string };
   optional?: { title: string; desc: string };
   /** Actions supplémentaires pour les plans avec 5 ou 10 actions par jour */
-  additionalActions?: Array<{ title: string; desc: string }>;
+  additionalActions?: Array<{ title: string; desc: string; sin?: SelectedSin }>;
 }
 
 export type SituationFamiliale = "marie" | "celibataire" | "divorce" | "veuf" | "autre" | "";
@@ -46,6 +46,12 @@ export interface ProfileInfo {
   enfantsFilles?: number;
   /** Nombre d'enfants garçons */
   enfantsGarcons?: number;
+  /** Si l'utilisateur a choisi "autre", il peut décrire son péché — utilisé pour l'affichage et la personnalisation */
+  customSinDescription?: string;
+  /** Cache des actions générées par IA pour péchés personnalisés non prédéfinis — clé = péché en minuscules */
+  customSinActionsCache?: Record<string, { action1: Array<{ title: string; desc: string }>; focus: Array<{ title: string; desc: string }> }>;
+  /** Photo de profil en base64 (data URL) — stockée localement, sans base de données */
+  profilePhoto?: string;
 }
 
 export interface StopHaramUser {
@@ -161,9 +167,9 @@ export function domainsToSins(domainLabels: string[]): SelectedSin[] {
   return sins;
 }
 
-export function getSinLabel(sin: SelectedSin): string {
+export function getSinLabel(sin: SelectedSin, user?: StopHaramUser | null): string {
   const labels: Record<SelectedSin, string> = {
-    porno: "Porno",
+    porno: "Relations illicites",
     musique: "Musique",
     priere: "Prière",
     colere: "Colère",
@@ -174,6 +180,9 @@ export function getSinLabel(sin: SelectedSin): string {
     regard: "Regard",
     autre: "Autre",
   };
+  if (sin === "autre" && user?.profileInfo?.customSinDescription?.trim()) {
+    return user.profileInfo.customSinDescription.trim();
+  }
   return labels[sin] ?? sin;
 }
 
@@ -211,40 +220,58 @@ import { ACTION_1 } from "./programEngine";
 
 /** Labels des actions du jour : retourne toutes les actions selon actionsPerDay. */
 export function getDailyActionLabels(user: StopHaramUser | null): string[] {
+  return getDailyActionsWithSins(user).map((a) => a.title);
+}
+
+/** Actions du jour avec le péché associé et la description (pour affichage et détail). */
+export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ title: string; desc?: string; sin?: SelectedSin }> {
   const defaultFocus = "Lire un rappel ou une invocation";
+  const defaultFocusDesc = "Choisis un rappel ou une invocation du Coran pour te recentrer.";
   const defaultBase = "Une action concrète vers mon objectif";
+  const defaultBaseDesc = "Choisis une action en lien avec ton objectif.";
   const defaultIntention = "Faire mon intention du jour";
+  const defaultIntentionDesc = "Formule en ton cœur l'intention de passer la journée sans succomber à tes péchés.";
+  const focusSin: SelectedSin = user?.plan?.focusSin ?? "autre";
+  const baseSin: SelectedSin | undefined = user?.plan?.baseSin;
 
   if (!user?.plan?.days?.length || !user.startDateISO) {
-    return [defaultIntention, defaultFocus, defaultBase];
+    return [
+      { title: defaultIntention, desc: defaultIntentionDesc, sin: focusSin },
+      { title: defaultFocus, desc: defaultFocusDesc, sin: focusSin },
+      { title: defaultBase, desc: defaultBaseDesc, sin: baseSin },
+    ];
   }
 
   const dayNum = getDayNumber(user.startDateISO);
   const idx = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const d = user.plan.days[idx];
   if (!d) {
-    return [defaultIntention, defaultFocus, defaultBase];
+    return [
+      { title: defaultIntention, desc: defaultIntentionDesc, sin: focusSin },
+      { title: defaultFocus, desc: defaultFocusDesc, sin: focusSin },
+      { title: defaultBase, desc: defaultBaseDesc, sin: baseSin },
+    ];
   }
 
-  // Si pas d'intention dans le plan ou si c'est l'ancienne intention fixe, générer une action variée depuis ACTION_1
   let action1Title = d.intention?.title;
+  let action1Desc = d.intention?.desc;
   if (!action1Title || action1Title === "Faire mon intention du jour" || action1Title.startsWith("Intention :")) {
-    const focusSin: SelectedSin = user.plan.focusSin ?? "autre";
     const action1List = ACTION_1[focusSin] ?? ACTION_1.autre;
-    const dayNum = d.day;
-    const actionIdx = (dayNum - 1) % action1List.length;
-    action1Title = action1List[actionIdx]?.title ?? defaultIntention;
+    const actionIdx = (d.day - 1) % action1List.length;
+    const item = action1List[actionIdx];
+    action1Title = item?.title ?? defaultIntention;
+    action1Desc = item?.desc ?? defaultIntentionDesc;
   }
-  
+
   const actionsPerDay = user.profileInfo?.actionsPerDay ?? 3;
-  const baseActions = [
-    action1Title,
-    d.focus?.title ?? defaultFocus,
-    d.base?.title ?? defaultBase,
+  const baseItems: Array<{ title: string; desc?: string; sin?: SelectedSin }> = [
+    { title: action1Title, desc: action1Desc, sin: focusSin },
+    { title: d.focus?.title ?? defaultFocus, desc: d.focus?.desc ?? defaultFocusDesc, sin: focusSin },
+    { title: d.base?.title ?? defaultBase, desc: d.base?.desc ?? defaultBaseDesc, sin: baseSin },
   ];
-  
-  const additionalActions = d.additionalActions?.map(a => a.title) ?? [];
-  const allActions = [...baseActions, ...additionalActions].slice(0, actionsPerDay);
-  
-  return allActions;
+
+  const additionalItems =
+    d.additionalActions?.map((a) => ({ title: a.title, desc: a.desc, sin: a.sin })) ?? [];
+  const all = [...baseItems, ...additionalItems].slice(0, actionsPerDay);
+  return all;
 }

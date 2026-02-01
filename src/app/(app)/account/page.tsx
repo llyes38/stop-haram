@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   getUser,
@@ -21,7 +21,8 @@ import type {
   TypeLogement,
   Converti,
 } from "@/lib/storage";
-import { generatePlan, ACTION_1 } from "@/lib/programEngine";
+import { generatePlan, ACTION_1, needsAIActionsForCustomSin } from "@/lib/programEngine";
+import { compressImageToBase64 } from "@/lib/profilePhoto";
 import { setAuth, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
@@ -217,6 +218,8 @@ export default function AccountPage() {
   const [editEnfantsFilles, setEditEnfantsFilles] = useState("");
   const [editEnfantsGarcons, setEditEnfantsGarcons] = useState("");
   const [saved, setSaved] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
 
@@ -228,6 +231,9 @@ export default function AccountPage() {
         u = { ...u, plan: generatePlan(u) };
         saveUser(u);
       }
+    } else if (u.plan && u.selectedSins?.length) {
+      u = { ...u, plan: generatePlan(u) };
+      saveUser(u);
     }
     
     // S'assurer que actionsPerDay est défini (par défaut 3)
@@ -297,6 +303,36 @@ export default function AccountPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !file.type.startsWith("image/")) return;
+    e.target.value = "";
+    setPhotoUploading(true);
+    try {
+      const dataUrl = await compressImageToBase64(file);
+      const updated: StopHaramUser = {
+        ...user,
+        profileInfo: { ...user.profileInfo, profilePhoto: dataUrl },
+      };
+      saveUser(updated);
+      setUser(updated);
+    } catch {
+      // Silently ignore compression errors
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handlePhotoRemove = () => {
+    if (!user) return;
+    const updated: StopHaramUser = {
+      ...user,
+      profileInfo: { ...user.profileInfo, profilePhoto: undefined },
+    };
+    saveUser(updated);
+    setUser(updated);
+  };
+
   if (!user) {
     return (
       <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
@@ -317,9 +353,24 @@ export default function AccountPage() {
 
   return (
     <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
-      <header className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight text-white">Compte</h1>
-        <p className="text-white/90 text-lg mt-1">Salam {user.name || "toi"}</p>
+      <header className="mb-6 flex items-center gap-4">
+        <div className="shrink-0">
+          {user.profileInfo?.profilePhoto ? (
+            <img
+              src={user.profileInfo.profilePhoto}
+              alt=""
+              className="h-14 w-14 rounded-full object-cover border-2 border-white/20"
+            />
+          ) : (
+            <div className="h-14 w-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white/60 text-xl font-semibold">
+              {(user.name || "?")[0]?.toUpperCase()}
+            </div>
+          )}
+        </div>
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-white">Compte</h1>
+          <p className="text-white/90 text-lg mt-0.5">Salam {user.name || "toi"}</p>
+        </div>
       </header>
 
       {/* Onglets */}
@@ -342,6 +393,56 @@ export default function AccountPage() {
       {tab === "profil" && (
         <section className="space-y-5">
           <h2 className="text-white/80 text-sm font-medium">Tes informations</h2>
+
+          {/* Photo de profil */}
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="relative">
+              {user.profileInfo?.profilePhoto ? (
+                <img
+                  src={user.profileInfo.profilePhoto}
+                  alt="Photo de profil"
+                  className="h-24 w-24 rounded-full object-cover border-2 border-white/20"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-white/40 text-3xl">
+                  👤
+                </div>
+              )}
+              {photoUploading && (
+                <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                  <span className="text-white text-xs">…</span>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={photoUploading}
+                className="rounded-xl bg-emerald-500/25 border border-emerald-400/40 px-4 py-2 text-emerald-200 text-sm font-medium hover:bg-emerald-500/35 disabled:opacity-50 transition-colors"
+              >
+                {user.profileInfo?.profilePhoto ? "Changer" : "Prendre une photo"}
+              </button>
+              {user.profileInfo?.profilePhoto && (
+                <button
+                  type="button"
+                  onClick={handlePhotoRemove}
+                  disabled={photoUploading}
+                  className="rounded-xl bg-white/10 border border-white/20 px-4 py-2 text-white/70 text-sm font-medium hover:bg-white/15 disabled:opacity-50 transition-colors"
+                >
+                  Supprimer
+                </button>
+              )}
+            </div>
+            <p className="text-white/50 text-xs text-center">Stockée localement sur ton appareil</p>
+          </div>
 
           {/* Prénom */}
           <div>
@@ -644,7 +745,7 @@ export default function AccountPage() {
                 key={sin}
                 className="inline-flex rounded-full bg-white/10 border border-white/20 px-3 py-1.5 text-sm text-white/90"
               >
-                {getSinLabel(sin)}
+                {getSinLabel(sin, user)}
               </span>
             ))}
           </div>
@@ -657,7 +758,7 @@ export default function AccountPage() {
               return (
                 <li key={sin} className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-white/90 text-sm font-medium">{getSinLabel(sin)}</span>
+                    <span className="text-white/90 text-sm font-medium">{getSinLabel(sin, user)}</span>
                     <span className="text-white/60 text-xs">{label}</span>
                   </div>
                   <div className="h-2 rounded-full bg-white/10 overflow-hidden">
@@ -728,7 +829,44 @@ export default function AccountPage() {
             <p className="text-white/80 text-sm">Tu valides ta journée en accomplissant les {user.profileInfo?.actionsPerDay ?? 3}. Si tu rechutes, tu perds la validation du jour.</p>
           </div>
           <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4 space-y-3">
-            <p className="text-white/90 text-sm">Plan : 30 jours · Focus : {getSinLabel(user.plan.focusSin)}</p>
+            <p className="text-white/90 text-sm">Plan : 30 jours · Focus : {getSinLabel(user.plan.focusSin, user)}</p>
+            {(user.selectedSins.includes("autre") && user.profileInfo?.customSinDescription) ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  const updated = { ...user };
+                  const customSin = updated.profileInfo?.customSinDescription?.trim();
+                  if (customSin && needsAIActionsForCustomSin(customSin)) {
+                    try {
+                      const res = await fetch("/api/custom-sin-actions", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ customSin }),
+                      });
+                      const data = await res.json().catch(() => ({}));
+                      if (data.action1?.length >= 5 && data.focus?.length >= 3) {
+                        const cacheKey = customSin.toLowerCase();
+                        updated.profileInfo = {
+                          ...updated.profileInfo,
+                          customSinActionsCache: {
+                            ...updated.profileInfo?.customSinActionsCache,
+                            [cacheKey]: { action1: data.action1, focus: data.focus },
+                          },
+                        };
+                      }
+                    } catch {
+                      /* utilise les actions génériques en cas d'erreur */
+                    }
+                  }
+                  updated.plan = generatePlan(updated);
+                  saveUser(updated);
+                  setUser(updated);
+                }}
+                className="text-emerald-300 hover:text-emerald-200 text-xs underline font-medium"
+              >
+                Régénérer le plan selon mon péché personnalisé ({user.profileInfo.customSinDescription})
+              </button>
+            ) : null}
             {!hasDefiStarted(user) ? (
               <p className="text-amber-200/90 text-sm">Défi pas encore commencé — va dans <button type="button" onClick={() => router.push("/parcours")} className="underline font-medium">Parcours</button> et clique sur &quot;Commencer&quot; quand tu es prêt.</p>
             ) : (

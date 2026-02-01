@@ -3,13 +3,19 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted } from "@/lib/storage";
+import { generatePlan, ACTION_1 } from "@/lib/programEngine";
 import { getLevelFromDay, LEVEL_NAMES, LEVEL_EMOJIS, getLevelBounds } from "@/lib/defiLevels";
-import { ACTION_1 } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
 
 export default function ParcoursPage() {
   const router = useRouter();
-  const [days, setDays] = useState<Array<{ day: number; intentionTitle: string; focusTitle: string; baseTitle: string }>>([]);
+  const [days, setDays] = useState<Array<{
+    day: number;
+    intentionTitle: string;
+    focusTitle: string;
+    baseTitle: string;
+    additionalItems?: Array<{ title: string; sin?: SelectedSin }>;
+  }>>([]);
   const [currentDay, setCurrentDay] = useState<number>(1);
   const [selectedSins, setSelectedSins] = useState<SelectedSin[]>([]);
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
@@ -17,7 +23,11 @@ export default function ParcoursPage() {
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
 
   useEffect(() => {
-    const u = getUser();
+    let u = getUser();
+    if (u?.plan && u?.selectedSins?.length) {
+      u = { ...u, plan: generatePlan(u) };
+      saveUser(u);
+    }
     setUser(u);
     if (!u?.plan?.days?.length) {
       setDays([]);
@@ -39,13 +49,13 @@ export default function ParcoursPage() {
           const actionIdx = (d.day - 1) % action1List.length;
           intentionTitle = action1List[actionIdx]?.title ?? "Faire mon intention du jour";
         }
-        const additionalTitles = d.additionalActions?.map(a => a.title) ?? [];
+        const additionalItems = d.additionalActions?.map(a => ({ title: a.title, sin: a.sin })) ?? [];
         return {
           day: d.day,
           intentionTitle,
           focusTitle: d.focus.title,
           baseTitle: d.base.title,
-          additionalTitles: additionalTitles.length > 0 ? additionalTitles : undefined,
+          additionalItems: additionalItems.length > 0 ? additionalItems : undefined,
         };
       }));
       setCurrentDay(1);
@@ -65,13 +75,13 @@ export default function ParcoursPage() {
         const actionIdx = (d.day - 1) % action1List.length;
         intentionTitle = action1List[actionIdx]?.title ?? "Faire mon intention du jour";
       }
-      const additionalTitles = d.additionalActions?.map(a => a.title) ?? [];
+      const additionalItems = d.additionalActions?.map(a => ({ title: a.title, sin: a.sin })) ?? [];
       return {
         day: d.day,
         intentionTitle,
         focusTitle: d.focus.title,
         baseTitle: d.base.title,
-        additionalTitles: additionalTitles.length > 0 ? additionalTitles : undefined,
+        additionalItems: additionalItems.length > 0 ? additionalItems : undefined,
       };
     });
     setDays(next7);
@@ -112,25 +122,11 @@ export default function ParcoursPage() {
                     : "bg-white/10 text-white/80 border border-white/20"
                 }`}
               >
-                {getSinLabel(sin)}
+                {getSinLabel(sin, user)}
                 {sin === focusSin && " (priorité)"}
               </span>
             ))}
           </div>
-          {focusSin && (
-            <div className="space-y-2 text-sm">
-              <p className="text-white/90">
-                <span className="text-amber-200 font-medium">Focus principal :</span>{" "}
-                {getSinLabel(focusSin)} — les actions du jour ciblent ce péché en priorité.
-              </p>
-              {baseSin && baseSin !== focusSin && (
-                <p className="text-white/70">
-                  <span className="text-white/80 font-medium">Base :</span>{" "}
-                  {getSinLabel(baseSin)} — action complémentaire chaque jour.
-                </p>
-              )}
-            </div>
-          )}
         </div>
       )}
 
@@ -176,13 +172,13 @@ export default function ParcoursPage() {
                     const actionIdx = (d.day - 1) % action1List.length;
                     intentionTitle = action1List[actionIdx]?.title ?? "Faire mon intention du jour";
                   }
-                  const additionalTitles = d.additionalActions?.map(a => a.title) ?? [];
+                  const additionalItems = d.additionalActions?.map(a => ({ title: a.title, sin: a.sin })) ?? [];
                   return {
                     day: d.day,
                     intentionTitle,
                     focusTitle: d.focus.title,
                     baseTitle: d.base.title,
-                    additionalTitles: additionalTitles.length > 0 ? additionalTitles : undefined,
+                    additionalItems: additionalItems.length > 0 ? additionalItems : undefined,
                   };
                 });
                 setDays(next7);
@@ -285,13 +281,14 @@ export default function ParcoursPage() {
                       }
                       const actionsPerDay = user?.profileInfo?.actionsPerDay ?? 3;
                       const allActions = [
-                        { title: d.intentionTitle, num: 1, color: "bg-white/10 text-white/70" },
+                        { title: d.intentionTitle, num: 1, color: "bg-white/10 text-white/70", sin: focusSin },
                         { title: d.focusTitle, num: 2, color: "bg-amber-500/25 text-amber-200", sin: focusSin },
                         { title: d.baseTitle, num: 3, color: "bg-emerald-500/20 text-emerald-200", sin: baseSin },
-                        ...(d.additionalTitles?.map((title, idx) => ({
-                          title,
+                        ...(d.additionalItems?.map((item, idx) => ({
+                          title: item.title,
                           num: 4 + idx,
-                          color: "bg-white/10 text-white/70",
+                          color: item.sin === focusSin ? "bg-amber-500/20 text-amber-200" : "bg-emerald-500/20 text-emerald-200",
+                          sin: item.sin,
                         })) ?? []),
                       ].slice(0, actionsPerDay);
                       
@@ -304,7 +301,7 @@ export default function ParcoursPage() {
                             <p className="text-sm font-medium text-white/95">{action.title}</p>
                             {action.sin && (
                               <p className={`text-xs mt-0.5 ${action.num === 2 ? "text-amber-200/70" : "text-emerald-200/70"}`}>
-                                → {getSinLabel(action.sin)}
+                                → {getSinLabel(action.sin, user)}
                               </p>
                             )}
                           </div>
