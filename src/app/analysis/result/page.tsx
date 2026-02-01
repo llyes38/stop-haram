@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
+import ShareCard from "@/components/ShareCard";
+import { APP_URL } from "@/lib/share";
 
 interface QuizAnswers {
   [key: string]: string | string[];
@@ -11,6 +13,35 @@ interface QuizAnswers {
 function toArray(v: string | string[] | undefined): string[] {
   if (Array.isArray(v)) return v;
   return v ? [v] : [];
+}
+
+function getTeaser(answers: QuizAnswers, domains: string[]): { pointSensible: string; pointFort: string } {
+  const q5 = toArray(answers.q5)[0];
+  const q7 = toArray(answers.q7)[0];
+  const q6 = toArray(answers.q6);
+  const q2 = toArray(answers.q2)[0];
+  const domainLabel = domains[0] || "ce qui te préoccupe";
+
+  const POINT_SENSIBLE_MAP: Record<string, string> = {
+    "Manque de plan": "Tu manques surtout d'un cadre clair pour avancer.",
+    "Je craque trop vite": "La tentation te fait craquer avant que tu aies le temps de réfléchir.",
+    "Je culpabilise puis je recommence": "La culpabilité t'enferme dans un cycle dont tu veux sortir.",
+    "Je suis entouré de tentations": "Ton environnement te met souvent à l'épreuve.",
+    "Je n'arrive pas à tenir quand je suis seul": "C'est quand tu es seul que c'est le plus difficile.",
+  };
+
+  const POINT_FORT_MAP: Record<string, string> = {
+    "Arrêter complètement": "Tu as une volonté claire d'arrêter — c'est une vraie force.",
+    "Réduire fortement": "Tu vises une réduction réaliste — c'est un bon début.",
+    "Reprendre le contrôle": "Tu veux reprendre la main — ta détermination te portera.",
+    "Progresser spirituellement": "Ta soif de progression spirituelle est un moteur puissant.",
+    "Mieux gérer mes émotions": "Tu as compris que les émotions sont au cœur du problème — excellente prise de conscience.",
+  };
+
+  const pointSensible = (q5 && POINT_SENSIBLE_MAP[q5]) || (q2 ? "Les moments difficiles, tu les connais bien." : `On a bien compris ta situation avec ${domainLabel}.`);
+  const pointFort = (q7 && POINT_FORT_MAP[q7]) || (q6.includes("Motivé à changer") ? "Tu gardes l'envie de changer même après une rechute — c'est précieux." : "Ta démarche montre que tu es prêt à avancer.");
+
+  return { pointSensible, pointFort };
 }
 
 function calculateScore(answers: QuizAnswers, domains: string[]): number {
@@ -63,6 +94,7 @@ const averageScore = 45;
 export default function AnalysisResultPage() {
   const router = useRouter();
   const [userScore, setUserScore] = useState<number | null>(null);
+  const [teaser, setTeaser] = useState<{ pointSensible: string; pointFort: string } | null>(null);
 
   useEffect(() => {
     updateLastRoute("/analysis/result");
@@ -76,6 +108,7 @@ export default function AnalysisResultPage() {
     if (savedQuiz) {
       const answers: QuizAnswers = JSON.parse(savedQuiz);
       setUserScore(calculateScore(answers, domains));
+      setTeaser(getTeaser(answers, domains));
     }
   }, []);
 
@@ -126,14 +159,28 @@ export default function AnalysisResultPage() {
           <p className="text-white/90 text-base sm:text-lg mb-6 max-w-[360px] leading-relaxed">
             Tes réponses révèlent des comportements où le péché et les tentations te
             touchent. Sans jugement — Allah est Ar-Rahîm, Il aime celui qui se repent
-            — mais pour t&apos;accompagner avec bienveillance vers le bien.
+            — on est là pour t&apos;aider à avancer, pas pour te juger.
           </p>
 
           {/* Texte principal */}
-          <p className="text-white text-lg sm:text-xl font-semibold mb-8 max-w-[380px] leading-relaxed">
+          <p className="text-white text-lg sm:text-xl font-semibold mb-6 max-w-[380px] leading-relaxed">
             La prochaine étape consiste à mieux comprendre comment cela se manifeste
             concrètement dans ton quotidien.
           </p>
+
+          {/* Teaser personnalisé — point sensible + point fort */}
+          {teaser && (
+            <div className="w-full max-w-[360px] mb-8 space-y-3">
+              <div className="rounded-xl bg-amber-500/15 border border-amber-400/30 px-4 py-3 text-left">
+                <p className="text-amber-200/90 text-xs font-semibold uppercase tracking-wide mb-1">Ton point sensible</p>
+                <p className="text-white/95 text-sm leading-relaxed">{teaser.pointSensible}</p>
+              </div>
+              <div className="rounded-xl bg-emerald-500/15 border border-emerald-400/30 px-4 py-3 text-left">
+                <p className="text-emerald-200/90 text-xs font-semibold uppercase tracking-wide mb-1">Ton point fort</p>
+                <p className="text-white/95 text-sm leading-relaxed">{teaser.pointFort}</p>
+              </div>
+            </div>
+          )}
 
           {/* Graphique - 2 barres */}
           <div className="flex items-end justify-center gap-8 mb-8" style={{ minHeight: "220px" }}>
@@ -162,6 +209,20 @@ export default function AnalysisResultPage() {
               <div className="text-white/90 text-sm mt-2 text-center">Moyenne</div>
             </div>
           </div>
+        </div>
+
+        {/* Bloc Défi à 2 : partage du résultat */}
+        <div className="w-full max-w-[420px] mx-auto mb-6">
+          <ShareCard
+            title="🔥 Défi à 2"
+            description="Partage ton résultat à un proche pour vous entraider. Fixez-vous un défi à 2 et tenez bon ensemble."
+            shareTitle="Mon résultat StopHaram"
+            shareText={`J'ai fait mon introspection sur StopHaram. Si tu veux, on se lance un défi à 2 pour s'entraider et tenir bon.\n➡️ Installe l'app ici : ${APP_URL}`}
+            primaryLabel="Partager à un proche"
+            secondaryLabel="Copier le message"
+            copyLinkLabel="Copier le lien"
+            shareTextExtra={teaser ? `Mon point à améliorer : ${teaser.pointSensible}` : undefined}
+          />
         </div>
 
         {/* Bouton principal et sous-texte */}

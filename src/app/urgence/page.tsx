@@ -167,6 +167,15 @@ export default function UrgencePage() {
 
   return (
     <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white relative">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes tiens-bon-scintille {
+          0%, 100% { box-shadow: 0 0 20px rgba(52, 211, 153, 0.4); opacity: 1; }
+          50% { box-shadow: 0 0 35px rgba(52, 211, 153, 0.7), 0 0 50px rgba(52, 211, 153, 0.3); opacity: 1; }
+        }
+        .tiens-bon-scintille {
+          animation: tiens-bon-scintille 2s ease-in-out infinite;
+        }
+      `}} />
       {/* Confettis — joie quand il clique "Je tiens bon" */}
       {showConfetti && (
         <div className="fixed inset-0 z-[95] pointer-events-none overflow-hidden" aria-hidden>
@@ -260,18 +269,15 @@ export default function UrgencePage() {
             </div>
 
             <div className="space-y-4">
-              <p className="text-white/90 text-base leading-relaxed">
-                Tu n&apos;es pas seul. Respire. Chaque instant est une nouvelle chance.
-              </p>
               <blockquote className="text-white/70 text-sm leading-relaxed italic pl-4 border-l-2 border-emerald-400/40">
                 {aide.verset.texte}
                 <span className="block text-white/50 text-xs mt-1">— {aide.verset.ref}</span>
               </blockquote>
-              <ul className="text-white/80 text-sm space-y-2 pl-4">
-                {aide.tips.map((tip, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-emerald-400 mt-0.5">•</span>
-                    <span>{tip}</span>
+              <ul className="text-white/95 text-base sm:text-lg font-medium space-y-3 pl-2">
+                {aide.tips.slice(0, 3).map((tip, i) => (
+                  <li key={i} className="flex items-start gap-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-3.5">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/40 text-emerald-200 font-bold text-sm">{i + 1}</span>
+                    <span className="leading-snug">{tip}</span>
                   </li>
                 ))}
               </ul>
@@ -281,9 +287,9 @@ export default function UrgencePage() {
               <button
                 type="button"
                 onClick={handleTiensBon}
-                className="w-full rounded-xl bg-emerald-500/20 border border-emerald-400/40 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/30 transition-colors"
+                className="tiens-bon-scintille w-full rounded-xl bg-emerald-500/35 border-2 border-emerald-400/60 py-4 text-emerald-100 font-bold text-lg shadow-lg hover:bg-emerald-500/45 transition-colors"
               >
-                Je tiens bon, retour à l&apos;accueil
+                Je tiens bon, al hamdou lillah
               </button>
               <button
                 type="button"
@@ -319,7 +325,7 @@ export default function UrgencePage() {
             </div>
             <button
               type="button"
-              onClick={() => setView("aide")}
+              onClick={handleCancel}
               className="mt-auto w-full rounded-xl bg-white/5 border border-white/10 py-3.5 text-white/70 font-medium hover:bg-white/10 transition-colors"
             >
               Annuler

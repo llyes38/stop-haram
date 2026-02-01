@@ -10,17 +10,19 @@ type StopHaramLogoProps = {
   className?: string;
 };
 
+/** Logo StopHaram (Stop + HARAM) — distinct du favicon (icône) */
 export default function StopHaramLogo({
   size = 180,
   variant = "dark",
   className = "",
 }: StopHaramLogoProps) {
+  const height = Math.round((size * 44) / 200);
   return (
     <Image
       src="/brand/stopharam-logo.png"
       alt="StopHaram"
       width={size}
-      height={Math.round((size * 44) / 200)}
+      height={height}
       className={className}
       priority
       aria-label="StopHaram"

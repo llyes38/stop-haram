@@ -22,10 +22,8 @@ export default function InstallPrompt() {
       const seen = window.localStorage.getItem(STORAGE_KEY);
       if (seen === "true") return;
       const d = getDevice();
-      if (d) {
-        setDevice(d);
-        setVisible(true);
-      }
+      setDevice(d);
+      setVisible(true);
     } catch {
       // Ignore localStorage errors
     }
@@ -112,6 +110,26 @@ export default function InstallPrompt() {
                 Appuie sur « Installer l&apos;application » quand Chrome le propose
                 ou ouvre le menu ⋮ puis « Installer l&apos;application »
               </p>
+            </div>
+          )}
+
+          {device === null && (
+            <div className="mt-4 space-y-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-white">Sur iPhone :</p>
+                <ol className="mt-1.5 list-decimal list-inside space-y-1 text-sm text-white/90">
+                  <li>Ouvre cette page avec Safari</li>
+                  <li>Appuie sur le bouton Partager</li>
+                  <li>Sélectionne « Ajouter à l&apos;écran d&apos;accueil »</li>
+                </ol>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Sur Android :</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-white/90">
+                  Appuie sur « Installer l&apos;application » quand Chrome le propose
+                  ou ouvre le menu ⋮ puis « Installer l&apos;application »
+                </p>
+              </div>
             </div>
           )}
 

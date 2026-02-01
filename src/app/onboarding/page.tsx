@@ -32,7 +32,7 @@ const SCREENS: Screen[] = [
   },
   {
     icon: "🧭",
-    title: "Garde le cap",
+    title: "Continue d'avancer",
     text: "Un suivi quotidien te rappelle ton intention et t'aide à tenir.\nRégularité, pas perfection.",
     rappel: "Ne te décourage pas : la progression se fait par étapes.",
     asmaAllah: "Al-Hâdî — Le Guide",
@@ -48,7 +48,7 @@ const SCREENS: Screen[] = [
   },
   {
     icon: "💪",
-    title: "Connais-toi pour te renforcer",
+    title: "Comprends tes forces et tes faiblesses",
     text: "Comprends tes forces et faiblesses.\nSuis ta progression, bâtis une discipline stable.",
     rappel: "Le vrai combat est intérieur : il se gagne avec patience.",
     asmaAllah: "Al-Qawiyy — Le Fort",

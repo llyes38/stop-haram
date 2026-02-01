@@ -33,6 +33,8 @@ import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import { getActionIcon } from "@/components/ActionIcon";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
+import ShareCard from "@/components/ShareCard";
+import { APP_URL } from "@/lib/share";
 
 const DEFI_JOURS = 30;
 
@@ -844,6 +846,17 @@ export default function HomePage() {
             </p>
           )}
         </div>
+
+        {/* Bloc Communauté : Invite un proche */}
+        <ShareCard
+          title="🤝 Invite un proche"
+          description="StopHaram est plus facile à tenir à deux. Invite quelqu'un à rejoindre les Stopprs et faites le chemin ensemble."
+          shareTitle="StopHaram"
+          shareText={`Je viens de commencer StopHaram. Rejoins-moi et on se fait un défi à 2 pour reprendre le contrôle.\n➡️ Installe l'app ici : ${APP_URL}`}
+          primaryLabel="Partager l'invitation"
+          secondaryLabel="Copier le message"
+          copyLinkLabel="Copier le lien"
+        />
 
         {/* Bloc : Acheter ou offrir — rappel islamique + CTA */}
         <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-5">

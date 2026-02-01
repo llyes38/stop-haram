@@ -101,43 +101,27 @@ export default function QuizClient() {
     }
     
     // Si on vient de parcours, companion ou account, charger les données utilisateur existantes
+    // Seulement pré-remplir quand l'utilisateur modifie (parcours, companion, account)
+    // Nouveau client : aucune réponse pré-sélectionnée pour ne pas induire en erreur
     if (from === "parcours" || from === "companion" || from === "account") {
       const existingUser = getUser();
       if (existingUser) {
-        // Pré-remplir les domaines avec les péchés actuels
         const domains = sinsToDomains(existingUser.selectedSins);
         setSelectedDomains(domains);
-        
-        // Pré-remplir les réponses du quiz
         if (existingUser.answers) {
           setAnswers(existingUser.answers as Record<string, string | string[]>);
         }
-        
-        // Pré-remplir nom et âge depuis le profil
         setFirstName(existingUser.name || "");
         if (existingUser.profileInfo?.age) {
           setAge(String(existingUser.profileInfo.age));
         }
         setCustomSinDescription(existingUser.profileInfo?.customSinDescription || "");
-        
-        // Commencer à l'étape de sélection des domaines (sauter le genre si on modifie)
-        setCurrentStep(from === "account" ? 1 : 1);
+        setCurrentStep(1);
       }
       return;
     }
-    
-    const savedQuiz = window.localStorage.getItem("stopharam_quiz");
-    const savedDomains = window.localStorage.getItem("stopharam_domains");
-    const savedProfile = window.localStorage.getItem("stopharam_profile");
-    const savedCustomSin = window.localStorage.getItem("stopharam_custom_sin");
-    if (savedQuiz) setAnswers(JSON.parse(savedQuiz));
-    if (savedDomains) setSelectedDomains(JSON.parse(savedDomains));
-    if (savedCustomSin) setCustomSinDescription(savedCustomSin);
-    if (savedProfile) {
-      const p = JSON.parse(savedProfile) as { firstName?: string; age?: number };
-      setFirstName(p.firstName ?? "");
-      setAge(String(p.age ?? ""));
-    }
+
+    // Nouveau client : ne pas charger les données du localStorage (réponses vides)
   }, [searchParams, router]);
 
   useEffect(() => {
