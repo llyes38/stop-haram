@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted } from "@/lib/storage";
 import { generatePlan, ACTION_1 } from "@/lib/programEngine";
 import { getLevelFromDay, LEVEL_NAMES, LEVEL_EMOJIS, getLevelBounds } from "@/lib/defiLevels";
+import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 import type { SelectedSin } from "@/lib/storage";
 
 export default function ParcoursPage() {
@@ -158,9 +159,20 @@ export default function ParcoursPage() {
               onClick={() => {
                 if (!user) return;
                 const today = new Date().toISOString().slice(0, 10);
-                const updated = { ...user, startDateISO: today };
+                const nowIso = new Date().toISOString();
+                const updated = {
+                  ...user,
+                  startDateISO: today,
+                  streakDays: 0,
+                  lastCheckinISO: today,
+                };
                 saveUser(updated);
                 setUser(updated);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem("last_streak_start_iso", nowIso);
+                  window.localStorage.setItem("days_clean", "0");
+                  clearDefiDaysStatus();
+                }
                 const dayNum = getDayNumber(today);
                 const start = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
                 const focusSinVal: SelectedSin = user.plan.focusSin ?? "autre";

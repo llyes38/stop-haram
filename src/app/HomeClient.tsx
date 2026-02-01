@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 function SplashScreen({ onSkip }: { onSkip: () => void }) {
   return (
@@ -13,15 +14,7 @@ function SplashScreen({ onSkip }: { onSkip: () => void }) {
       }}
     >
       <div className="w-full max-w-[420px] flex flex-col items-center justify-center flex-1 py-12">
-        <h1
-          className="text-[2.75rem] sm:text-[3.25rem] font-extrabold tracking-[0.08em] text-white text-center mb-12"
-          style={{
-            textShadow:
-              "0 1px 0 rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.25)",
-          }}
-        >
-          StopHaram
-        </h1>
+        <StopHaramLogo size={220} variant="dark" className="mb-12" />
 
         <p className="text-white text-center text-lg sm:text-xl font-medium leading-relaxed tracking-tight mb-4">
           Fais une pause.
@@ -98,15 +91,7 @@ function WelcomeScreen() {
 
       <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 relative z-10">
         <header className="text-center mb-10">
-          <h1
-            className="text-2xl font-extrabold tracking-[0.06em] text-white"
-            style={{
-              textShadow:
-                "0 1px 0 rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.2)",
-            }}
-          >
-            StopHaram
-          </h1>
+          <StopHaramLogo size={140} variant="dark" className="mx-auto block" />
         </header>
 
         <section className="flex-1">

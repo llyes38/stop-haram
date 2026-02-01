@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { setAuth, setProfile, getState, FIRST_PARCOURS_STEP } from "@/lib/authState";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,9 +29,7 @@ export default function LoginPage() {
     <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white">
       <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-12 pb-8">
         <header className="mb-12">
-          <h1 className="text-2xl font-bold tracking-tight text-white">
-            StopHaram
-          </h1>
+          <StopHaramLogo size={140} variant="dark" className="block" />
           <p className="text-white/60 text-sm mt-1">
             Un pas à la fois
           </p>

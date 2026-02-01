@@ -8,6 +8,9 @@ type Screen = {
   title: string;
   text: string;
   rappel: string;
+  /** Nom d'Allah en rapport avec la slide — pour montrer l'accompagnement */
+  asmaAllah: string;
+  asmaAllahAr: string;
 };
 
 const SCREENS: Screen[] = [
@@ -16,36 +19,48 @@ const SCREENS: Screen[] = [
     title: "Bienvenue sur StopHaram",
     text: "Introspection, reprendre le contrôle, avancer pas à pas.\nDiscret et bienveillant.",
     rappel: "Allah ouvre toujours une porte : chaque retour compte.",
+    asmaAllah: "Al-Fattâh — Celui qui ouvre",
+    asmaAllahAr: "ٱلْفَتَّاحُ",
   },
   {
     icon: "🧠",
     title: "Rééduque ton nafs",
     text: "Des exercices simples pour remplacer l'automatisme par un choix.\nMoins d'impulsivité, plus de maîtrise.",
     rappel: "Le cœur se nourrit de ce qu'on répète.",
+    asmaAllah: "Al-Hakîm — Le Sage",
+    asmaAllahAr: "ٱلْحَكِيمُ",
   },
   {
     icon: "🧭",
     title: "Garde le cap",
     text: "Un suivi quotidien te rappelle ton intention et t'aide à tenir.\nRégularité, pas perfection.",
     rappel: "Ne te décourage pas : la progression se fait par étapes.",
+    asmaAllah: "Al-Hâdî — Le Guide",
+    asmaAllahAr: "ٱلْهَادِي",
   },
   {
     icon: "🛡️",
     title: "Anticipe la tentation",
     text: "Reconnais tes déclencheurs et prépare des protections\navant que la tentation arrive.",
     rappel: "Fuir la tentation au début est plus facile que lutter au milieu.",
+    asmaAllah: "Al-Hafîz — Le Protecteur",
+    asmaAllahAr: "ٱلْحَفِيظُ",
   },
   {
     icon: "💪",
     title: "Connais-toi pour te renforcer",
     text: "Comprends tes forces et faiblesses.\nSuis ta progression, bâtis une discipline stable.",
     rappel: "Le vrai combat est intérieur : il se gagne avec patience.",
+    asmaAllah: "Al-Qawiyy — Le Fort",
+    asmaAllahAr: "ٱلْقَوِيُّ",
   },
   {
     icon: "🌱",
     title: "Améliore ta vie, pas à pas",
     text: "En reprenant le contrôle, tu gagnes en paix intérieure,\nen énergie et en sérénité.",
     rappel: "Chaque pas vers Allah est précieux, même petit.",
+    asmaAllah: "As-Salâm — La Paix",
+    asmaAllahAr: "ٱلسَّلَامُ",
   },
 ];
 
@@ -136,9 +151,19 @@ export default function OnboardingPage() {
       </button>
 
       <div className="relative z-0 mx-auto flex w-full max-w-[420px] flex-1 flex-col items-center justify-center text-center">
+        {/* Nom d'Allah — en grand (arabe + français), pour montrer qu'Allah accompagne l'utilisateur */}
+        <div className="mb-4 text-center">
+          <p className="text-3xl sm:text-4xl font-bold text-amber-200 mb-1" dir="rtl" lang="ar">
+            {screen.asmaAllahAr}
+          </p>
+          <p className="text-lg sm:text-xl font-semibold text-amber-200/90 tracking-wide">
+            {screen.asmaAllah}
+          </p>
+        </div>
+
         {/* Icône */}
         <div
-          className={`mb-6 text-6xl sm:text-7xl ${isLastScreen ? "onboarding-icon-glow" : "onboarding-icon-float"}`}
+          className={`mb-4 text-6xl sm:text-7xl ${isLastScreen ? "onboarding-icon-glow" : "onboarding-icon-float"}`}
           role="img"
           aria-hidden
         >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 const bgStyle = {
   background:
@@ -18,12 +19,10 @@ export default function StartSplashPage() {
       {/* Logo StopHaram avec effet miroir (reflection) */}
       <div className="relative z-10 flex flex-col items-center text-center">
         <div className="relative">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-lg">
-            StopHaram
-          </h1>
+          <StopHaramLogo size={200} variant="dark" className="drop-shadow-lg" />
           {/* Reflet miroir sous le logo */}
-          <h1
-            className="mt-0.5 text-4xl sm:text-5xl font-bold tracking-tight opacity-30"
+          <div
+            className="mt-0.5 opacity-30"
             style={{
               transform: "scaleY(-1)",
               WebkitMaskImage: "linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)",
@@ -31,8 +30,8 @@ export default function StartSplashPage() {
             }}
             aria-hidden
           >
-            StopHaram
-          </h1>
+            <StopHaramLogo size={200} variant="dark" />
+          </div>
         </div>
 
         {/* Tagline */}

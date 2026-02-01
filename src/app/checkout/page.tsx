@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
 import { getUser, saveUser } from "@/lib/storage";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 // Tarifs : mensuel 9,99 € ; annuel -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -162,7 +163,7 @@ export default function CheckoutPage() {
 
       <div className="relative z-10 flex flex-col min-h-screen max-w-[420px] mx-auto w-full px-5 pt-6 pb-8">
         <header className="flex items-center justify-between mb-2">
-          <span className="text-lg font-bold tracking-tight text-white">StopHaram</span>
+          <StopHaramLogo size={120} variant="dark" className="block" />
           <div className="flex items-center gap-2">
             {isOffrir && (
               <span className="rounded-full bg-emerald-500/30 px-3 py-1 text-emerald-200 text-xs font-semibold">

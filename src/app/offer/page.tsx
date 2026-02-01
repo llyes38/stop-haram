@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 // Tarif mensuel normal 9,99 € → annuel 119,88 € ; -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -45,9 +46,7 @@ export default function OfferPage() {
         {/* Header: logo + fermer */}
         <header className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold tracking-tight text-white">
-              StopHaram
-            </span>
+            <StopHaramLogo size={120} variant="dark" className="block" />
           </div>
           <button
             type="button"

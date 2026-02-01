@@ -107,6 +107,9 @@ export default function PlanPage() {
           <p className="text-sm text-white/80">
             Bismillah. Tu as fait un pas sincère. Ce pas compte.
           </p>
+          <p className="mt-3 px-4 py-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-sm font-semibold text-amber-100 text-center">
+            Ton plan est établi selon la science islamique, le Coran et la Sunna.
+          </p>
         </section>
 
         {/* SECTION 2 – OBJECTIF */}
@@ -157,7 +160,7 @@ export default function PlanPage() {
               Bénéfices de ton plan
             </h3>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {[
               { label: "Plus de sérénité au quotidien", color: "bg-cyan-500" },
               { label: "Plus de discipline personnelle", color: "bg-emerald-600" },
@@ -168,7 +171,7 @@ export default function PlanPage() {
             ].map(({ label, color }) => (
               <span
                 key={label}
-                className={`inline-flex items-center rounded-full ${color} px-3 py-1.5 text-xs font-medium text-white shadow-sm`}
+                className={`flex items-center justify-center rounded-xl ${color} px-3 py-3 text-xs font-medium text-white shadow-sm text-center`}
               >
                 {label}
               </span>
@@ -176,13 +179,13 @@ export default function PlanPage() {
           </div>
         </section>
 
-        {/* SECTION 5 – CONQUÉREZ-VOUS (logo animé + icônes style Quittr) */}
+        {/* SECTION 5 – MAÎTRISE DE SOI (logo animé + icônes) */}
         <section className="space-y-4">
           <div className="flex flex-col items-center gap-3">
             <div className="plan-logo-float flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-teal-500/30 to-violet-500/30 border border-white/15 text-3xl" aria-hidden>
               🧘
             </div>
-            <h3 className="text-lg font-semibold text-center">Conquiers-toi</h3>
+            <h3 className="text-lg font-semibold text-center">La maîtrise de soi</h3>
           </div>
           <ul className="space-y-3">
             {[

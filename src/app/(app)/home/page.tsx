@@ -9,7 +9,8 @@ import { getTemptationStats, incrementTempted } from "@/lib/temptationStats";
 import { getCurrentStatut, isStatutUnlocked, STATUTS, type Statut } from "@/lib/statuts";
 import {
   getTodayActionsState,
-  toggleTodayAction,
+  getCompletedActionTitlesForToday,
+  toggleActionByTitle,
   type ActionId,
   type DailyActionsState,
 } from "@/lib/dailyActions";
@@ -31,6 +32,7 @@ import { hasDonToday } from "@/lib/sadaqaStorage";
 import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import { getActionIcon } from "@/components/ActionIcon";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 const DEFI_JOURS = 30;
 
@@ -250,6 +252,7 @@ export default function HomePage() {
     "2": false,
     "3": false,
   });
+  const [completedTitles, setCompletedTitles] = useState<string[]>([]);
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
   const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
   const [dhikrDoneToday, setDhikrDoneToday] = useState(false);
@@ -279,6 +282,7 @@ export default function HomePage() {
     setActionLabels(items.map((i) => i.title));
     const actionsCount = items.length;
     setActionsState(getTodayActionsState(actionsCount));
+    setCompletedTitles(getCompletedActionTitlesForToday());
     setFocusSin(u?.plan?.focusSin ?? null);
     setBaseSin(u?.plan?.baseSin ?? null);
     if (typeof window !== "undefined") {
@@ -297,10 +301,11 @@ export default function HomePage() {
   }, [pathname]);
 
   useEffect(() => {
-    const allDone = actionLabels.every((label, i) => {
-      const id = String(i + 1) as ActionId;
+    const items = actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }));
+    const allDone = items.every((item) => {
+      const label = item.title;
       const isDhikr = /dhikr|invocation/i.test(label);
-      return isDhikr ? dhikrDoneToday : actionsState[id];
+      return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
     });
     if (allDone && challengeDay >= 1 && challengeDay <= 30) {
       const status = getDefiDaysStatus();
@@ -309,7 +314,7 @@ export default function HomePage() {
         setDefiStatus({ ...status, [challengeDay]: "validated" });
       }
     }
-  }, [actionLabels, actionsState, dhikrDoneToday, challengeDay]);
+  }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, challengeDay]);
 
   useEffect(() => {
     const user = getUser();
@@ -377,20 +382,16 @@ export default function HomePage() {
     setWhyStopDraft("");
   };
 
-  const handleToggleAction = (id: ActionId) => {
-    const u = getUser();
-    const labels = getDailyActionLabels(u ?? null);
-    const state = getTodayActionsState(labels.length);
-    const aboutToMarkDone = !state[id];
-    if (aboutToMarkDone) {
-      const label = labels[parseInt(id, 10) - 1];
-      if (label && isVerseAction(label)) {
-        const n = versetsFromActionLabel(label);
-        if (n > 0) addVersets(n);
-      }
+  const handleToggleActionByTitle = (title: string) => {
+    const aboutToMarkDone = !completedTitles.includes(title);
+    if (aboutToMarkDone && isVerseAction(title)) {
+      const n = versetsFromActionLabel(title);
+      if (n > 0) addVersets(n);
     }
-    toggleTodayAction(id, labels.length);
-    setActionsState(getTodayActionsState(labels.length));
+    toggleActionByTitle(title);
+    setCompletedTitles(getCompletedActionTitlesForToday());
+    const cnt = actionItems.length || actionLabels.length || 3;
+    setActionsState(getTodayActionsState(cnt));
   };
 
   return (
@@ -434,7 +435,7 @@ export default function HomePage() {
             )}
           </button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight text-white">StopHaram</h1>
+            <StopHaramLogo size={140} variant="dark" className="block" />
             <p className="text-white/60 text-sm mt-0.5">Un pas à la fois</p>
           </div>
         </div>
@@ -638,10 +639,10 @@ export default function HomePage() {
               </div>
             ) : (() => {
               const actionsCount = actionLabels.length;
-              const allDone = actionLabels.every((label, i) => {
-                const id = String(i + 1) as ActionId;
+              const allDone = (actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }))).every((item, i) => {
+                const label = "title" in item ? item.title : item;
                 const isDhikr = /dhikr|invocation/i.test(label);
-                return isDhikr ? dhikrDoneToday : actionsState[id];
+                return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
               });
               return (
                 <>
@@ -661,7 +662,7 @@ export default function HomePage() {
                       return itemsToShow.map((item, i) => {
                         const id = String(i + 1) as ActionId;
                         const isDhikr = /dhikr|invocation/i.test(item.title);
-                        const done = isDhikr ? dhikrDoneToday : actionsState[id];
+                        const done = isDhikr ? dhikrDoneToday : completedTitles.includes(item.title);
                         const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
                         return (
                         <button
@@ -905,9 +906,8 @@ export default function HomePage() {
         const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
         const item = itemsToShow[selectedActionIndex];
         if (!item) return null;
-        const id = String(selectedActionIndex + 1) as ActionId;
         const isDhikr = /dhikr|invocation/i.test(item.title);
-        const done = isDhikr ? dhikrDoneToday : actionsState[id];
+        const done = isDhikr ? dhikrDoneToday : completedTitles.includes(item.title);
         const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
         return (
           <div
@@ -981,7 +981,7 @@ export default function HomePage() {
                             setDhikrDoneToday(false);
                           }
                         } else {
-                          handleToggleAction(id);
+                          handleToggleActionByTitle(item.title);
                         }
                         setSelectedActionIndex(null);
                       }}
@@ -1005,7 +1005,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      handleToggleAction(id);
+                      handleToggleActionByTitle(item.title);
                       setSelectedActionIndex(null);
                     }}
                     className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/40 transition-colors"

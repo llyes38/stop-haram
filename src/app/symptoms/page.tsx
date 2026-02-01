@@ -142,14 +142,15 @@ export default function SymptomsPage() {
         {/* Bandeau intro */}
         <div className="bg-orange-500/90 rounded-2xl p-4 mb-6">
           <p className="text-white text-base font-medium leading-relaxed">
-            Quand on lutte avec une mauvaise habitude, certains signes reviennent
-            souvent. Sélectionne ceux qui te ressemblent.
+            Face à un péché ou une mauvaise habitude, des signes apparaissent souvent
+            : fatigue, culpabilité, isolement… Parmi la liste ci-dessous, coche ceux
+            qui correspondent à ce que tu vis.
           </p>
         </div>
 
         {/* Sous-titre */}
         <p className="text-white text-base font-medium mb-4">
-          Sélectionne ce qui te parle :
+          Coche toutes les propositions qui te parlent :
         </p>
 
         {/* Liste des symptômes par catégorie */}

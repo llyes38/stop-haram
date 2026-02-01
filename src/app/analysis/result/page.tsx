@@ -8,33 +8,33 @@ interface QuizAnswers {
   [key: string]: string | string[];
 }
 
+function toArray(v: string | string[] | undefined): string[] {
+  if (Array.isArray(v)) return v;
+  return v ? [v] : [];
+}
+
 function calculateScore(answers: QuizAnswers, domains: string[]): number {
   let score = 0;
-  const q1 = answers.q1;
-  if (q1 === "Plusieurs fois par jour") score += 30;
-  else if (q1 === "Une fois par jour") score += 22;
-  else if (q1 === "Quelques fois par semaine") score += 14;
-  else if (q1 === "Rarement") score += 6;
+  const q1arr = toArray(answers.q1);
+  if (q1arr.includes("Plusieurs fois par jour")) score += 30;
+  else if (q1arr.includes("Une fois par jour")) score += 22;
+  else if (q1arr.includes("Quelques fois par semaine")) score += 14;
+  else if (q1arr.includes("Rarement")) score += 6;
 
-  const q4 = answers.q4;
-  if (q4 === "Plus de 3 ans") score += 20;
-  else if (q4 === "1 à 3 ans") score += 14;
-  else if (q4 === "6 à 12 mois") score += 10;
-  else if (q4 === "Moins de 6 mois") score += 6;
+  const q4arr = toArray(answers.q4);
+  if (q4arr.includes("Plus de 3 ans")) score += 20;
+  else if (q4arr.includes("1 à 3 ans")) score += 14;
+  else if (q4arr.includes("6 à 12 mois")) score += 10;
+  else if (q4arr.includes("Moins de 6 mois")) score += 6;
 
-  const q5 = answers.q5;
-  if (Array.isArray(q5)) {
-    if (q5.includes("Je craque trop vite")) score += 10;
-    if (q5.includes("Je n'arrive pas à tenir quand je suis seul")) score += 10;
-  } else {
-    if (q5 === "Je craque trop vite") score += 10;
-    if (q5 === "Je n'arrive pas à tenir quand je suis seul") score += 10;
-  }
+  const q5arr = toArray(answers.q5);
+  if (q5arr.includes("Je craque trop vite")) score += 10;
+  if (q5arr.includes("Je n'arrive pas à tenir quand je suis seul")) score += 10;
 
-  const q8 = answers.q8;
-  if (q8 === "J'ai déjà rechuté plusieurs fois malgré mes efforts") score += 12;
-  else if (q8 === "J'ai déjà suivi des conseils ou un programme") score += 8;
-  else if (q8 === "J'ai tenu quelques jours / semaines") score += 4;
+  const q8arr = toArray(answers.q8);
+  if (q8arr.includes("J'ai déjà rechuté plusieurs fois malgré mes efforts")) score += 12;
+  else if (q8arr.includes("J'ai déjà suivi des conseils ou un programme")) score += 8;
+  else if (q8arr.includes("J'ai tenu quelques jours / semaines")) score += 4;
 
   if (domains.length >= 3) score += 10;
 
@@ -124,8 +124,9 @@ export default function AnalysisResultPage() {
 
           {/* Sous-texte */}
           <p className="text-white/90 text-base sm:text-lg mb-6 max-w-[360px] leading-relaxed">
-            À partir de tes réponses, nous avons identifié certaines habitudes et
-            schémas.
+            Tes réponses révèlent des comportements où le péché et les tentations te
+            touchent. Sans jugement — Allah est Ar-Rahîm, Il aime celui qui se repent
+            — mais pour t&apos;accompagner avec bienveillance vers le bien.
           </p>
 
           {/* Texte principal */}

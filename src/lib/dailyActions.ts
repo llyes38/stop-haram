@@ -1,4 +1,5 @@
 const STORAGE_KEY = "stopharam_daily_actions";
+const STORAGE_KEY_BY_TITLE = "stopharam_daily_actions_titles";
 
 export type ActionId = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10";
 
@@ -26,6 +27,46 @@ function loadRaw(): Record<string, DailyActionsState> {
 function saveRaw(data: Record<string, DailyActionsState>): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadTitlesRaw(): Record<string, string[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY_BY_TITLE);
+    if (!raw) return {};
+    return JSON.parse(raw) as Record<string, string[]>;
+  } catch {
+    return {};
+  }
+}
+
+function saveTitlesRaw(data: Record<string, string[]>): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(STORAGE_KEY_BY_TITLE, JSON.stringify(data));
+}
+
+/** Completions stockées par titre d'action — évite de barrer des actions quand le plan change. */
+export function getCompletedActionTitlesForToday(): string[] {
+  const key = getTodayKey();
+  const data = loadTitlesRaw();
+  return data[key] ?? [];
+}
+
+/** Vérifie si une action est marquée complétée (par son titre). */
+export function isActionCompletedByTitle(title: string): boolean {
+  const completed = getCompletedActionTitlesForToday();
+  return completed.includes(title);
+}
+
+/** Bascule la complétion d'une action par son titre. */
+export function toggleActionByTitle(title: string): void {
+  const key = getTodayKey();
+  const data = loadTitlesRaw();
+  const completed = data[key] ?? [];
+  const idx = completed.indexOf(title);
+  const next = idx >= 0 ? completed.filter((_, i) => i !== idx) : [...completed, title];
+  data[key] = next;
+  saveTitlesRaw(data);
 }
 
 export function getTodayActionsState(count: number = 3): DailyActionsState {
@@ -66,11 +107,13 @@ export function clearTodayActions(count: number = 3): void {
     "1": false, "2": false, "3": false, "4": false, "5": false,
     "6": false, "7": false, "8": false, "9": false, "10": false,
   };
-  // Ne garder que les actions nécessaires
   const state: DailyActionsState = {} as DailyActionsState;
   for (let i = 1; i <= Math.min(count, 10); i++) {
     state[i.toString() as ActionId] = false;
   }
   data[key] = state;
   saveRaw(data);
+  const titlesData = loadTitlesRaw();
+  titlesData[key] = [];
+  saveTitlesRaw(titlesData);
 }

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { setAuth, setProfile } from "@/lib/authState";
 import { markRechuteDoneForToday } from "@/lib/rechuteCheck";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 const STORAGE_KEYS = { is_logged_in: "is_logged_in", user_name: "user_name" } as const;
 
@@ -71,9 +72,7 @@ export default function SignupPage() {
         </header>
 
         <div className="flex flex-col items-center flex-1 pt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white text-center mb-2">
-            StopHaram
-          </h1>
+          <StopHaramLogo size={160} variant="dark" className="block mb-2" />
 
           {/* Illustration : oiseau / palmiers style Quittr (simplifié) */}
           <div className="relative w-full max-w-[240px] h-[160px] flex items-center justify-center my-6">
@@ -87,7 +86,7 @@ export default function SignupPage() {
           </div>
 
           <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">
-            Deviens un StopHaram
+            Deviens un Stoppr
           </h2>
           <p className="text-sm text-white/80 text-center max-w-[320px] mb-8">
             Rejoins ceux qui reprennent le contrôle. Crée un compte pour sauvegarder ta progression et accéder à ton parcours sur tous tes appareils.

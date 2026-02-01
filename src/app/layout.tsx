@@ -6,6 +6,10 @@ import AppGuard from "@/components/AppGuard";
 export const metadata: Metadata = {
   title: "StopHaram",
   description: "Un accompagnement discret et bienveillant",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({

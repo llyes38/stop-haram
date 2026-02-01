@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 // Nombre affiché pour la communauté (ex. depuis une API plus tard)
 const COMMUNITY_COUNT = "13 933";
@@ -35,9 +36,7 @@ export default function DashboardPage() {
       <div className="relative z-10 flex flex-col min-h-screen max-w-[420px] mx-auto w-full px-5 pt-6 pb-24">
         {/* Header */}
         <header className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-bold tracking-tight text-white">
-            StopHaram
-          </h1>
+          <StopHaramLogo size={120} variant="dark" className="block" />
           <div className="flex items-center gap-2">
             <button
               type="button"

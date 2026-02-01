@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { setAuth, setState } from "@/lib/authState";
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
+import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 
 const bgStyle = {
   background:

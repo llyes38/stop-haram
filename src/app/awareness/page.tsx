@@ -9,30 +9,35 @@ const SCREENS = [
     icon: "💔",
     title: "Les péchés répétés fragilisent les relations",
     text: "Quand une mauvaise habitude s'installe,\nelle éloigne des autres, crée des tensions\net affaiblit les liens sincères.",
+    citation: "« Le musulman est celui dont les musulmans sont à l'abri de sa langue et de sa main. » — Rapporté par Al-Bukhârî",
   },
   {
     bg: "linear-gradient(180deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)",
     icon: "⚖️",
     title: "Le cœur s'habitue au déséquilibre",
     text: "Répéter un péché banalise l'acte.\nCe qui choquait au début devient normal,\net l'effort pour s'en éloigner diminue.",
+    citation: "« Quand le serviteur commet un péché, une tache noire apparaît sur son cœur. S'il persiste, elle s'étend jusqu'à le couvrir. » — Rapporté par At-Tirmidhî",
   },
   {
     bg: "linear-gradient(180deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)",
     icon: "📉",
     title: "La motivation et la discipline diminuent",
     text: "Beaucoup ressentent moins d'élan,\nplus de paresse, de distraction\net une difficulté à rester constant.",
+    citation: "« Deux bienfaits dont beaucoup de gens sont perdants : la santé et le temps libre. » — Rapporté par Al-Bukhârî",
   },
   {
     bg: "linear-gradient(180deg, #b91c1c 0%, #991b1b 50%, #7f1d1d 100%)",
     icon: "💭",
     title: "Tu te sens souvent mal sans savoir pourquoi ?",
     text: "Le péché répété alourdit le cœur,\nmême quand on ne s'en rend pas compte.\nCela crée un vide intérieur silencieux.",
+    citation: "« Non ! Mais ce qu'ils ont commis a rouillé leurs cœurs. » — Sourate Al-Mutaffifîn, v.14",
   },
   {
     bg: "linear-gradient(180deg, #1e3a5f 0%, #1e40af 40%, #1d4ed8 100%)",
     icon: "🌱",
     title: "Le retour à l'équilibre est possible",
     text: "En s'éloignant progressivement des péchés,\nle cœur s'apaise, la clarté revient\net la constance redevient possible.",
+    citation: "« Dis : Ô Mes serviteurs qui avez commis des excès ! Ne désespérez pas de la miséricorde d'Allah. Car Allah pardonne tous les péchés. » — Sourate Az-Zumar, v.53",
   },
 ];
 
@@ -98,13 +103,19 @@ export default function AwarenessPage() {
         <h1 className="text-white text-2xl sm:text-3xl font-semibold mb-6 leading-tight">
           {screen.title}
         </h1>
-        <div className="space-y-3 mb-10">
+        <div className="space-y-3 mb-6">
           {lines.map((line, i) => (
             <p key={i} className="text-white/95 text-base sm:text-lg leading-relaxed">
               {line}
             </p>
           ))}
         </div>
+
+        {screen.citation && (
+          <blockquote className="mb-10 px-4 py-3 rounded-xl bg-white/10 border-l-4 border-white/40 text-white/90 text-sm sm:text-base italic leading-relaxed text-left max-w-[360px]">
+            {screen.citation}
+          </blockquote>
+        )}
 
         {/* Dots */}
         <div className="flex items-center justify-center gap-2 mb-8">

@@ -46,16 +46,16 @@ function sinsToDomains(sins: SelectedSin[]): string[] {
 }
 
 const QUESTIONS = [
-  { id: "q1", text: "À quelle fréquence tu retombes (tous domaines confondus) ?", options: ["Plusieurs fois par jour", "Une fois par jour", "Quelques fois par semaine", "Rarement"], multiSelect: false },
-  { id: "q2", text: "Quand est-ce que ça arrive le plus souvent ?", options: ["Le soir", "Après une journée stressante", "Quand je suis seul", "Par ennui", "Après les réseaux sociaux"], multiSelect: true, maxChoices: 3 },
-  { id: "q3", text: "Quel est le déclencheur principal ?", options: ["Stress / anxiété", "Solitude", "Ennui", "Habitude automatique", "Tentation extérieure (réseaux, amis, environnement)"], multiSelect: true, maxChoices: 3 },
-  { id: "q4", text: "Depuis combien de temps tu luttes avec ça ?", options: ["Moins de 6 mois", "6 à 12 mois", "1 à 3 ans", "Plus de 3 ans"], multiSelect: false },
-  { id: "q5", text: "Qu'est-ce qui t'empêche le plus d'arrêter ?", options: ["Manque de plan", "Je craque trop vite", "Je culpabilise puis je recommence", "Je suis entouré de tentations", "Je n'arrive pas à tenir quand je suis seul"], multiSelect: true, maxChoices: 3 },
-  { id: "q6", text: "Après être retombé, tu te sens plutôt…", options: ["Coupable", "Vide / triste", "En colère contre moi", "Indifférent", "Motivé à changer"], multiSelect: false },
-  { id: "q7", text: "Ton objectif principal avec StopHaram est de :", options: ["Arrêter complètement", "Réduire fortement", "Reprendre le contrôle", "Progresser spirituellement", "Mieux gérer mes émotions"], multiSelect: false },
-  { id: "q8", text: "Qu'est-ce que tu as déjà essayé pour arrêter ?", options: ["Rien de sérieux jusqu'à maintenant", "J'ai essayé seul, sans méthode", "J'ai tenu quelques jours / semaines", "J'ai déjà suivi des conseils ou un programme", "J'ai déjà rechuté plusieurs fois malgré mes efforts"], multiSelect: false },
-  { id: "q9", text: "Si rien ne change, comment vois-tu la situation dans 1 an ?", options: ["Ça ira mieux naturellement", "Ce sera pareil", "Ce sera probablement pire", "J'ai peur que ça prenne plus de place dans ma vie", "Je préfère ne pas y penser"], multiSelect: false },
-  { id: "q10", text: "Qu'est-ce qui t'aiderait vraiment à tenir sur la durée ?", options: ["Des rappels simples", "Un cadre clair et progressif", "Un suivi quotidien", "Un accompagnement discret et bienveillant", "Je ne sais pas encore"], multiSelect: true, maxChoices: 3 },
+  { id: "q1", text: "À quelle fréquence tu retombes (tous domaines confondus) ?", options: ["Plusieurs fois par jour", "Une fois par jour", "Quelques fois par semaine", "Rarement"], multiSelect: true },
+  { id: "q2", text: "Quand est-ce que ça arrive le plus souvent ?", options: ["Le soir", "Après une journée stressante", "Quand je suis seul", "Par ennui", "Après les réseaux sociaux"], multiSelect: true },
+  { id: "q3", text: "Quel est le déclencheur principal ?", options: ["Stress / anxiété", "Solitude", "Ennui", "Habitude automatique", "Tentation extérieure (réseaux, amis, environnement)"], multiSelect: true },
+  { id: "q4", text: "Depuis combien de temps tu luttes avec ça ?", options: ["Moins de 6 mois", "6 à 12 mois", "1 à 3 ans", "Plus de 3 ans"], multiSelect: true },
+  { id: "q5", text: "Qu'est-ce qui t'empêche le plus d'arrêter ?", options: ["Manque de plan", "Je craque trop vite", "Je culpabilise puis je recommence", "Je suis entouré de tentations", "Je n'arrive pas à tenir quand je suis seul"], multiSelect: true },
+  { id: "q6", text: "Après être retombé, tu te sens plutôt…", options: ["Coupable", "Vide / triste", "En colère contre moi", "Indifférent", "Motivé à changer"], multiSelect: true },
+  { id: "q7", text: "Ton objectif principal avec StopHaram est de :", options: ["Arrêter complètement", "Réduire fortement", "Reprendre le contrôle", "Progresser spirituellement", "Mieux gérer mes émotions"], multiSelect: true },
+  { id: "q8", text: "Qu'est-ce que tu as déjà essayé pour arrêter ?", options: ["Rien de sérieux jusqu'à maintenant", "J'ai essayé seul, sans méthode", "J'ai tenu quelques jours / semaines", "J'ai déjà suivi des conseils ou un programme", "J'ai déjà rechuté plusieurs fois malgré mes efforts"], multiSelect: true },
+  { id: "q9", text: "Si rien ne change, comment vois-tu la situation dans 1 an ?", options: ["Ça ira mieux naturellement", "Ce sera pareil", "Ce sera probablement pire", "J'ai peur que ça prenne plus de place dans ma vie", "Je préfère ne pas y penser"], multiSelect: true },
+  { id: "q10", text: "Qu'est-ce qui t'aiderait vraiment à tenir sur la durée ?", options: ["Des rappels simples", "Un cadre clair et progressif", "Un suivi quotidien", "Un accompagnement discret et bienveillant", "Je ne sais pas encore"], multiSelect: true },
 ];
 
 const totalSteps = 12;
