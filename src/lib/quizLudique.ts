@@ -20,6 +20,7 @@ export function addQuizGratitude(points: number): number {
   const next = Math.max(0, current + points);
   window.localStorage.setItem(STORAGE_KEYS.totalGratitude, String(next));
   window.localStorage.setItem(STORAGE_KEYS.lastDate, new Date().toISOString().slice(0, 10));
+  window.dispatchEvent(new CustomEvent("stopharam-points-updated"));
   return next;
 }
 

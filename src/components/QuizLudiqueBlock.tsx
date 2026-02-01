@@ -6,7 +6,8 @@ import { getUser } from "@/lib/storage";
 import type { SelectedSin } from "@/lib/storage";
 import { getSinLabel } from "@/lib/storage";
 import { pickQuizQuestions, type QuizQuestion } from "@/lib/quizLudiqueData";
-import { getQuizGratitudeTotal, addQuizGratitude } from "@/lib/quizLudique";
+import { addQuizGratitude } from "@/lib/quizLudique";
+import { getTotalPoints } from "@/lib/pointsGratitude";
 
 type Phase = "intro" | "quiz" | "result";
 
@@ -64,7 +65,7 @@ export default function QuizLudiqueBlock() {
   };
 
   if (phase === "intro") {
-    const total = getQuizGratitudeTotal();
+    const total = getTotalPoints();
     return (
       <div className="rounded-2xl bg-amber-500/15 border border-amber-400/30 px-5 py-5">
         <div className="flex items-center gap-3 mb-3">
@@ -77,11 +78,11 @@ export default function QuizLudiqueBlock() {
           </div>
         </div>
         <p className="text-white/80 text-sm mb-4">
-          Gagne des <strong className="text-amber-200">points de gratitude</strong> à chaque bonne réponse. Un bon moyen de renforcer ta motivation et tes connaissances.
+          Gagne des <strong className="text-amber-200">points de gratitude</strong> à chaque bonne réponse. Tu en gagnes aussi en validant tes jours de défi. À partir de 100 pts, tu peux offrir 1 mois gratuit à un proche.
         </p>
         {total > 0 && (
           <p className="text-amber-200/90 text-xs mb-4">
-            Tu as déjà <strong>{total}</strong> points de gratitude au total.
+            Tu as <strong>{total}</strong> points au total.
           </p>
         )}
         <button
@@ -155,7 +156,7 @@ export default function QuizLudiqueBlock() {
   }
 
   if (phase === "result") {
-    const total = getQuizGratitudeTotal();
+    const total = getTotalPoints();
     const pct = questions.length > 0 ? Math.round((score / (questions.length * POINTS_PER_CORRECT)) * 100) : 0;
     const isGreat = pct >= 70;
 

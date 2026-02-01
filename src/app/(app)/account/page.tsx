@@ -33,8 +33,39 @@ import {
   getNotifActions,
   setNotifActions,
 } from "@/lib/notificationPrefs";
+import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
 
 type Tab = "profil" | "objectifs" | "plan";
+type View = "list" | Tab;
+
+function CardRow({
+  icon,
+  label,
+  onClick,
+  iconColor = "text-emerald-400",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  iconColor?: string;
+}) {
+  const Wrapper = onClick ? "button" : "div";
+  return (
+    <Wrapper
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
+      className="w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3.5 text-left hover:bg-white/10 transition-colors"
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconColor}`}>{icon}</span>
+      <span className="flex-1 text-white/90 text-sm font-medium">{label}</span>
+      {onClick && (
+        <svg className="h-5 w-5 text-white/40 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      )}
+    </Wrapper>
+  );
+}
 
 const GENRES: { value: Genre; label: string }[] = [
   { value: "", label: "Ne pas préciser" },
@@ -200,10 +231,15 @@ export default function AccountPage() {
   const searchParams = useSearchParams();
   const [user, setUser] = useState<StopHaramUser | null>(null);
   const [tab, setTab] = useState<Tab>("profil");
+  const [view, setView] = useState<View>("list");
+  const [toast, setToast] = useState(false);
 
   useEffect(() => {
     const t = searchParams.get("tab");
-    if (t === "plan" || t === "objectifs" || t === "profil") setTab(t);
+    if (t === "plan" || t === "objectifs" || t === "profil") {
+      setTab(t);
+      setView(t);
+    }
   }, [searchParams]);
   const [editName, setEditName] = useState("");
   const [editGenre, setEditGenre] = useState<Genre>("");
@@ -345,15 +381,47 @@ export default function AccountPage() {
   const currentDayIndex = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const dayPlan = user.plan.days[currentDayIndex];
 
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "profil", label: "Profil" },
-    { id: "objectifs", label: "Objectifs" },
-    { id: "plan", label: "Plan" },
-  ];
+  const handleShareApp = async () => {
+    const shareData = {
+      title: "StopHaram",
+      text: "Je reprends le contrôle avec StopHaram. Rejoins-moi ! " + APP_URL,
+      url: APP_URL,
+    };
+    if (canShare()) {
+      await shareWithNative(shareData);
+    } else {
+      const ok = await copyToClipboard(`${shareData.text}\n${APP_URL}`);
+      if (ok) {
+        setToast(true);
+        setTimeout(() => setToast(false), 2000);
+      }
+    }
+  };
+
+  const handleDeleteData = () => {
+    if (typeof window === "undefined" || !confirm("Supprimer toutes tes données locales ? Tu devras repasser par le questionnaire.")) return;
+    setAuth({ isLoggedIn: false });
+    localStorage.clear();
+    window.location.href = "/start";
+  };
+
+  const showBackButton = view !== "list";
 
   return (
     <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
       <header className="mb-6 flex items-center gap-4">
+        {showBackButton && (
+          <button
+            type="button"
+            onClick={() => setView("list")}
+            className="shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/90 hover:bg-white/15 transition-colors"
+            aria-label="Retour"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
         <div className="shrink-0">
           {user.profileInfo?.profilePhoto ? (
             <img
@@ -368,28 +436,103 @@ export default function AccountPage() {
           )}
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white">Compte</h1>
+          <h1 className="text-xl font-bold tracking-tight text-white">{view === "list" ? "Compte" : view === "profil" ? "Mon profil" : view === "objectifs" ? "Objectifs" : "Plan"}</h1>
           <p className="text-white/90 text-lg mt-0.5">Salam {user.name || "toi"}</p>
         </div>
       </header>
 
-      {/* Onglets */}
-      <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6">
-        {tabs.map(({ id, label }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              tab === id ? "bg-white/15 text-white" : "text-white/60 hover:text-white/80"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      {view === "list" ? (
+        /* === VUE LISTE (cards) === */
+        <section className="space-y-8">
+          <div>
+            <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">Paramètres</h2>
+            <div className="space-y-2">
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
+                label="Mon profil"
+                onClick={() => { setTab("profil"); setView("profil"); }}
+                iconColor="text-cyan-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>}
+                label="Horaires de prière"
+                onClick={() => router.push("/account/prayer-settings")}
+                iconColor="text-amber-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>}
+                label="Objectifs"
+                onClick={() => { setTab("objectifs"); setView("objectifs"); }}
+                iconColor="text-emerald-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>}
+                label="Plan"
+                onClick={() => { setTab("plan"); setView("plan"); }}
+                iconColor="text-violet-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
+                label="Rappels"
+                onClick={() => { setTab("profil"); setView("profil"); }}
+                iconColor="text-teal-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
+                label="Notifications"
+                onClick={() => { setTab("profil"); setView("profil"); }}
+                iconColor="text-indigo-400"
+              />
+            </div>
+          </div>
 
-      {/* Contenu selon onglet */}
+          <div>
+            <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">À propos</h2>
+            <div className="space-y-2">
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>}
+                label="Évaluer StopHaram"
+                onClick={() => window.open("https://play.google.com/store", "_blank")}
+                iconColor="text-amber-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>}
+                label="Partager StopHaram"
+                onClick={handleShareApp}
+                iconColor="text-emerald-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+                label="Nous contacter"
+                onClick={() => window.location.href = "mailto:contact@stop-haram.vercel.app"}
+                iconColor="text-blue-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                label="Conditions d'utilisation"
+                onClick={() => window.open(APP_URL + "/cgu", "_blank")}
+                iconColor="text-slate-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
+                label="Politique de confidentialité"
+                onClick={() => window.open(APP_URL + "/confidentialite", "_blank")}
+                iconColor="text-slate-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>}
+                label="Supprimer mes données"
+                onClick={handleDeleteData}
+                iconColor="text-red-400"
+              />
+            </div>
+          </div>
+
+          <p className="text-white/40 text-xs text-center">Version 1.0</p>
+        </section>
+      ) : (
+        /* === CONTENU ONDLET (profil, objectifs, plan) === */
+        <>
       {tab === "profil" && (
         <section className="space-y-5">
           <h2 className="text-white/80 text-sm font-medium">Tes informations</h2>
@@ -925,6 +1068,14 @@ export default function AccountPage() {
             Se déconnecter
           </button>
         </section>
+      )}
+        </>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-full bg-emerald-500/90 text-white text-sm font-medium px-4 py-2 shadow-lg">
+          Copié ✅
+        </div>
       )}
     </div>
   );

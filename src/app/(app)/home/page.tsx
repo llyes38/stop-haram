@@ -30,6 +30,7 @@ import {
 } from "@/lib/notificationPrefs";
 import { hasDonToday } from "@/lib/sadaqaStorage";
 import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
+import { addDefiDayPoints } from "@/lib/pointsGratitude";
 import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import { getActionIcon } from "@/components/ActionIcon";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
@@ -314,6 +315,7 @@ export default function HomePage() {
       if (status[challengeDay] !== "validated") {
         setDefiDayStatus(challengeDay, "validated");
         setDefiStatus({ ...status, [challengeDay]: "validated" });
+        addDefiDayPoints(challengeDay);
       }
     }
   }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, challengeDay]);
@@ -560,12 +562,12 @@ export default function HomePage() {
       </div>
 
       <section className="flex flex-col gap-6 pb-28">
-        {/* Bloc : Défi 30 jours */}
-        <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+        {/* Bloc : Défi 30 jours — surbrillance dorée si pas encore démarré */}
+        <div className={`rounded-2xl px-5 py-4 ${challengeDay === 0 ? "bg-amber-500/15 border-2 border-amber-400/50 ring-1 ring-amber-400/30" : "bg-white/5 border border-white/10"}`}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-white/80 text-sm font-semibold">Défi 30 jours</span>
+                <span className={`text-sm font-semibold ${challengeDay === 0 ? "text-amber-200" : "text-white/80"}`}>Défi 30 jours</span>
                 {challengeDay >= 1 && challengeDay <= DEFI_JOURS && (
                   <span
                     className="flex h-7 items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-400/40 px-2 text-sm"
@@ -622,7 +624,7 @@ export default function HomePage() {
               );
             })}
           </div>
-          <p className="text-white/50 text-xs text-center">
+          <p className={`text-xs text-center ${challengeDay === 0 ? "text-amber-200/90 font-medium" : "text-white/50"}`}>
             {challengeDay >= DEFI_JOURS ? "Challenge terminé 🎉" : challengeDay === 0 ? "Va dans Parcours et clique sur Commencer quand tu es prêt" : "✓ validé · ✗ échoué"}
           </p>
 
@@ -630,11 +632,11 @@ export default function HomePage() {
           <div className="mt-5 pt-5 border-t border-white/10">
             {challengeDay === 0 ? (
               <div className="text-center py-4">
-                <p className="text-white/70 text-sm mb-3">Commence ton défi dans Parcours pour débloquer tes actions du jour.</p>
+                <p className="text-amber-200/95 text-sm mb-3 font-medium">Commence ton défi dans Parcours pour débloquer tes actions du jour.</p>
                 <button
                   type="button"
                   onClick={() => router.push("/parcours")}
-                  className="rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 px-5 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+                  className="rounded-xl bg-amber-500/40 border-2 border-amber-400/70 py-3 px-5 text-amber-100 font-bold text-sm hover:bg-amber-500/50 hover:border-amber-300/80 transition-colors shadow-lg shadow-amber-500/20"
                 >
                   Aller dans Parcours
                 </button>
@@ -858,25 +860,15 @@ export default function HomePage() {
           copyLinkLabel="Copier le lien"
         />
 
-        {/* Bloc : Acheter ou offrir — rappel islamique + CTA */}
-        <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-5">
-          <p className="text-violet-200/95 text-sm font-medium text-center mb-1">
-            Rappel islamique
-          </p>
-          <p className="text-white/90 text-sm leading-relaxed text-center italic mb-4">
-            « Celui qui participe à une bonne œuvre aura la même récompense que celui qui l&apos;accomplit. »
-          </p>
-          <p className="text-white/70 text-xs text-center mb-4">
-            Aide d&apos;autres à avancer : offre StopHaram à un proche. Mensuel 9,99 €/mois · Annuel 4,99 €/mois (-50 %).
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/checkout?mode=offrir")}
-            className="w-full rounded-xl bg-violet-500/30 border border-violet-400/50 py-3.5 text-violet-200 font-semibold text-sm hover:bg-violet-500/40 transition-colors"
-          >
-            Offrir à un proche
-          </button>
-        </div>
+        {/* Lien vers Coin Communauté */}
+        <button
+          type="button"
+          onClick={() => router.push("/community")}
+          className="w-full rounded-2xl bg-white/5 border border-white/10 px-5 py-4 text-left hover:bg-white/10 transition-colors"
+        >
+          <span className="text-white font-semibold text-base">🤝 Communauté</span>
+          <p className="text-white/60 text-sm mt-1">Défis de la semaine, WhatsApp, partage</p>
+        </button>
 
         <div className="space-y-3">
           <HomeNotifToggle

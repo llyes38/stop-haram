@@ -10,7 +10,7 @@ const TABS = [
   { href: "/home", label: "Accueil", icon: "home" },
   { href: "/parcours", label: "Parcours", icon: "play" },
   { companion: true as const },
-  { href: "/progress", label: "Progrès", icon: "chart" },
+  { href: "/community", label: "Communauté", icon: "community" },
   { href: "/account", label: "Compte", icon: "user" },
 ] as const;
 
@@ -31,14 +31,6 @@ function PlayIcon({ active }: { active: boolean }) {
   );
 }
 
-function ChartIcon({ active }: { active: boolean }) {
-  return (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  );
-}
-
 function UserIcon({ active }: { active: boolean }) {
   return (
     <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -47,12 +39,22 @@ function UserIcon({ active }: { active: boolean }) {
   );
 }
 
+function CommunityIcon({ active }: { active: boolean }) {
+  return (
+    <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  );
+}
+
 function TabIcon({ icon, active }: { icon: string; active: boolean }) {
   switch (icon) {
     case "home": return <HomeIcon active={active} />;
     case "play": return <PlayIcon active={active} />;
-    case "chart": return <ChartIcon active={active} />;
     case "user": return <UserIcon active={active} />;
+    case "community": return <CommunityIcon active={active} />;
     default: return <HomeIcon active={active} />;
   }
 }

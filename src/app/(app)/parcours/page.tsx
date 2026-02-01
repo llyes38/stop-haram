@@ -1,15 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted } from "@/lib/storage";
 import { generatePlan, ACTION_1 } from "@/lib/programEngine";
 import { getLevelFromDay, LEVEL_NAMES, LEVEL_EMOJIS, getLevelBounds } from "@/lib/defiLevels";
 import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
+import { getTemptationStats } from "@/lib/temptationStats";
+import { getCurrentStatut } from "@/lib/statuts";
+import { getProgressStats, type ProgressStats } from "@/lib/progressStats";
+import {
+  getTotalPoints,
+  canOfferFreeMonth,
+  usePointsForFreeMonth,
+  POINTS_FOR_FREE_MONTH,
+} from "@/lib/pointsGratitude";
+import { copyToClipboard } from "@/lib/share";
 import type { SelectedSin } from "@/lib/storage";
+
+const DEFI_JOURS = 30;
+type Tab = "parcours" | "progres";
 
 export default function ParcoursPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [days, setDays] = useState<Array<{
     day: number;
     intentionTitle: string;
@@ -22,6 +36,54 @@ export default function ParcoursPage() {
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
   const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
   const [user, setUser] = useState<ReturnType<typeof getUser>>(null);
+  const [tab, setTab] = useState<Tab>("parcours");
+  const [stats, setStats] = useState<{ tempted: number; resisted: number }>({ tempted: 0, resisted: 0 });
+  const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
+  const [points, setPoints] = useState(0);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerUrl, setOfferUrl] = useState<string | null>(null);
+  const [toast, setToast] = useState(false);
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t === "progres") setTab("progres");
+  }, [searchParams]);
+
+  useEffect(() => {
+    setStats(getTemptationStats());
+    setProgressStats(getProgressStats());
+    setPoints(getTotalPoints());
+  }, [tab]);
+
+  const handleOfferFreeMonth = () => {
+    const url = usePointsForFreeMonth();
+    if (url) {
+      setOfferUrl(url);
+      setShowOfferModal(true);
+      setPoints(getTotalPoints());
+    }
+  };
+
+  const handleCopyOfferLink = async () => {
+    if (offerUrl && (await copyToClipboard(offerUrl))) {
+      setToast(true);
+      setTimeout(() => setToast(false), 2000);
+    }
+  };
+
+  const closeOfferModal = () => {
+    setShowOfferModal(false);
+    setOfferUrl(null);
+    setPoints(getTotalPoints());
+  };
+
+  const streakDays = user?.streakDays ?? null;
+  const focusSinLabel = user?.plan?.focusSin ? getSinLabel(user.plan.focusSin, user) : null;
+  const challengeDay = user?.startDateISO
+    ? Math.min(Math.max(getDayNumber(user.startDateISO), 1), DEFI_JOURS)
+    : 0;
+  const currentStatut = getCurrentStatut(streakDays);
+  const ratio = stats.tempted > 0 ? Math.round((100 * stats.resisted) / stats.tempted) : null;
 
   useEffect(() => {
     let u = getUser();
@@ -91,10 +153,133 @@ export default function ParcoursPage() {
 
   return (
     <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
+      {/* Onglets Parcours / Progrès */}
+      <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6">
+        <button
+          type="button"
+          onClick={() => setTab("parcours")}
+          className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+            tab === "parcours" ? "bg-white/15 text-white" : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          Parcours
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("progres")}
+          className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+            tab === "progres" ? "bg-white/15 text-white" : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          Progrès
+        </button>
+      </div>
+
+      {tab === "progres" ? (
+        /* === CONTENU PROGRÈS === */
+        <section className="flex-1 space-y-6">
+          <header className="mb-4">
+            <h1 className="text-lg font-bold text-white">Progrès</h1>
+            <p className="text-white/60 text-sm mt-0.5">Où tu en es, en temps réel</p>
+          </header>
+          <div className="rounded-2xl bg-emerald-500/15 border border-emerald-400/30 px-5 py-4">
+            <p className="text-emerald-200 font-semibold text-sm mb-1">Série sans rechute</p>
+            <p className="text-2xl font-bold text-white tabular-nums">
+              {streakDays != null && Number.isFinite(streakDays)
+                ? `${streakDays} jour${streakDays !== 1 ? "s" : ""}`
+                : "—"}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+            <p className="text-white/70 font-medium text-sm mb-2">Ton statut</p>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{currentStatut.emoji}</span>
+              <div>
+                <p className="font-semibold text-white">{currentStatut.label}</p>
+                <p className="text-white/60 text-xs mt-0.5">{currentStatut.description}</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+            <p className="text-white/70 font-medium text-sm mb-2">Défi 30 jours</p>
+            <div className="flex justify-between mb-2">
+              <span className="text-white/90 text-sm">Jour actuel</span>
+              <span className="font-bold tabular-nums text-white">{challengeDay}/{DEFI_JOURS}</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-emerald-400/80 transition-all"
+                style={{ width: `${(challengeDay / DEFI_JOURS) * 100}%` }}
+              />
+            </div>
+          </div>
+          {focusSinLabel && (
+            <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+              <p className="text-white/70 font-medium text-sm mb-1">Focus actuel</p>
+              <p className="text-white font-medium">{focusSinLabel}</p>
+            </div>
+          )}
+          <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+            <p className="text-white/70 font-medium text-sm mb-3">Face à la tentation</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-2xl font-bold text-amber-200 tabular-nums">{stats.tempted}</p>
+                <p className="text-amber-200/80 text-xs">fois tenté</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-emerald-200 tabular-nums">{stats.resisted}</p>
+                <p className="text-emerald-200/80 text-xs">fois résisté</p>
+              </div>
+            </div>
+            {stats.tempted > 0 && ratio != null && (
+              <p className="text-white/60 text-xs mt-3">
+                Tu tiens bon dans <span className="font-semibold text-emerald-300">{ratio}%</span> des cas
+              </p>
+            )}
+          </div>
+          <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 px-5 py-4">
+            <p className="text-emerald-200 font-semibold text-sm mb-1">Versets & invocations</p>
+            <p className="text-white/60 text-xs mb-4">Coran, rappels, dhikr du jour</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                <p className="text-2xl font-bold text-emerald-200 tabular-nums">{progressStats?.versetsToday ?? 0}</p>
+                <p className="text-emerald-200/80 text-xs">versets</p>
+              </div>
+              <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                <p className="text-2xl font-bold text-emerald-200 tabular-nums">{progressStats?.invocationsToday ?? 0}</p>
+                <p className="text-emerald-200/80 text-xs">invocations</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-amber-500/15 border border-amber-400/30 px-5 py-4">
+            <p className="text-amber-200 font-semibold text-sm mb-1">Points de gratitude</p>
+            <p className="text-white/80 text-sm mb-3">
+              Quiz + défis validés. À partir de {POINTS_FOR_FREE_MONTH} pts : offrir 1 mois gratuit.
+            </p>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-2xl font-bold text-amber-200 tabular-nums">{points} pts</span>
+              {canOfferFreeMonth() ? (
+                <button type="button" onClick={handleOfferFreeMonth} className="rounded-xl bg-amber-500/40 border border-amber-400/60 py-2.5 px-4 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors">
+                  Offrir 1 mois gratuit
+                </button>
+              ) : (
+                <p className="text-amber-200/70 text-xs">Encore {POINTS_FOR_FREE_MONTH - points} pts</p>
+              )}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-5">
+            <p className="text-violet-200/95 text-sm font-medium text-center mb-1">Au fil de ta progression</p>
+            <p className="text-white/90 text-sm text-center mb-3">Offre StopHaram à un proche — augmente ton bien et celui des autres.</p>
+            <button type="button" onClick={() => router.push("/checkout?mode=offrir")} className="w-full rounded-xl bg-violet-500/30 border border-violet-400/50 py-3.5 text-violet-200 font-semibold text-sm hover:bg-violet-500/40 transition-colors">
+              Offrir à un proche
+            </button>
+          </div>
+        </section>
+      ) : (
+        /* === CONTENU PARCOURS === */
+        <>
       <header className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight text-white">
-          Parcours quotidien
-        </h1>
+        <h1 className="text-xl font-bold tracking-tight text-white">Parcours quotidien</h1>
         <p className="text-white/60 text-sm mt-1">Ton plan personnalisé au jour le jour</p>
       </header>
 
@@ -334,6 +519,26 @@ export default function ParcoursPage() {
           Voir mon plan complet
         </button>
       </section>
+        </>
+      )}
+
+      {/* Modal : lien 1 mois gratuit */}
+      {showOfferModal && offerUrl && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 px-4 pb-8">
+          <div className="w-full max-w-[420px] rounded-2xl bg-[#0a1f12] border border-amber-400/40 px-5 py-5 shadow-xl">
+            <h3 className="text-amber-200 font-semibold text-lg mb-2">Cadeau généré !</h3>
+            <p className="text-white/80 text-sm mb-4">Partage ce lien à un proche pour 1 mois gratuit.</p>
+            <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3 mb-4 break-all text-white/90 text-xs">{offerUrl}</div>
+            <div className="flex gap-2">
+              <button type="button" onClick={handleCopyOfferLink} className="flex-1 rounded-xl bg-amber-500/40 border border-amber-400/60 py-3 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors">Copier</button>
+              <button type="button" onClick={closeOfferModal} className="rounded-xl bg-white/10 py-3 px-4 text-white/90 text-sm font-medium hover:bg-white/20 transition-colors">Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-full bg-emerald-500/90 text-white text-sm font-medium px-4 py-2 shadow-lg">Copié ✅</div>
+      )}
     </div>
   );
 }

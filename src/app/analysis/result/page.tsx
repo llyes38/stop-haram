@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
 import ShareCard from "@/components/ShareCard";
 import { APP_URL } from "@/lib/share";
+import { awardIntroQuizPoints } from "@/lib/pointsGratitude";
 
 interface QuizAnswers {
   [key: string]: string | string[];
@@ -109,6 +110,7 @@ export default function AnalysisResultPage() {
       const answers: QuizAnswers = JSON.parse(savedQuiz);
       setUserScore(calculateScore(answers, domains));
       setTeaser(getTeaser(answers, domains));
+      awardIntroQuizPoints();
     }
   }, []);
 

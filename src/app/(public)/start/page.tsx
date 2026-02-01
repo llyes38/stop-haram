@@ -20,8 +20,18 @@ const bgStyle2 = {
 
 export default function StartCarouselPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
+  const [freeMonthReceived, setFreeMonthReceived] = useState(false);
+
+  useEffect(() => {
+    const offer = searchParams.get("offer");
+    if (offer && typeof offer === "string" && offer.length >= 4) {
+      activateFreeMonthFromLink();
+      setFreeMonthReceived(true);
+    }
+  }, [searchParams]);
 
   const goToSlide = (index: number) => {
     const el = scrollRef.current;
@@ -158,7 +168,13 @@ export default function StartCarouselPage() {
 
           <div className="relative z-10 flex flex-1 flex-col px-6 pt-14 pb-10">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Bienvenue !</h1>
-            <p className="mt-3 max-w-[320px] text-base leading-relaxed text-white/95 sm:text-lg">
+            {freeMonthReceived && (
+              <div className="mt-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-3">
+                <p className="text-emerald-200 font-semibold text-sm">🎁 1 mois gratuit activé !</p>
+                <p className="text-white/90 text-xs mt-1">Un proche t&apos;a offert StopHaram. Profite bien de ton parcours.</p>
+              </div>
+            )}
+            <p className={`max-w-[320px] text-base leading-relaxed text-white/95 sm:text-lg ${freeMonthReceived ? "mt-4" : "mt-3"}`}>
               Commençons par mieux te connaître pour t&apos;accompagner pas à pas.
             </p>
             <div className="mt-8 flex items-center gap-2">
