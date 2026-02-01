@@ -9,6 +9,7 @@ import {
   isParcoursRoute,
   FIRST_PARCOURS_STEP,
 } from "@/lib/authState";
+import InstallPrompt from "./InstallPrompt";
 
 export default function AppGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -57,5 +58,10 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <InstallPrompt />
+    </>
+  );
 }
