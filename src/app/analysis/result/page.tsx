@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { updateLastRoute } from "@/lib/authState";
+import { updateLastRoute, isOnboardingComplete } from "@/lib/authState";
 import ShareCard from "@/components/ShareCard";
 import { APP_URL } from "@/lib/share";
 import { awardIntroQuizPoints } from "@/lib/pointsGratitude";
+import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { saveQuizResult } from "@/lib/results";
 
 interface QuizAnswers {
   [key: string]: string | string[];
@@ -94,8 +96,15 @@ const averageScore = 45;
 
 export default function AnalysisResultPage() {
   const router = useRouter();
+  const { user: supabaseUser } = useSupabaseAuth();
   const [userScore, setUserScore] = useState<number | null>(null);
   const [teaser, setTeaser] = useState<{ pointSensible: string; pointFort: string } | null>(null);
+  const [savedToCloud, setSavedToCloud] = useState(false);
+  const [showSavePrompt, setShowSavePrompt] = useState(false);
+
+  useEffect(() => {
+    setShowSavePrompt(isOnboardingComplete());
+  }, []);
 
   useEffect(() => {
     updateLastRoute("/analysis/result");
@@ -113,6 +122,24 @@ export default function AnalysisResultPage() {
       awardIntroQuizPoints();
     }
   }, []);
+
+  useEffect(() => {
+    if (!supabaseUser || savedToCloud) return;
+    const savedQuiz = typeof window !== "undefined" ? window.localStorage.getItem("stopharam_quiz") : null;
+    const savedDomains = typeof window !== "undefined" ? window.localStorage.getItem("stopharam_domains") : null;
+    const domains: string[] = savedDomains ? JSON.parse(savedDomains) : [];
+    if (savedQuiz) {
+      const answers: QuizAnswers = JSON.parse(savedQuiz);
+      const score = calculateScore(answers, domains);
+      saveQuizResult({
+        answers,
+        analysis: { score },
+        sin_categories: domains,
+      }).then(({ ok }) => {
+        if (ok) setSavedToCloud(true);
+      });
+    }
+  }, [supabaseUser, savedToCloud]);
 
   const score = userScore ?? 0;
 
@@ -212,6 +239,25 @@ export default function AnalysisResultPage() {
             </div>
           </div>
         </div>
+
+        {/* Bloc Sauvegarde — si non connecté et parcours terminé (pas pendant l'onboarding) */}
+        {!supabaseUser && showSavePrompt && (
+          <div className="w-full max-w-[420px] mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 px-5 py-5">
+            <h3 className="text-white font-semibold text-base mb-2">Sauvegarde tes résultats</h3>
+            <p className="text-white/80 text-sm mb-4">Connecte-toi pour retrouver tes résultats sur tous tes appareils.</p>
+            <button
+              type="button"
+              onClick={() => router.push("/login?redirect=/analysis/result")}
+              className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+            >
+              Se connecter pour sauvegarder
+            </button>
+          </div>
+        )}
+
+        {supabaseUser && savedToCloud && (
+          <p className="text-emerald-300/90 text-sm text-center mb-4">✓ Résultats sauvegardés</p>
+        )}
 
         {/* Bloc Défi à 2 : partage du résultat */}
         <div className="w-full max-w-[420px] mx-auto mb-6">

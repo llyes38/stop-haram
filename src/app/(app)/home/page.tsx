@@ -36,6 +36,7 @@ import { getActionIcon } from "@/components/ActionIcon";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
 import { APP_URL } from "@/lib/share";
+import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 
 const DEFI_JOURS = 30;
 
@@ -231,6 +232,7 @@ function formatElapsed(ms: number): { days: number; hours: number; minutes: numb
 
 export default function HomePage() {
   const router = useRouter();
+  const { user: supabaseUser } = useSupabaseAuth();
   const pathname = usePathname();
   const [name, setName] = useState("");
   const [streakDays, setStreakDays] = useState<number | null>(null);
@@ -426,9 +428,9 @@ export default function HomePage() {
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            onClick={() => router.push("/account")}
+            onClick={() => router.push(supabaseUser ? "/account" : "/login")}
             className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            aria-label="Aller au compte"
+            aria-label={supabaseUser ? "Mon compte" : "Se connecter"}
           >
             {profilePhoto ? (
               <img src={profilePhoto} alt="" className="h-full w-full object-cover" />
@@ -440,7 +442,16 @@ export default function HomePage() {
           </button>
           <div className="min-w-0">
             <StopHaramLogo size={140} variant="dark" className="block" />
-            <p className="text-white/60 text-sm mt-0.5">Un pas à la fois</p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-white/60 text-sm">Un pas à la fois</p>
+              <button
+                type="button"
+                onClick={() => router.push(supabaseUser ? "/account" : "/login")}
+                className="text-emerald-400/90 text-xs font-medium hover:text-emerald-300 underline underline-offset-1"
+              >
+                {supabaseUser ? "Mon compte" : "Se connecter"}
+              </button>
+            </div>
           </div>
         </div>
         <button

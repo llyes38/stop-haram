@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRef, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
-import { setAuth, setState } from "@/lib/authState";
+import { setAuth, setState, isLoggedIn, isOnboardingComplete } from "@/lib/authState";
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
 import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
+import { activateFreeMonthFromLink } from "@/lib/pointsGratitude";
 
 const bgStyle1 = {
   background:
@@ -48,6 +49,11 @@ export default function StartCarouselPage() {
   };
 
   const handleCommencer = () => {
+    // Si déjà connecté et parcours terminé, aller à la home
+    if (isLoggedIn() && isOnboardingComplete()) {
+      router.push("/home");
+      return;
+    }
     clearDecouverteSeen();
     resetTemptationStats();
     clearDefiDaysStatus();

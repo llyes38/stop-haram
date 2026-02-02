@@ -34,6 +34,7 @@ import {
   setNotifActions,
 } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
+import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 
 type Tab = "profil" | "objectifs" | "plan";
 type View = "list" | Tab;
@@ -229,6 +230,7 @@ function PushNotificationsBlock() {
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user: supabaseUser, loading: authLoading, signOut: supabaseSignOut } = useSupabaseAuth();
   const [user, setUser] = useState<StopHaramUser | null>(null);
   const [tab, setTab] = useState<Tab>("profil");
   const [view, setView] = useState<View>("list");
@@ -369,10 +371,50 @@ export default function AccountPage() {
     setUser(updated);
   };
 
-  if (!user) {
+  if (!user || authLoading) {
     return (
       <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
         <p className="text-white/70 text-sm">Chargement du profil…</p>
+      </div>
+    );
+  }
+
+  // Si pas connecté Supabase : vue simplifiée avec invitation à se connecter
+  if (!supabaseUser) {
+    return (
+      <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
+        <header className="mb-6">
+          <h1 className="text-xl font-bold tracking-tight text-white">Compte</h1>
+        </header>
+        <div className="rounded-xl bg-white/5 border border-white/10 px-5 py-5 mb-6">
+          <h3 className="text-white font-semibold text-base mb-2">Connecte-toi</h3>
+          <p className="text-white/70 text-sm mb-4">
+            Connecte-toi pour sauvegarder tes résultats sur tous tes appareils et accéder à tous tes paramètres.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/login?redirect=/account")}
+            className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+          >
+            Se connecter (Google ou email)
+          </button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <p className="text-white/60 text-xs mb-1">Prénom</p>
+            <p className="text-white/90 font-medium">{user.name || "—"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              setAuth({ isLoggedIn: false });
+              router.replace("/start");
+            }}
+            className="w-full rounded-xl bg-white/10 py-3.5 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors border border-white/10"
+          >
+            Se déconnecter
+          </button>
+        </div>
       </div>
     );
   }
@@ -1059,7 +1101,8 @@ export default function AccountPage() {
 
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
+              await supabaseSignOut();
               setAuth({ isLoggedIn: false });
               router.replace("/start");
             }}
