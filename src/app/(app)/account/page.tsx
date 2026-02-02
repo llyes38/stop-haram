@@ -521,6 +521,11 @@ export default function AccountPage() {
         <>
       {tab === "notifications" && (
         <section className="space-y-5">
+          {pushStatus === "subscribed" && (
+            <p className="rounded-xl bg-emerald-500/15 border border-emerald-400/25 px-4 py-3 text-emerald-200 text-sm">
+              ✓ Notifications push activées. Tu recevras les rappels sur cet appareil.
+            </p>
+          )}
           <div className="space-y-3">
             <NotifToggle
               label="Rappel heure de prière"

@@ -17,6 +17,16 @@ Le message inclut un rappel pour les actions du jour et le **verset du jour** (r
 
 ---
 
+### 1b. Rappel horaire (verset/hadith + bienveillance)
+
+- **Quand** : **chaque heure** (cron Vercel `0 * * * *` = à :00 chaque heure UTC).
+- **Alternance** :
+  - **Heures paires** (0h, 2h, 4h, … UTC) : notification avec un **verset ou hadith** (liste variée).
+  - **Heures impaires** (1h, 3h, 5h, … UTC) : notification **« Comment vas-tu ? On est là pour toi »** (messages de soutien).
+- Même mécanisme que le rappel du matin : Web Push à tous les abonnés. Aucune config supplémentaire (même `CRON_SECRET`, VAPID, Redis).
+
+---
+
 ### 2. Rappel heure de prière (5 min avant)
 
 - **Quand** : 5 minutes avant chaque prière (Fajr, Dhuhr, Asr, Maghrib, Isha), selon la ville configurée dans l’app.
@@ -94,3 +104,57 @@ Le cron est déjà défini dans `vercel.json` (`/api/cron/daily-reminder` à 8h 
 ### 5. Redéploier
 
 Après avoir ajouté les variables, redéploie le projet (push sur Git ou **Redeploy** dans Vercel).
+
+---
+
+## Paramétrer le nombre et la fréquence des notifications
+
+Tout se règle dans **`vercel.json`** (crons) et éventuellement de nouvelles routes API.
+
+### Fréquence : à quelle heure envoyer ?
+
+Le cron utilise une **expression cron** : `minute heure jour mois jour-semaine`.
+
+- **Actuel** : `"0 8 * * *"` = tous les jours à **8h UTC** (= 9h Paris en hiver, 10h en été).
+- **Changer l’heure** : modifie le 2ᵉ nombre (heure en UTC) :
+  - `0 7 * * *` → 7h UTC (8h Paris hiver)
+  - `0 8 * * *` → 8h UTC (9h Paris hiver)
+  - `0 9 * * *` → 9h UTC (10h Paris hiver)
+  - `0 17 * * *` → 17h UTC (18h Paris hiver)
+
+Exemple dans `vercel.json` pour envoyer à **10h Paris** (9h UTC en hiver) :
+
+```json
+"schedule": "0 9 * * *"
+```
+
+Puis redéploie.
+
+### Nombre de notifications par jour
+
+Aujourd’hui : **1 notification** par jour (rappel matin + verset).
+
+Pour **2 notifications** par jour (matin + soir) :
+
+1. Créer une 2ᵉ route API (ex. `/api/cron/evening-reminder/route.ts`) avec un message différent (ex. « Pense à clôturer tes actions du jour »).
+2. Ajouter un 2ᵉ cron dans `vercel.json` :
+
+```json
+{
+  "crons": [
+    { "path": "/api/cron/daily-reminder", "schedule": "0 8 * * *" },
+    { "path": "/api/cron/evening-reminder", "schedule": "0 17 * * *" }
+  ]
+}
+```
+
+`0 17 * * *` = tous les jours à 17h UTC (18h Paris en hiver). Redéploie après modification.
+
+### Récap
+
+| Objectif              | Où modifier                    | Exemple                          |
+|-----------------------|--------------------------------|----------------------------------|
+| Changer l’heure du rappel | `vercel.json` → `schedule`     | `"0 9 * * *"` = 10h Paris (hiver) |
+| Ajouter un 2ᵉ rappel (soir) | Nouvelle route + 2ᵉ entrée dans `crons` | Rappel soir à 18h Paris          |
+
+Pour que **chaque utilisateur** choisisse son heure (ex. 8h, 9h ou 10h), il faudrait en plus stocker l’heure préférée par abonnement (Redis/DB) et adapter le cron (ex. un cron qui tourne toutes les heures et n’envoie qu’aux users dont l’heure préférée est maintenant).

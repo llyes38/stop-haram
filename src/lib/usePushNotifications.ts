@@ -17,6 +17,17 @@ export function usePushNotifications() {
   const [status, setStatus] = useState<PushStatus>("prompt");
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (Notification.permission !== "granted") return;
+    navigator.serviceWorker.ready
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => {
+        if (sub) setStatus("subscribed");
+      })
+      .catch(() => {});
+  }, []);
+
   const subscribe = useCallback(async () => {
     setError(null);
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
