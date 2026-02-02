@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuthStatus } from "@/components/auth/AuthProvider";
 
-const STORAGE_KEY = "stopharam_install_prompt_seen";
+const STORAGE_KEY_USER = "stopharam_install_prompt_seen";
+const STORAGE_KEY_GUEST = "stopharam_install_prompt_seen_guest";
 
 function getDevice(): "iphone" | "android" | null {
   if (typeof navigator === "undefined") return null;
@@ -12,14 +14,21 @@ function getDevice(): "iphone" | "android" | null {
   return null;
 }
 
+function getStorageKey(isGuest: boolean): string {
+  return isGuest ? STORAGE_KEY_GUEST : STORAGE_KEY_USER;
+}
+
 export default function InstallPrompt() {
+  const { isGuest, loading: authLoading } = useAuthStatus();
   const [visible, setVisible] = useState(false);
   const [device, setDevice] = useState<"iphone" | "android" | null>(null);
 
+  const storageKey = getStorageKey(isGuest);
+
   useEffect(() => {
+    if (authLoading || typeof window === "undefined") return;
     try {
-      if (typeof window === "undefined") return;
-      const seen = window.localStorage.getItem(STORAGE_KEY);
+      const seen = window.localStorage.getItem(storageKey);
       if (seen === "true") return;
       const d = getDevice();
       setDevice(d);
@@ -27,26 +36,26 @@ export default function InstallPrompt() {
     } catch {
       // Ignore localStorage errors
     }
-  }, []);
+  }, [storageKey, authLoading]);
 
   useEffect(() => {
     if (!visible) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         try {
-          window.localStorage?.setItem(STORAGE_KEY, "true");
+          window.localStorage?.setItem(storageKey, "true");
         } catch { /* ignore */ }
         setVisible(false);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [visible]);
+  }, [visible, storageKey]);
 
   const handleDismiss = () => {
     try {
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(STORAGE_KEY, "true");
+        window.localStorage.setItem(storageKey, "true");
       }
     } catch {
       // Ignore

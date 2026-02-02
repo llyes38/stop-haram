@@ -210,15 +210,22 @@ export default function SymptomsPage() {
         </p>
       </div>
 
-      {/* CTA Sticky en bas */}
+        {/* CTA Sticky en bas */}
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a1f12] via-[#0a1f12]/95 to-transparent pt-8 pb-6 px-6 z-20">
         <div className="w-full max-w-[420px] mx-auto">
-          <p className="text-white/70 text-sm text-center mb-3">
-            Tu pourras modifier plus tard.
-          </p>
+          {selectedSymptoms.length === 0 ? (
+            <p className="text-amber-300/90 text-sm text-center mb-3">
+              Sélectionne au moins un symptôme pour continuer.
+            </p>
+          ) : (
+            <p className="text-white/70 text-sm text-center mb-3">
+              Tu pourras modifier plus tard.
+            </p>
+          )}
           <button
             onClick={handleContinue}
-            className="w-full py-3.5 rounded-2xl bg-orange-500 text-white font-semibold text-base shadow-lg hover:bg-orange-600 active:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400/50 transition-colors"
+            disabled={selectedSymptoms.length === 0}
+            className="w-full py-3.5 rounded-2xl bg-orange-500 text-white font-semibold text-base shadow-lg hover:bg-orange-600 active:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500"
           >
             Rebooster ma foi
           </button>

@@ -342,7 +342,15 @@ function getAllQuestions(): QuizQuestion[] {
   return all;
 }
 
-/** Tire 10 questions pour le quiz, basées sur les péchés choisis par l'utilisateur. Si le pool < 10, complète avec d'autres questions. */
+/** Mélange les choix d'une question pour que la bonne réponse ne soit pas toujours au même endroit. */
+function shuffleQuestionChoices(q: QuizQuestion): QuizQuestion {
+  const correctChoice = q.choices[q.correctIndex];
+  const shuffledChoices = shuffle([...q.choices]);
+  const newCorrectIndex = shuffledChoices.indexOf(correctChoice);
+  return { ...q, choices: shuffledChoices, correctIndex: newCorrectIndex };
+}
+
+/** Tire 10 questions pour le quiz, basées sur les péchés choisis par l'utilisateur. Si le pool < 10, complète avec d'autres questions. Les choix sont mélangés pour chaque question. */
 export function pickQuizQuestions(selectedSins: SelectedSin[]): QuizQuestion[] {
   let pool = getQuestionsForSins(selectedSins);
   const ids = new Set(pool.map((q) => q.id));
@@ -354,5 +362,6 @@ export function pickQuizQuestions(selectedSins: SelectedSin[]): QuizQuestion[] {
       ids.add(q.id);
     }
   }
-  return shuffle(pool).slice(0, 10);
+  const picked = shuffle(pool).slice(0, 10);
+  return picked.map(shuffleQuestionChoices);
 }
