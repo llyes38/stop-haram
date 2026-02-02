@@ -8,7 +8,7 @@ import GuestBanner from "@/components/GuestBanner";
 import PrayerTimeReminder from "@/components/PrayerTimeReminder";
 import PointsBadge from "@/components/PointsBadge";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
-import { isLoggedIn } from "@/lib/authState";
+import { isLoggedIn, isOnboardingComplete, isParcoursRoute } from "@/lib/authState";
 
 const GUEST_MODE_KEY = "stopharam_guest_mode";
 import { hasDecouverteSeen } from "@/lib/decouverteStorage";
@@ -41,6 +41,11 @@ export default function AppLayout({
       markRechuteDoneForToday(true);
     }
     if (!hasDecouverteSeen()) {
+      // Ne pas envoyer vers /decouverte si l'utilisateur est déjà sur le parcours (ex. /profile après "Continuer sans compte")
+      if (isParcoursRoute(pathname) && !isOnboardingComplete()) {
+        setReady(true);
+        return;
+      }
       router.replace("/decouverte");
       return;
     }
