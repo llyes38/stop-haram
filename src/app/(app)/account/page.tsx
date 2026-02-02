@@ -23,7 +23,7 @@ import type {
 } from "@/lib/storage";
 import { generatePlan, ACTION_1, needsAIActionsForCustomSin } from "@/lib/programEngine";
 import { compressImageToBase64 } from "@/lib/profilePhoto";
-import { setAuth, resetOnboarding } from "@/lib/authState";
+import { setAuth, setProfile, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 import { usePushNotifications } from "@/lib/usePushNotifications";
@@ -35,6 +35,7 @@ import {
 } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { saveProgress } from "@/lib/progressStorage";
 
 type Tab = "profil" | "objectifs" | "plan";
 type View = "list" | Tab;
@@ -337,6 +338,14 @@ export default function AccountPage() {
     };
     saveUser(updated);
     setUser(updated);
+    setProfile({ name: updated.name });
+    const userId = supabaseUser?.id ?? null;
+    if (userId) {
+      saveProgress(
+        { profile: { name: updated.name }, storage_user: updated as unknown as Record<string, unknown> },
+        userId
+      );
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -354,6 +363,8 @@ export default function AccountPage() {
       };
       saveUser(updated);
       setUser(updated);
+      const userId = supabaseUser?.id ?? null;
+      if (userId) saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, userId);
     } catch {
       // Silently ignore compression errors
     } finally {
@@ -369,6 +380,8 @@ export default function AccountPage() {
     };
     saveUser(updated);
     setUser(updated);
+    const userId = supabaseUser?.id ?? null;
+    if (userId) saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, userId);
   };
 
   if (!user || authLoading) {

@@ -3,7 +3,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
-import { setAuth, setProfile } from "@/lib/authState";
+import { setAuth, setProfile, setState } from "@/lib/authState";
+import type { StopharamProfile, StopharamState } from "@/lib/authState";
+import { loadProgress } from "@/lib/progressStorage";
+import { saveUser } from "@/lib/storage";
+import type { StopHaramUser } from "@/lib/storage";
 
 type AuthContextType = {
   user: User | null;
@@ -59,6 +63,24 @@ function syncAuthState(session: Session | null) {
   });
 }
 
+function hydrateFromProgress(userId: string) {
+  loadProgress(userId).then((data) => {
+    if (data.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
+      setProfile(data.profile as StopharamProfile);
+    }
+    if (data.state && typeof data.state === "object" && Object.keys(data.state).length > 0) {
+      setState(data.state as StopharamState);
+    }
+    if (data.storage_user && typeof data.storage_user === "object") {
+      try {
+        saveUser(data.storage_user as StopHaramUser);
+      } catch {
+        /* ignore invalid shape */
+      }
+    }
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -70,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(s?.user ?? null);
       setLoading(false);
       syncAuthState(s);
+      if (s?.user?.id) hydrateFromProgress(s.user.id);
     });
 
     const {
@@ -79,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(s?.user ?? null);
       setLoading(false);
       syncAuthState(s);
+      if (s?.user?.id) hydrateFromProgress(s.user.id);
     });
 
     return () => subscription.unsubscribe();

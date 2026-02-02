@@ -11,10 +11,15 @@ export type QuizResultData = {
   sin_categories?: string[];
 };
 
+/** Utilisateur complet (storage) pour restauration après reconnexion */
+export type StorageUserProgress = Record<string, unknown>;
+
 export type ProgressData = {
   state?: Record<string, unknown>;
   profile?: Record<string, unknown>;
   quiz_result?: QuizResultData;
+  /** Utilisateur complet (nom, plan, etc.) — synchro multi-appareils */
+  storage_user?: StorageUserProgress;
   [key: string]: unknown;
 };
 
