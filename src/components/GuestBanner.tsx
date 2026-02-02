@@ -17,10 +17,11 @@ export default function GuestBanner() {
   if (!isGuest) return null;
 
   const handleGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { data } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname : "/home")}` },
     });
+    if (data?.url) window.location.href = data.url;
   };
 
   return (

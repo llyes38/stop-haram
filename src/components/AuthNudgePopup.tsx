@@ -49,10 +49,11 @@ export default function AuthNudgePopup() {
   const handleGoogle = async () => {
     markAuthNudgeShown();
     setShow(false);
-    await supabase.auth.signInWithOAuth({
+    const { data } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=${encodeURIComponent(pathname || "/home")}` },
     });
+    if (data?.url) window.location.href = data.url;
   };
 
   const handleEmail = () => {

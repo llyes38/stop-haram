@@ -21,11 +21,12 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const { error: err } = await supabase.auth.signInWithOAuth({
+      const { data, error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=${encodeURIComponent(redirect)}` },
       });
       if (err) setError(err.message);
+      else if (data?.url) window.location.href = data.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {

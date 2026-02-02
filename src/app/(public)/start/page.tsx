@@ -85,10 +85,11 @@ export default function StartCarouselPage() {
   const handleGoogleCommencer = async () => {
     setGoogleLoading(true);
     try {
-      await supabase.auth.signInWithOAuth({
+      const { data } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
       });
+      if (data?.url) window.location.href = data.url;
     } finally {
       setGoogleLoading(false);
     }
