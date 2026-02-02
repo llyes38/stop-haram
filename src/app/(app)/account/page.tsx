@@ -38,7 +38,7 @@ import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import { saveProgress } from "@/lib/progressStorage";
 
-type Tab = "profil" | "objectifs" | "plan";
+type Tab = "profil" | "objectifs" | "plan" | "notifications";
 type View = "list" | Tab;
 
 function CardRow({
@@ -391,7 +391,7 @@ export default function AccountPage() {
           )}
         </div>
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white">{view === "list" ? "Compte" : view === "profil" ? "Mon profil" : view === "objectifs" ? "Objectifs" : "Plan"}</h1>
+          <h1 className="text-xl font-bold tracking-tight text-white">{view === "list" ? "Compte" : view === "profil" ? "Mon profil" : view === "objectifs" ? "Objectifs" : view === "notifications" ? "Notifications" : "Plan"}</h1>
           <p className="text-white/90 text-lg mt-0.5">Salam {user.name || "toi"}</p>
         </div>
       </header>
@@ -445,7 +445,7 @@ export default function AccountPage() {
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
                 label="Notifications"
-                onClick={() => { setTab("profil"); setView("profil"); }}
+                onClick={() => { setTab("notifications"); setView("notifications"); }}
                 iconColor="text-indigo-400"
               />
             </div>
@@ -512,8 +512,33 @@ export default function AccountPage() {
           <p className="text-white/40 text-xs text-center">Version 1.0</p>
         </section>
       ) : (
-        /* === CONTENU ONDLET (profil, objectifs, plan) === */
+        /* === CONTENU ONDLET (profil, objectifs, plan, notifications) === */
         <>
+      {tab === "notifications" && (
+        <section className="space-y-5">
+          <div className="space-y-3">
+            <NotifToggle
+              label="Rappel heure de prière"
+              description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
+              checked={notifPriere}
+              onChange={handleNotifPriereChange}
+            />
+            <NotifToggle
+              label="Rappel actions du jour"
+              description="Rappel pour faire tes actions du jour (matin)."
+              checked={notifActions}
+              onChange={handleNotifActionsChange}
+            />
+            <NotifToggle
+              label="Rappel du jour (verset / hadith)"
+              description="Inclure un verset ou hadith du jour dans la notification du matin."
+              checked={notifVersetHadith}
+              onChange={handleNotifVersetHadithChange}
+            />
+          </div>
+        </section>
+      )}
+
       {tab === "profil" && (
         <section className="space-y-5">
           <h2 className="text-white/80 text-sm font-medium">Tes informations</h2>
@@ -768,30 +793,6 @@ export default function AccountPage() {
           >
             {saved ? "Enregistré ✓" : "Enregistrer"}
           </button>
-
-          {/* Notifications — toggles uniquement */}
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <div className="space-y-3">
-              <NotifToggle
-                label="Rappel heure de prière"
-                description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
-                checked={notifPriere}
-                onChange={handleNotifPriereChange}
-              />
-              <NotifToggle
-                label="Rappel actions du jour"
-                description="Rappel pour faire tes actions du jour (matin)."
-                checked={notifActions}
-                onChange={handleNotifActionsChange}
-              />
-              <NotifToggle
-                label="Rappel du jour (verset / hadith)"
-                description="Inclure un verset ou hadith du jour dans la notification du matin."
-                checked={notifVersetHadith}
-                onChange={handleNotifVersetHadithChange}
-              />
-            </div>
-          </div>
         </section>
       )}
 
