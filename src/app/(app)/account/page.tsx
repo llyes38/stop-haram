@@ -26,6 +26,7 @@ import { compressImageToBase64 } from "@/lib/profilePhoto";
 import { setAuth, setProfile, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
+import { usePushNotifications } from "@/lib/usePushNotifications";
 import {
   getNotifPriere,
   setNotifPriere,
@@ -196,6 +197,7 @@ export default function AccountPage() {
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
   const [notifVersetHadith, setNotifVersetHadithState] = useState(true);
+  const { status: pushStatus, requestPermissionAndSubscribe } = usePushNotifications();
 
   useEffect(() => {
     let u = getUser();
@@ -245,14 +247,17 @@ export default function AccountPage() {
   const handleNotifPriereChange = (v: boolean) => {
     setNotifPriere(v);
     setNotifPriereState(v);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
   };
   const handleNotifActionsChange = (v: boolean) => {
     setNotifActions(v);
     setNotifActionsState(v);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
   };
   const handleNotifVersetHadithChange = (v: boolean) => {
     setNotifVersetHadith(v);
     setNotifVersetHadithState(v);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
   };
 
   const handleSaveProfil = () => {
@@ -535,6 +540,35 @@ export default function AccountPage() {
               checked={notifVersetHadith}
               onChange={handleNotifVersetHadithChange}
             />
+          </div>
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <p className="text-white/60 text-xs mb-2">Tester les notifications push</p>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/push/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      title: "StopHaram — Test",
+                      body: "Si tu vois ce message, les notifs push fonctionnent.",
+                    }),
+                  });
+                  const data = await res.json().catch(() => ({}));
+                  if (res.ok && (data.sent ?? 0) > 0) {
+                    alert(`Notif envoyée à ${data.sent} appareil(s). Vérifie ton téléphone ou cette fenêtre.`);
+                  } else {
+                    alert(data.error || "Aucun abonnement. Active un toggle ci-dessus puis réessaie.");
+                  }
+                } catch (e) {
+                  alert("Erreur : " + (e instanceof Error ? e.message : "inconnue"));
+                }
+              }}
+              className="w-full rounded-xl bg-white/10 border border-white/20 py-3 px-4 text-white/90 text-sm font-medium hover:bg-white/15 transition-colors"
+            >
+              Envoyer une notif de test
+            </button>
           </div>
         </section>
       )}

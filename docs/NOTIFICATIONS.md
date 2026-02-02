@@ -8,10 +8,9 @@
 - **Comment** : notification **Web Push** envoyée par le serveur à tous les abonnés.
 - **Fonctionne** même si l’app est fermée ou le navigateur fermé (tant que l’utilisateur a autorisé les notifications et que l’abonnement push est enregistré).
 
-**Configuration requise :**
+**Configuration requise (voir section « Mise en place Vercel » ci-dessous) :**
 
-- Sur Vercel : variable d’environnement `CRON_SECRET` (Vercel l’utilise pour appeler le cron).
-- Clés VAPID : `NEXT_PUBLIC_VAPID_PUBLIC_KEY` et `VAPID_PRIVATE_KEY` (déjà utilisées pour les push).
+- Sur Vercel : `CRON_SECRET`, clés VAPID, et **Upstash Redis** pour stocker les abonnements.
 - Le cron est défini dans `vercel.json` : `/api/cron/daily-reminder` à 8h UTC.
 
 Le message inclut un rappel pour les actions du jour et le **verset du jour** (rotation parmi une liste de versets).
@@ -47,3 +46,51 @@ Pour avoir des rappels prière **même app fermée**, il faudrait par exemple :
 | Heure de prière (5 min avant) | Oui      | Non (client only)  |
 
 Pour que tout fonctionne côté serveur (y compris rappels prière app fermée), il faudrait étendre le cron et le stockage des préférences (ville, fuseau) par abonnement push.
+
+---
+
+## Mise en place Vercel (notifications push)
+
+Rien à faire sur **Supabase** pour les notifications push : les abonnements sont stockés dans **Upstash Redis** (ou en mémoire si Redis n’est pas configuré — non persistant en prod).
+
+### 1. Générer les clés VAPID
+
+En local :
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+Tu obtiens une paire **publicKey** et **privateKey**. Ne partage jamais la clé privée.
+
+### 2. Variables d’environnement sur Vercel
+
+Dans **Vercel** → ton projet → **Settings** → **Environment Variables**, ajoute :
+
+| Variable | Valeur | Remarque |
+|----------|--------|----------|
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | La **publicKey** générée | Exposée au client |
+| `VAPID_PRIVATE_KEY` | La **privateKey** générée | Secrète, ne pas exposer |
+| `VAPID_MAILTO` | `mailto:contact@stopharam.com` | Optionnel |
+| `CRON_SECRET` | Une chaîne secrète (ex. mot de passe aléatoire) | Utilisée par Vercel pour appeler le cron |
+| `UPSTASH_REDIS_REST_URL` | URL REST de ton Redis Upstash | Voir ci-dessous |
+| `UPSTASH_REDIS_REST_TOKEN` | Token REST de ton Redis Upstash | Voir ci-dessous |
+
+Sans **Upstash Redis**, les abonnements push ne sont **pas persistés** en production (mémoire serveur vide à chaque invocation). Le cron enverrait alors à 0 destinataire.
+
+### 3. Upstash Redis (recommandé)
+
+1. Va sur [upstash.com](https://upstash.com), crée un compte si besoin.
+2. Crée une base **Redis** (gratuit en petit usage).
+3. Dans le dashboard, récupère **REST URL** et **REST Token**.
+4. Ajoute-les sur Vercel comme `UPSTASH_REDIS_REST_URL` et `UPSTASH_REDIS_REST_TOKEN`.
+
+(Le code accepte aussi `KV_REST_API_URL` / `KV_REST_API_TOKEN` si tu utilises le produit KV d’Upstash.)
+
+### 4. Cron Vercel
+
+Le cron est déjà défini dans `vercel.json` (`/api/cron/daily-reminder` à 8h UTC). Vercel envoie automatiquement `Authorization: Bearer <CRON_SECRET>`. Aucune action supplémentaire si `CRON_SECRET` est bien défini.
+
+### 5. Redéploier
+
+Après avoir ajouté les variables, redéploie le projet (push sur Git ou **Redeploy** dans Vercel).
