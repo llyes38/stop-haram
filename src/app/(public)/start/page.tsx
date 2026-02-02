@@ -56,13 +56,14 @@ export default function StartCarouselPage() {
     setSlideIndex(Math.min(index, 1));
   };
 
-  const handleCommencer = () => {
+  const handleCommencer = async () => {
     // Déjà connecté et parcours terminé → home
     if (isLoggedIn() && isOnboardingComplete()) {
       router.push("/home");
       return;
     }
-    // Commencer sans compte : état local puis parcours onboarding
+    // Commencer sans compte : déconnecter toute session Supabase pour forcer le mode invité
+    await supabase.auth.signOut();
     clearDecouverteSeen();
     resetTemptationStats();
     clearDefiDaysStatus();
@@ -75,6 +76,9 @@ export default function StartCarouselPage() {
       relapse: undefined,
     });
     persistLocalStateToProgress(null);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("stopharam_guest_mode", "true");
+    }
     router.push("/profile");
   };
 
@@ -288,13 +292,6 @@ export default function StartCarouselPage() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/login")}
-                className="w-full rounded-2xl border border-white/20 bg-white/5 py-3.5 text-base font-semibold text-white/90 transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50"
-              >
-                Déjà client
               </button>
             </div>
           </div>

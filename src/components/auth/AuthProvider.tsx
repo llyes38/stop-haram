@@ -50,10 +50,16 @@ export function useAuthStatus() {
 function syncAuthState(session: Session | null) {
   if (!session?.user) {
     setAuth({ isLoggedIn: false });
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("stopharam_guest_mode");
+    }
     return;
   }
   const u = session.user;
   setAuth({ isLoggedIn: true, email: u.email ?? undefined });
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem("stopharam_guest_mode");
+  }
   // Ne pas écraser le prénom : c'est celui que l'user tape dans "Mon compte", pas le nom Google.
   // Le profil (prénom) sera chargé par hydrateFromProgress depuis Supabase.
 }

@@ -7,7 +7,10 @@ import BottomNav from "@/components/BottomNav";
 import GuestBanner from "@/components/GuestBanner";
 import PrayerTimeReminder from "@/components/PrayerTimeReminder";
 import PointsBadge from "@/components/PointsBadge";
+import { useAuthStatus } from "@/components/auth/AuthProvider";
 import { isLoggedIn } from "@/lib/authState";
+
+const GUEST_MODE_KEY = "stopharam_guest_mode";
 import { hasDecouverteSeen } from "@/lib/decouverteStorage";
 import { hasRechuteCheckedToday, markRechuteDoneForToday } from "@/lib/rechuteCheck";
 
@@ -18,7 +21,16 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { isGuest: isGuestAuth } = useAuthStatus();
+  const [guestModeFlag, setGuestModeFlag] = useState(false);
   const [ready, setReady] = useState(false);
+  const isGuest = isGuestAuth || guestModeFlag;
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -48,9 +60,11 @@ export default function AppLayout({
       <PrayerTimeReminder />
       <main className="flex-1 min-h-0 w-full max-w-[420px] mx-auto pb-20 overflow-y-auto overflow-x-hidden">
         <GuestBanner />
+        {!isGuest && (
         <div className="flex justify-end px-6 pt-4 pb-1">
           <PointsBadge />
         </div>
+        )}
         {children}
       </main>
       <AuthNudgePopup />

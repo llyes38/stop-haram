@@ -36,6 +36,7 @@ import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import { getActionIcon } from "@/components/ActionIcon";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
+import LockedFeatureCard from "@/components/LockedFeatureCard";
 import { APP_URL } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 
@@ -231,9 +232,18 @@ function formatElapsed(ms: number): { days: number; hours: number; minutes: numb
   return { days, hours, minutes: min, seconds: sec };
 }
 
+const GUEST_MODE_KEY = "stopharam_guest_mode";
+
 export default function HomePage() {
   const router = useRouter();
   const { user: supabaseUser } = useSupabaseAuth();
+  const [guestModeFlag, setGuestModeFlag] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
+    }
+  }, []);
+  const isGuest = !supabaseUser || guestModeFlag;
   const pathname = usePathname();
   const [name, setName] = useState("");
   const [streakDays, setStreakDays] = useState<number | null>(null);
@@ -468,6 +478,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        {!isGuest && (
         <button
           type="button"
           onClick={() => setStatutModalOpen(true)}
@@ -477,10 +488,11 @@ export default function HomePage() {
         >
           {currentStatut.emoji}
         </button>
+        )}
       </header>
 
-      {/* Modal Réalisations / Statuts */}
-      {statutModalOpen && (
+      {/* Modal Réalisations / Statuts (masqué en mode essai) */}
+      {!isGuest && statutModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-8 pt-8"
           onClick={() => setStatutModalOpen(false)}
@@ -551,43 +563,76 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours */}
+      {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours — ou Mode essai pour invité */}
       <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-6">
-        <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
-          {displayName ? (
-            <><span className="text-white">{displayName}</span>, tu es sur la bonne voie depuis</>
-          ) : (
-            "Tu es sur la bonne voie depuis"
-          )}
-        </p>
-        <div className="text-center">
-          {hasStreak && (
-            <p className="text-3xl sm:text-4xl font-bold text-white tabular-nums">
-              {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
+        {isGuest ? (
+          <>
+            <p className="text-amber-200 text-sm font-semibold text-center mb-2">Mode essai</p>
+            <p className="text-white/90 text-sm text-center mb-4">
+              Valide tes actions du jour et invite un proche. Crée un compte pour débloquer tout le parcours.
             </p>
-          )}
-          {elapsed != null && (
-            <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
-              {elapsed.days > 0 && `${elapsed.days}j `}
-              {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => router.push("/login")}
+                className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
+              >
+                Créer un compte (Google ou email)
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/fonctionnement")}
+                className="text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline"
+              >
+                Comment ça marche ?
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
+              {displayName ? (
+                <><span className="text-white">{displayName}</span>, tu es sur la bonne voie depuis</>
+              ) : (
+                "Tu es sur la bonne voie depuis"
+              )}
             </p>
-          )}
-          {!hasStreak && !elapsed && (
-            <p className="text-white/90 text-lg">Chaque effort compte.</p>
-          )}
-        </div>
-        <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
-        <button
-          type="button"
-          onClick={() => router.push("/fonctionnement")}
-          className="block mx-auto mt-3 text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline transition-colors"
-        >
-          Comment ça marche ?
-        </button>
+            <div className="text-center">
+              {hasStreak && (
+                <p className="text-3xl sm:text-4xl font-bold text-white tabular-nums">
+                  {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
+                </p>
+              )}
+              {elapsed != null && (
+                <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
+                  {elapsed.days > 0 && `${elapsed.days}j `}
+                  {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
+                </p>
+              )}
+              {!hasStreak && !elapsed && (
+                <p className="text-white/90 text-lg">Chaque effort compte.</p>
+              )}
+            </div>
+            <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
+            <button
+              type="button"
+              onClick={() => router.push("/fonctionnement")}
+              className="block mx-auto mt-3 text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline transition-colors"
+            >
+              Comment ça marche ?
+            </button>
+          </>
+        )}
       </div>
 
       <section className="flex flex-col gap-6 pb-28">
-        {/* Bloc : Défi 30 jours — surbrillance dorée si pas encore démarré */}
+        {/* Bloc : Défi 30 jours — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="Défi 30 jours"
+            description="Suivi de ton parcours sur 30 jours, niveaux et validation des jours."
+          />
+        ) : (
         <div className={`rounded-2xl px-5 py-4 ${challengeDay === 0 ? "bg-amber-500/15 border-2 border-amber-400/50 ring-1 ring-amber-400/30" : "bg-white/5 border border-white/10"}`}>
           <div className="flex flex-col gap-1 mb-3">
             <div className="flex items-center justify-between gap-2">
@@ -652,10 +697,16 @@ export default function HomePage() {
           <p className={`text-xs text-center ${challengeDay === 0 ? "text-amber-200/90 font-medium" : "text-white/50"}`}>
             {challengeDay >= DEFI_JOURS ? "Challenge terminé 🎉" : challengeDay === 0 ? "Va dans Parcours et clique sur Commencer quand tu es prêt" : "✓ validé · ✗ échoué"}
           </p>
+        </div>
+        )}
 
-          {/* Actions du jour — cliquables, validées ou pas ; journée validée = toutes faites */}
-          <div className="mt-5 pt-5 border-t border-white/10">
-            {challengeDay === 0 ? (
+        {/* Actions du jour — visible pour tous (mode essai + compte) */}
+        <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+          {isGuest && (
+            <p className="text-emerald-200/90 text-sm font-semibold mb-3">Actions du jour</p>
+          )}
+          <div className={!isGuest ? "mt-5 pt-5 border-t border-white/10" : ""}>
+            {!isGuest && challengeDay === 0 ? (
               <div className="text-center py-4">
                 <p className="text-amber-200/95 text-sm mb-3 font-medium">Commence ton défi dans Parcours pour débloquer tes actions du jour.</p>
                 <button
@@ -736,7 +787,8 @@ export default function HomePage() {
                     });
                     })()}
                   </div>
-                  {/* Ajouter une action de soi-même — ex. sadaqa */}
+                  {/* Ajouter une action de soi-même — ex. sadaqa (masqué en mode essai) */}
+                  {!isGuest && (
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <p className="text-emerald-200/90 text-sm font-semibold mb-2">Ajouter une action de toi-même</p>
                     <p className="text-white/60 text-xs mb-3">Une action en plus qui compte pour ta journée.</p>
@@ -770,6 +822,8 @@ export default function HomePage() {
                       </span>
                     </button>
                   </div>
+                  )}
+                  {!isGuest && (
                   <div className="mt-4 pt-4 border-t border-white/10">
                     <HomeNotifToggle
                       label="Rappel actions du jour"
@@ -781,13 +835,20 @@ export default function HomePage() {
                       offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de notifications ni de vibration pour les actions du jour. Tu peux réactiver à tout moment dans Compte > Rappels. Khayr in cha Allah."
                     />
                   </div>
+                  )}
                 </>
               );
             })()}
           </div>
         </div>
 
-        {/* Bloc : Mon but en arrêtant mes péchés — scintillement léger pour attirer l'œil */}
+        {/* Bloc : Mon but en arrêtant mes péchés — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="Mon but en arrêtant mes péchés"
+            description="Écris ta motivation pour te rappeler pourquoi tu avances."
+          />
+        ) : (
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4 but-scintille">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
@@ -839,8 +900,15 @@ export default function HomePage() {
             </p>
           )}
         </div>
+        )}
 
-        {/* Bloc : Tenté / Résisté — motivation */}
+        {/* Bloc : Tenté / Résisté — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="Tes victoires face à la tentation"
+            description="Compte les fois où tu as résisté et vois ta progression."
+          />
+        ) : (
         <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-5">
           <p className="text-white/80 text-sm font-semibold mb-4 text-center">
             Tes victoires face à la tentation
@@ -873,8 +941,9 @@ export default function HomePage() {
             </p>
           )}
         </div>
+        )}
 
-        {/* Bloc Communauté : Invite un proche */}
+        {/* Bloc Communauté : Invite un proche (toujours visible) */}
         <ShareCard
           title="🤝 Invite un proche"
           description="StopHaram est plus facile à tenir à deux. Invite quelqu'un à rejoindre les Stopprs et faites le chemin ensemble."
@@ -885,7 +954,30 @@ export default function HomePage() {
           copyLinkLabel="Copier le lien"
         />
 
-        {/* Lien vers Coin Communauté */}
+        {/* CTA mode essai : inciter à créer un compte */}
+        {isGuest && (
+        <div className="rounded-2xl bg-amber-500/15 border-2 border-amber-400/40 px-5 py-5">
+          <p className="text-amber-200 font-semibold text-center mb-2">Débloque tout le parcours</p>
+          <p className="text-white/90 text-sm text-center mb-4">
+            Crée un compte pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours, à la communauté et à la synchronisation sur tous tes appareils.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/login")}
+            className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-bold text-sm hover:bg-white/95 transition-colors"
+          >
+            Créer un compte (Google ou email)
+          </button>
+        </div>
+        )}
+
+        {/* Lien vers Coin Communauté — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="🤝 Communauté"
+            description="Défis de la semaine, WhatsApp, partage avec les Stopprs."
+          />
+        ) : (
         <button
           type="button"
           onClick={() => router.push("/community")}
@@ -894,7 +986,15 @@ export default function HomePage() {
           <span className="text-white font-semibold text-base">🤝 Communauté</span>
           <p className="text-white/60 text-sm mt-1">Défis de la semaine, WhatsApp, partage</p>
         </button>
+        )}
 
+        {/* Rappel prière + Horaires — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="Rappel prière et horaires"
+            description="Reçois une notification avant chaque prière et consulte les horaires."
+          />
+        ) : (
         <div className="space-y-3">
           <HomeNotifToggle
             label="Rappel heure de prière"
@@ -907,8 +1007,17 @@ export default function HomePage() {
           />
           <PrayerTimesCard />
         </div>
+        )}
 
-        <QuizLudiqueBlock />
+        {/* Quiz du jour — verrouillé en mode essai */}
+        {isGuest ? (
+          <LockedFeatureCard
+            title="Quiz du jour"
+            description="Gagne des points de gratitude à chaque bonne réponse et offre 1 mois gratuit à un proche."
+          />
+        ) : (
+          <QuizLudiqueBlock />
+        )}
 
         <p className="text-white/50 text-sm leading-relaxed max-w-[320px]">
           Allah voit tes efforts, même ceux que personne ne voit.
