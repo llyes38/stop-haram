@@ -16,6 +16,8 @@ self.addEventListener("push", (event) => {
     tag: data.tag || "stopharam-push",
     requireInteraction: !!data.requireInteraction,
     data: { url: data.url || "/" },
+    vibrate: data.vibrate || [200, 100, 200],
+    silent: !!data.silent,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
