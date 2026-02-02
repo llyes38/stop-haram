@@ -33,8 +33,8 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     if (isPublic) {
       const isLogoDemo = pathname === "/logo" || pathname.startsWith("/logo/");
       const isStartPage = pathname === "/start" || pathname.startsWith("/start/");
-      // Ne pas rediriger depuis /start : laisser l'utilisateur voir la page d'accueil
-      if (loggedIn && onboardingComplete && !isLogoDemo && !isStartPage) {
+      // Utilisateur déjà inscrit (logged in + onboarding terminé) → aller directement sur l'app, pas sur /start
+      if (loggedIn && onboardingComplete && !isLogoDemo) {
         router.replace("/home");
         return;
       }
