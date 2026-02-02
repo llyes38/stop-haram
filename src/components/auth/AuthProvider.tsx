@@ -10,6 +10,8 @@ type AuthContextType = {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  isAuthenticated: boolean;
+  isGuest: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  isAuthenticated: false,
+  isGuest: true,
 });
 
 export function useSupabaseAuth() {
@@ -25,6 +29,18 @@ export function useSupabaseAuth() {
     throw new Error("useSupabaseAuth must be used within AuthProvider");
   }
   return ctx;
+}
+
+/** Hook aligné spec : loading, user { id, email }, isAuthenticated, isGuest */
+export function useAuthStatus() {
+  const { user, loading, ...rest } = useSupabaseAuth();
+  return {
+    loading,
+    user: user ? { id: user.id, email: user.email ?? undefined } : null,
+    isAuthenticated: !!user,
+    isGuest: !user,
+    ...rest,
+  };
 }
 
 function syncAuthState(session: Session | null) {
@@ -72,8 +88,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const isAuthenticated = !!user;
+  const isGuest = !user;
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, isAuthenticated, isGuest }}>
       {children}
     </AuthContext.Provider>
   );

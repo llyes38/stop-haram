@@ -4,15 +4,9 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import { supabase } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { setAuth, setProfile, completeOnboarding } from "@/lib/authState";
 import { markRechuteDoneForToday } from "@/lib/rechuteCheck";
-
-function getAppUrl() {
-  const url = process.env.NEXT_PUBLIC_APP_URL;
-  if (url) return url;
-  if (typeof window !== "undefined") return window.location.origin;
-  return "https://stop-haram.vercel.app";
-}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,7 +21,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "apple",
-        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
     } catch (e) {
@@ -43,7 +37,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
     } catch (e) {
@@ -65,7 +59,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
+        options: { emailRedirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
       else setMagicLinkSent(true);

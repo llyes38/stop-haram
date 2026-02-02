@@ -49,3 +49,23 @@ CREATE POLICY "quiz_results_update_own" ON quiz_results FOR UPDATE USING (auth.u
 
 DROP POLICY IF EXISTS "quiz_results_delete_own" ON quiz_results;
 CREATE POLICY "quiz_results_delete_own" ON quiz_results FOR DELETE USING (auth.uid() = user_id);
+
+-- 5) Table user_progress (sauvegarde unifiée par utilisateur)
+CREATE TABLE IF NOT EXISTS public.user_progress (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  data jsonb NOT NULL DEFAULT '{}'::jsonb,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.user_progress ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "read own progress" ON public.user_progress;
+CREATE POLICY "read own progress" ON public.user_progress FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "insert own progress" ON public.user_progress;
+CREATE POLICY "insert own progress" ON public.user_progress FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "update own progress" ON public.user_progress;
+CREATE POLICY "update own progress" ON public.user_progress FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS user_progress_updated_at_idx ON public.user_progress(updated_at);

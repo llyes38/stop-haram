@@ -8,6 +8,7 @@ import { APP_URL } from "@/lib/share";
 import { awardIntroQuizPoints } from "@/lib/pointsGratitude";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import { saveQuizResult } from "@/lib/results";
+import { incrementGuestActions } from "@/lib/authNudge";
 
 interface QuizAnswers {
   [key: string]: string | string[];
@@ -124,7 +125,7 @@ export default function AnalysisResultPage() {
   }, []);
 
   useEffect(() => {
-    if (!supabaseUser || savedToCloud) return;
+    if (savedToCloud) return;
     const savedQuiz = typeof window !== "undefined" ? window.localStorage.getItem("stopharam_quiz") : null;
     const savedDomains = typeof window !== "undefined" ? window.localStorage.getItem("stopharam_domains") : null;
     const domains: string[] = savedDomains ? JSON.parse(savedDomains) : [];
@@ -136,10 +137,13 @@ export default function AnalysisResultPage() {
         analysis: { score },
         sin_categories: domains,
       }).then(({ ok }) => {
-        if (ok) setSavedToCloud(true);
+        if (ok) {
+          setSavedToCloud(true);
+          if (!supabaseUser) incrementGuestActions();
+        }
       });
     }
-  }, [supabaseUser, savedToCloud]);
+  }, [savedToCloud, supabaseUser]);
 
   const score = userScore ?? 0;
 

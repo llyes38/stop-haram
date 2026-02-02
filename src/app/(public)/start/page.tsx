@@ -4,16 +4,13 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import { supabase } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/siteUrl";
 import { setAuth, setState, isLoggedIn, isOnboardingComplete } from "@/lib/authState";
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
 import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 import { activateFreeMonthFromLink } from "@/lib/pointsGratitude";
-
-function getAppUrl() {
-  if (typeof window !== "undefined") return window.location.origin;
-  return process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
-}
+import { persistLocalStateToProgress } from "@/lib/progressStorage";
 
 const bgStyle1 = {
   background:
@@ -32,6 +29,10 @@ export default function StartCarouselPage() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [freeMonthReceived, setFreeMonthReceived] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [magicEmail, setMagicEmail] = useState("");
+  const [magicLoading, setMagicLoading] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [magicError, setMagicError] = useState<string | null>(null);
 
   useEffect(() => {
     const offer = searchParams.get("offer");
@@ -73,6 +74,7 @@ export default function StartCarouselPage() {
       dayCount: 0,
       relapse: undefined,
     });
+    persistLocalStateToProgress(null);
     router.push("/profile");
   };
 
@@ -81,10 +83,33 @@ export default function StartCarouselPage() {
     try {
       await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
       });
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magicEmail.trim()) {
+      setMagicError("Indique ton email");
+      return;
+    }
+    setMagicLoading(true);
+    setMagicError(null);
+    setMagicLinkSent(false);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: magicEmail.trim().toLowerCase(),
+        options: { emailRedirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+      });
+      if (error) setMagicError(error.message);
+      else setMagicLinkSent(true);
+    } catch {
+      setMagicError("Erreur");
+    } finally {
+      setMagicLoading(false);
     }
   };
 
@@ -231,12 +256,35 @@ export default function StartCarouselPage() {
                 </svg>
                 Continuer avec Google
               </button>
+              <form onSubmit={handleMagicLink} className="flex flex-col gap-2">
+                <input
+                  type="email"
+                  value={magicEmail}
+                  onChange={(e) => setMagicEmail(e.target.value)}
+                  placeholder="ton@email.com"
+                  className="w-full rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  disabled={magicLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={magicLoading}
+                  className="w-full rounded-2xl border border-white/30 bg-white/10 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-60"
+                >
+                  {magicLinkSent ? "Mail envoyé" : "Recevoir un mail pour se connecter"}
+                </button>
+              </form>
+              {magicLinkSent && (
+                <p className="text-emerald-300 text-sm text-center">
+                  Mail envoyé. Ouvre ta boîte mail et clique sur le lien.
+                </p>
+              )}
+              {magicError && <p className="text-red-300 text-sm text-center">{magicError}</p>}
               <button
                 type="button"
                 onClick={handleCommencer}
                 className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
               >
-                Commencer (sans compte)
+                Continuer sans compte
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>

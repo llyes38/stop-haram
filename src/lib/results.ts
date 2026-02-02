@@ -1,28 +1,14 @@
 import { supabase } from "./supabase/client";
+import { saveProgress } from "./progressStorage";
+import type { QuizResultData } from "./progressStorage";
 
-export type QuizResultData = {
-  answers: Record<string, string | string[]>;
-  analysis?: Record<string, unknown>;
-  sin_categories?: string[];
-};
+export type { QuizResultData } from "./progressStorage";
 
+/**
+ * Sauvegarde le résultat du quiz : Supabase (user_progress) si connecté, localStorage si invité.
+ */
 export async function saveQuizResult(data: QuizResultData): Promise<{ ok: boolean; error?: string }> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Non connecté" };
-
-  const { error } = await supabase
-    .from("quiz_results")
-    .upsert(
-      {
-        user_id: user.id,
-        answers: data.answers,
-        analysis: data.analysis ?? {},
-        sin_categories: data.sin_categories ?? [],
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-  if (error) return { ok: false, error: error.message };
-  return { ok: true };
+  const userId = user?.id ?? null;
+  return saveProgress({ quiz_result: data }, userId);
 }
