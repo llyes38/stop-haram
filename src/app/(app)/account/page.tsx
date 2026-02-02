@@ -26,8 +26,11 @@ import { compressImageToBase64 } from "@/lib/profilePhoto";
 import { setAuth, setProfile, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
-import { usePushNotifications } from "@/lib/usePushNotifications";
 import {
+  getNotifPriere,
+  setNotifPriere,
+  getNotifActions,
+  setNotifActions,
   getNotifVersetHadith,
   setNotifVersetHadith,
 } from "@/lib/notificationPrefs";
@@ -159,73 +162,6 @@ function NotifToggle({
   );
 }
 
-function PushNotificationsBlock() {
-  const { status, error, requestPermissionAndSubscribe } = usePushNotifications();
-
-  if (status === "unsupported") {
-    return (
-      <p className="text-white/50 text-xs rounded-xl bg-white/5 px-4 py-3">
-        Les notifications ne sont pas supportées sur ce navigateur.
-      </p>
-    );
-  }
-  if (status === "subscribed") {
-    return (
-      <div className="space-y-2">
-        <p className="text-emerald-200/90 text-sm rounded-xl bg-emerald-500/15 px-4 py-3">
-          ✓ Notifications activées. Tu recevras des rappels.
-        </p>
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              const res = await fetch("/api/push/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  title: "StopHaram",
-                  body: "Ceci est une notif de test. Si tu la vois, tout fonctionne !",
-                }),
-              });
-              const data = await res.json().catch(() => ({}));
-              if (res.ok) {
-                if ((data.sent ?? 0) > 0) alert(`Notif envoyée (${data.sent} destinataire(s)).`);
-                else alert(data.error || "Aucun destinataire. Réactive les notifications puis réessaie.");
-              } else {
-                alert(data.error || "Erreur lors de l'envoi.");
-              }
-            } catch (e) {
-              alert("Erreur : " + (e instanceof Error ? e.message : "inconnue"));
-            }
-          }}
-          className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 px-4 text-white/80 text-sm font-medium hover:bg-white/15 transition-colors"
-        >
-          Envoyer une notif de test
-        </button>
-      </div>
-    );
-  }
-  if (status === "denied") {
-    return (
-      <p className="text-amber-200/80 text-xs rounded-xl bg-amber-500/15 px-4 py-3">
-        Autorisation refusée. Tu peux l&apos;activer dans les paramètres du navigateur.
-      </p>
-    );
-  }
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={requestPermissionAndSubscribe}
-        className="w-full rounded-xl bg-white/10 border border-white/20 py-3 px-4 text-white/90 font-medium hover:bg-white/15 transition-colors"
-      >
-        Activer les notifications
-      </button>
-      {error && <p className="text-red-200/80 text-xs mt-2">{error}</p>}
-    </div>
-  );
-}
-
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -257,6 +193,8 @@ export default function AccountPage() {
   const [saved, setSaved] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [notifPriere, setNotifPriereState] = useState(true);
+  const [notifActions, setNotifActionsState] = useState(true);
   const [notifVersetHadith, setNotifVersetHadithState] = useState(true);
 
   useEffect(() => {
@@ -299,9 +237,19 @@ export default function AccountPage() {
       setEditEnfantsFilles(u.profileInfo?.enfantsFilles != null ? String(u.profileInfo.enfantsFilles) : "");
       setEditEnfantsGarcons(u.profileInfo?.enfantsGarcons != null ? String(u.profileInfo.enfantsGarcons) : "");
     }
+    setNotifPriereState(getNotifPriere());
+    setNotifActionsState(getNotifActions());
     setNotifVersetHadithState(getNotifVersetHadith());
   }, []);
 
+  const handleNotifPriereChange = (v: boolean) => {
+    setNotifPriere(v);
+    setNotifPriereState(v);
+  };
+  const handleNotifActionsChange = (v: boolean) => {
+    setNotifActions(v);
+    setNotifActionsState(v);
+  };
   const handleNotifVersetHadithChange = (v: boolean) => {
     setNotifVersetHadith(v);
     setNotifVersetHadithState(v);
@@ -879,14 +827,21 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Notifications push */}
+          {/* Notifications — toggles uniquement */}
           <div className="mt-6 pt-6 border-t border-white/10">
-            <h2 className="text-white/80 text-sm font-medium mb-2">Notifications</h2>
-            <p className="text-white/60 text-xs mb-3">
-              Reçois des rappels même quand l&apos;app est fermée. Clique « Activer les notifications » et accepte quand le navigateur le demande.
-            </p>
-            <PushNotificationsBlock />
-            <div className="mt-4 pt-4 border-t border-white/10">
+            <div className="space-y-3">
+              <NotifToggle
+                label="Rappel heure de prière"
+                description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
+                checked={notifPriere}
+                onChange={handleNotifPriereChange}
+              />
+              <NotifToggle
+                label="Rappel actions du jour"
+                description="Rappel pour faire tes actions du jour (matin)."
+                checked={notifActions}
+                onChange={handleNotifActionsChange}
+              />
               <NotifToggle
                 label="Rappel du jour (verset / hadith)"
                 description="Inclure un verset ou hadith du jour dans la notification du matin."
