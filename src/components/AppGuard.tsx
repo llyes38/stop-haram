@@ -20,6 +20,11 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (pathname == null) return;
+    // Racine "/" → toujours la 1ère page d'onboarding (évite d'atterrir sur /profile depuis le lien stop-haram.vercel.app)
+    if (pathname === "/") {
+      router.replace("/start");
+      return;
+    }
     // Attendre que la session Supabase soit chargée avant de décider (évite de
     // rediriger vers /start alors que l’utilisateur vient de se connecter via l’API callback).
     if (authLoading) {
