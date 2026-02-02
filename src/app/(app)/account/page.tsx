@@ -379,46 +379,6 @@ export default function AccountPage() {
     );
   }
 
-  // Si pas connecté Supabase : vue simplifiée avec invitation à se connecter
-  if (!supabaseUser) {
-    return (
-      <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white">
-        <header className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight text-white">Compte</h1>
-        </header>
-        <div className="rounded-xl bg-white/5 border border-white/10 px-5 py-5 mb-6">
-          <h3 className="text-white font-semibold text-base mb-2">Connecte-toi</h3>
-          <p className="text-white/70 text-sm mb-4">
-            Connecte-toi pour sauvegarder tes résultats sur tous tes appareils et accéder à tous tes paramètres.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/login?redirect=/account")}
-            className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
-          >
-            Se connecter (Google ou email)
-          </button>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <p className="text-white/60 text-xs mb-1">Prénom</p>
-            <p className="text-white/90 font-medium">{user.name || "—"}</p>
-          </div>
-          <button
-            type="button"
-            onClick={async () => {
-              setAuth({ isLoggedIn: false });
-              router.replace("/start");
-            }}
-            className="w-full rounded-xl bg-white/10 py-3.5 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors border border-white/10"
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const dayNum = getDayNumber(user.startDateISO);
   const currentDayIndex = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const dayPlan = user.plan.days[currentDayIndex];
@@ -486,6 +446,21 @@ export default function AccountPage() {
       {view === "list" ? (
         /* === VUE LISTE (cards) === */
         <section className="space-y-8">
+          {!supabaseUser && (
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-5 py-5">
+              <h3 className="text-white font-semibold text-base mb-2">Connecte-toi</h3>
+              <p className="text-white/70 text-sm mb-4">
+                Connecte-toi pour sauvegarder tes résultats sur tous tes appareils.
+              </p>
+              <button
+                type="button"
+                onClick={() => router.push("/login?redirect=/account")}
+                className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+              >
+                Se connecter (Google ou email)
+              </button>
+            </div>
+          )}
           <div>
             <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">Paramètres</h2>
             <div className="space-y-2">
