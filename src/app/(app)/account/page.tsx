@@ -769,64 +769,6 @@ export default function AccountPage() {
             {saved ? "Enregistré ✓" : "Enregistrer"}
           </button>
 
-          {/* Section Forfait */}
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <h2 className="text-white/80 text-sm font-medium mb-4">Ton forfait</h2>
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/25 px-4 py-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                      <path d="M2 17l10 5 10-5" />
-                      <path d="M2 12l10 5 10-5" />
-                    </svg>
-                  </span>
-                  <div>
-                    <p className="text-emerald-200 font-semibold text-sm">
-                      {user.profileInfo?.forfait === "annuel"
-                        ? "Forfait Annuel"
-                        : user.profileInfo?.forfait === "mensuel"
-                        ? "Forfait Mensuel"
-                        : "—"}
-                    </p>
-                    <p className="text-white/60 text-xs">
-                      {user.profileInfo?.forfait === "annuel"
-                        ? "12 mois · renouvelé chaque année"
-                        : user.profileInfo?.forfait === "mensuel"
-                        ? "Résiliable à tout moment"
-                        : "Choisi au checkout (mensuel ou annuel)"}
-                    </p>
-                  </div>
-                </div>
-                {user.profileInfo?.forfait && (
-                  <span className="rounded-full bg-emerald-500/30 px-2.5 py-1 text-emerald-200 text-xs font-semibold">Actif</span>
-                )}
-              </div>
-              {user.profileInfo?.forfait && (
-                <div className="mt-3 pt-3 border-t border-emerald-400/20">
-                  <ul className="space-y-1.5 text-white/80 text-xs">
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Plan personnalisé de 30 jours
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> 3, 5 ou 10 actions par jour
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Suivi de progression
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Aide d&apos;urgence
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-emerald-400">✓</span> Statuts et récompenses
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Notifications — toggles uniquement */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <div className="space-y-3">
