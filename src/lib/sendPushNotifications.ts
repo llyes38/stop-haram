@@ -24,7 +24,11 @@ export async function sendPushToAll(options: SendPushOptions = {}): Promise<{ se
 
   const title = options.title ?? "StopHaram";
   const body = options.body ?? "Rappel : pense à tes actions du jour.";
-  const payload = JSON.stringify({ title, body });
+  const payload = JSON.stringify({
+    title,
+    body,
+    vibrate: [300, 100, 300, 100, 300],
+  });
 
   const subs = await getAllSubscriptions();
   if (!subs.length) {
