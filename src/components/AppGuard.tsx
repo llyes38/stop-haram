@@ -9,15 +9,22 @@ import {
   isParcoursRoute,
   FIRST_PARCOURS_STEP,
 } from "@/lib/authState";
+import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import InstallPrompt from "./InstallPrompt";
 
 export default function AppGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
+  const { loading: authLoading } = useSupabaseAuth();
 
   useEffect(() => {
     if (pathname == null) return;
+    // Attendre que la session Supabase soit chargée avant de décider (évite de
+    // rediriger vers /start alors que l’utilisateur vient de se connecter via l’API callback).
+    if (authLoading) {
+      return;
+    }
     const loggedIn = isLoggedIn();
     const onboardingComplete = isOnboardingComplete();
     const isPublic = isPublicRoute(pathname);
@@ -50,7 +57,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     }
 
     setReady(true);
-  }, [pathname, router]);
+  }, [pathname, router, authLoading]);
 
   if (!ready) {
     return (

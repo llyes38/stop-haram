@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
+import { setAuth, setProfile } from "@/lib/authState";
 
 type AuthContextType = {
   user: User | null;
@@ -26,6 +27,22 @@ export function useSupabaseAuth() {
   return ctx;
 }
 
+function syncAuthState(session: Session | null) {
+  if (!session?.user) {
+    setAuth({ isLoggedIn: false });
+    return;
+  }
+  const u = session.user;
+  setAuth({ isLoggedIn: true, email: u.email ?? undefined });
+  setProfile({
+    name:
+      (u.user_metadata?.full_name as string) ??
+      (u.user_metadata?.name as string) ??
+      u.email?.split("@")[0] ??
+      "Utilisateur",
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -36,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
+      syncAuthState(s);
     });
 
     const {
@@ -44,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
+      syncAuthState(s);
     });
 
     return () => subscription.unsubscribe();
