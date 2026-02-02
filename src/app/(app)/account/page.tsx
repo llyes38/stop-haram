@@ -555,6 +555,22 @@ export default function AccountPage() {
                 onClick={handleDeleteData}
                 iconColor="text-red-400"
               />
+              {supabaseUser && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await supabaseSignOut();
+                    setAuth({ isLoggedIn: false });
+                    router.replace("/start");
+                  }}
+                  className="w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3.5 text-left hover:bg-white/10 transition-colors text-white/70 text-sm font-medium"
+                >
+                  <svg className="h-5 w-5 text-white/50 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Se déconnecter
+                </button>
+              )}
             </div>
           </div>
 
@@ -1086,18 +1102,6 @@ export default function AccountPage() {
               Voir tout le plan
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={async () => {
-              await supabaseSignOut();
-              setAuth({ isLoggedIn: false });
-              router.replace("/start");
-            }}
-            className="w-full rounded-xl bg-white/10 py-3.5 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors border border-white/10 mt-4"
-          >
-            Se déconnecter
-          </button>
         </section>
       )}
         </>

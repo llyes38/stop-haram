@@ -54,19 +54,27 @@ function syncAuthState(session: Session | null) {
   }
   const u = session.user;
   setAuth({ isLoggedIn: true, email: u.email ?? undefined });
-  setProfile({
-    name:
-      (u.user_metadata?.full_name as string) ??
-      (u.user_metadata?.name as string) ??
-      u.email?.split("@")[0] ??
-      "Utilisateur",
-  });
+  // Ne pas écraser le prénom : c'est celui que l'user tape dans "Mon compte", pas le nom Google.
+  // Le profil (prénom) sera chargé par hydrateFromProgress depuis Supabase.
 }
 
-function hydrateFromProgress(userId: string) {
+function getGoogleFallbackName(user: User): string {
+  return (
+    (user.user_metadata?.full_name as string) ??
+    (user.user_metadata?.name as string) ??
+    user.email?.split("@")[0] ??
+    "Utilisateur"
+  );
+}
+
+function hydrateFromProgress(userId: string, sessionUser: User | null) {
   loadProgress(userId).then((data) => {
+    // Prénom = celui enregistré dans "Mon compte" (Supabase), jamais le nom Google
     if (data.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
       setProfile(data.profile as StopharamProfile);
+    } else if (sessionUser) {
+      // Nouveau compte : pas encore de prénom dans Mon compte → fallback Google une seule fois
+      setProfile({ name: getGoogleFallbackName(sessionUser) });
     }
     if (data.state && typeof data.state === "object" && Object.keys(data.state).length > 0) {
       setState(data.state as StopharamState);
@@ -92,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(s?.user ?? null);
       setLoading(false);
       syncAuthState(s);
-      if (s?.user?.id) hydrateFromProgress(s.user.id);
+      if (s?.user?.id) hydrateFromProgress(s.user.id, s.user);
     });
 
     const {
@@ -102,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(s?.user ?? null);
       setLoading(false);
       syncAuthState(s);
-      if (s?.user?.id) hydrateFromProgress(s.user.id);
+      if (s?.user?.id) hydrateFromProgress(s.user.id, s.user);
     });
 
     return () => subscription.unsubscribe();
