@@ -148,3 +148,25 @@ Si tu as encore **redirect_uri_mismatch** : ouvre `https://stop-haram.vercel.app
 | **Supabase** → Site URL | `https://stop-haram.vercel.app` |
 
 Google redirige vers **Supabase**. Supabase redirige ensuite vers **ton app** (`/api/auth/callback`).
+
+---
+
+## Ça marche en local mais pas sur l’ordi / le tel (prod)
+
+Si la connexion Google fonctionne en local (`npm run dev`) mais pas quand tu ouvres le site en prod (ordinateur ou téléphone) :
+
+1. **Supabase → Authentication → URL Configuration → Redirect URLs**  
+   Vérifie que cette URL est bien dans la liste (une par ligne) :  
+   `https://stop-haram.vercel.app/api/auth/callback`  
+   (ou ton vrai domaine de prod, sans slash à la fin du chemin.)
+
+2. **Supabase → Site URL**  
+   Doit être exactement ton URL de prod, ex. :  
+   `https://stop-haram.vercel.app`
+
+3. **Google Cloud → Credentials → ton client OAuth → Authorized JavaScript origins**  
+   Doit contenir ton URL de prod, ex. :  
+   `https://stop-haram.vercel.app`
+
+4. **Vercel**  
+   Après toute modification des variables d’environnement, fais un **Redeploy** du projet pour que les changements soient pris en compte.

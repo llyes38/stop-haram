@@ -49,11 +49,7 @@ export function useAuthStatus() {
 
 function syncAuthState(session: Session | null) {
   if (!session?.user) {
-    // Ne pas marquer déconnecté si on était invité : peut être le retour OAuth (session pas encore en cookie)
-    const wasGuest = typeof window !== "undefined" && window.localStorage.getItem("stopharam_guest_mode") === "true";
-    if (!wasGuest) {
-      setAuth({ isLoggedIn: false });
-    }
+    setAuth({ isLoggedIn: false });
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("stopharam_guest_mode");
     }
@@ -111,12 +107,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let delaySyncNull: ReturnType<typeof setTimeout> | null = null;
+
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
       setLoading(false);
-      syncAuthState(s);
-      if (s?.user?.id) hydrateFromProgress(s.user.id, s.user);
+      if (s?.user) {
+        syncAuthState(s);
+        hydrateFromProgress(s.user.id, s.user);
+      } else {
+        // Ne pas marquer déconnecté tout de suite : laisse le temps au clic "Continuer avec Google" de lancer la redirection OAuth (évite le flash vers l'onboarding au 1er clic).
+        delaySyncNull = window.setTimeout(() => {
+          syncAuthState(null);
+        }, 400);
+      }
     });
 
     const {
@@ -129,7 +134,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (s?.user?.id) hydrateFromProgress(s.user.id, s.user);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (delaySyncNull != null) clearTimeout(delaySyncNull);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

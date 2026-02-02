@@ -7,6 +7,7 @@ import {
   isOnboardingComplete,
   isPublicRoute,
   isParcoursRoute,
+  FIRST_PARCOURS_STEP,
 } from "@/lib/authState";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import InstallPrompt from "./InstallPrompt";
@@ -46,10 +47,10 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Pas encore inscrit (onboarding non terminé) → toujours (re)passer par la page d'accueil "Bienvenue" (/start)
+    // Pas encore inscrit (onboarding non terminé) → envoyer vers le parcours (ex. /profile), pas vers /start
     if (!onboardingComplete) {
       if (!isParcours) {
-        router.replace("/start");
+        router.replace(FIRST_PARCOURS_STEP);
         return;
       }
       setReady(true);
