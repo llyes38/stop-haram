@@ -5,6 +5,7 @@
 const KEYS = {
   notifPriere: "stopharam_notif_priere",
   notifActions: "stopharam_notif_actions",
+  notifVersetHadith: "stopharam_notif_verset_hadith",
   actionsReminded: "stopharam_actions_reminded",
 } as const;
 
@@ -33,6 +34,14 @@ export function getNotifActions(): boolean {
 
 export function setNotifActions(enabled: boolean): void {
   set(KEYS.notifActions, enabled ? "1" : "0");
+}
+
+export function getNotifVersetHadith(): boolean {
+  return get(KEYS.notifVersetHadith, "1") === "1";
+}
+
+export function setNotifVersetHadith(enabled: boolean): void {
+  set(KEYS.notifVersetHadith, enabled ? "1" : "0");
 }
 
 export function wasActionsRemindedToday(): boolean {

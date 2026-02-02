@@ -28,10 +28,8 @@ import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 import { usePushNotifications } from "@/lib/usePushNotifications";
 import {
-  getNotifPriere,
-  setNotifPriere,
-  getNotifActions,
-  setNotifActions,
+  getNotifVersetHadith,
+  setNotifVersetHadith,
 } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
@@ -259,8 +257,7 @@ export default function AccountPage() {
   const [saved, setSaved] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [notifPriere, setNotifPriereState] = useState(true);
-  const [notifActions, setNotifActionsState] = useState(true);
+  const [notifVersetHadith, setNotifVersetHadithState] = useState(true);
 
   useEffect(() => {
     let u = getUser();
@@ -302,17 +299,12 @@ export default function AccountPage() {
       setEditEnfantsFilles(u.profileInfo?.enfantsFilles != null ? String(u.profileInfo.enfantsFilles) : "");
       setEditEnfantsGarcons(u.profileInfo?.enfantsGarcons != null ? String(u.profileInfo.enfantsGarcons) : "");
     }
-    setNotifPriereState(getNotifPriere());
-    setNotifActionsState(getNotifActions());
+    setNotifVersetHadithState(getNotifVersetHadith());
   }, []);
 
-  const handleNotifPriereChange = (v: boolean) => {
-    setNotifPriere(v);
-    setNotifPriereState(v);
-  };
-  const handleNotifActionsChange = (v: boolean) => {
-    setNotifActions(v);
-    setNotifActionsState(v);
+  const handleNotifVersetHadithChange = (v: boolean) => {
+    setNotifVersetHadith(v);
+    setNotifVersetHadithState(v);
   };
 
   const handleSaveProfil = () => {
@@ -477,6 +469,7 @@ export default function AccountPage() {
           <div>
             <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">Paramètres</h2>
             <div className="space-y-2">
+              {/* Carte "Rappels" supprimée — ne garder que Notifications */}
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>}
                 label="Mon profil"
@@ -500,12 +493,6 @@ export default function AccountPage() {
                 label="Plan"
                 onClick={() => { setTab("plan"); setView("plan"); }}
                 iconColor="text-violet-400"
-              />
-              <CardRow
-                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
-                label="Rappels"
-                onClick={() => { setTab("profil"); setView("profil"); }}
-                iconColor="text-teal-400"
               />
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>}
@@ -892,28 +879,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Préférences de rappels (on/off) */}
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <h2 className="text-white/80 text-sm font-medium mb-2">Rappels</h2>
-            <p className="text-white/60 text-xs mb-4">
-              Active ou désactive les rappels selon tes préférences.
-            </p>
-            <div className="space-y-3">
-              <NotifToggle
-                label="Rappel heure de prière"
-                description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
-                checked={notifPriere}
-                onChange={handleNotifPriereChange}
-              />
-              <NotifToggle
-                label="Rappel actions du jour"
-                description="Rappel pour faire tes actions du jour (matin)."
-                checked={notifActions}
-                onChange={handleNotifActionsChange}
-              />
-            </div>
-          </div>
-
           {/* Notifications push */}
           <div className="mt-6 pt-6 border-t border-white/10">
             <h2 className="text-white/80 text-sm font-medium mb-2">Notifications</h2>
@@ -921,6 +886,14 @@ export default function AccountPage() {
               Reçois des rappels même quand l&apos;app est fermée. Clique « Activer les notifications » et accepte quand le navigateur le demande.
             </p>
             <PushNotificationsBlock />
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <NotifToggle
+                label="Rappel du jour (verset / hadith)"
+                description="Inclure un verset ou hadith du jour dans la notification du matin."
+                checked={notifVersetHadith}
+                onChange={handleNotifVersetHadithChange}
+              />
+            </div>
           </div>
         </section>
       )}

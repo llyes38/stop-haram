@@ -832,7 +832,7 @@ export default function HomePage() {
                         setNotifActions(v);
                         setNotifActionsState(v);
                       }}
-                      offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de notifications ni de vibration pour les actions du jour. Tu peux réactiver à tout moment dans Compte > Rappels. Khayr in cha Allah."
+                      offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de notifications ni de vibration pour les actions du jour. Tu peux réactiver à tout moment dans Compte > Notifications. Khayr in cha Allah."
                     />
                   </div>
                   )}
@@ -1003,7 +1003,7 @@ export default function HomePage() {
               setNotifPriere(v);
               setNotifPriereState(v);
             }}
-            offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de rappels avant l'heure de prière (notifications et vibration). Tu peux réactiver à tout moment dans Compte > Rappels. Khayr in cha Allah."
+            offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de rappels avant l'heure de prière (notifications et vibration). Tu peux réactiver à tout moment dans Compte > Notifications. Khayr in cha Allah."
           />
           <PrayerTimesCard />
         </div>
