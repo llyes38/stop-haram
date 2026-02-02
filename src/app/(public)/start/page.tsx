@@ -118,13 +118,13 @@ export default function StartCarouselPage() {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative min-h-[100dvh] w-full overflow-hidden pb-[env(safe-area-inset-bottom,0px)]">
       {/* Carousel scroll container */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         data-start-carousel
-        className="flex h-full w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth overscroll-contain"
+        className="flex h-[100dvh] w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth overscroll-contain"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -138,13 +138,13 @@ export default function StartCarouselPage() {
           }
         `}</style>
 
-        {/* Slide 1 : Logo + effet miroir */}
+        {/* Slide 1 : Logo + effet miroir — scrollable sur petit écran pour voir le bouton Suivant */}
         <section
-          className="relative flex min-h-full min-w-full shrink-0 snap-start snap-always flex-col items-center justify-center px-6 py-12 text-white"
+          className="relative flex min-h-full min-w-full shrink-0 snap-start snap-always flex-col items-center justify-center px-6 py-8 pb-28 text-white overflow-y-auto"
           style={bgStyle1}
           aria-label="Page 1 sur 2"
         >
-          <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="relative z-10 flex flex-col items-center text-center min-h-0 flex-1 justify-center">
             <div className="relative">
               <StopHaramLogo size={200} variant="dark" className="drop-shadow-lg" />
               <div
@@ -177,13 +177,13 @@ export default function StartCarouselPage() {
                 <path d="M12 2l1.5 4.5L18 8l-3.5 2.5L16 15l-4-2.5L8 15l1.5-4.5L6 8l4.5-1.5L12 2z" />
               </svg>
             </div>
-            <p className="mt-8 text-sm font-medium tracking-wide text-white/70">
+            <p className="mt-6 text-sm font-medium tracking-wide text-white/70">
               Un accompagnement discret et bienveillant
             </p>
             <button
               type="button"
               onClick={() => goToSlide(1)}
-              className="mt-12 flex w-full max-w-[280px] items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50"
+              className="mt-8 flex w-full max-w-[280px] items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50"
             >
               Suivant
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -193,9 +193,9 @@ export default function StartCarouselPage() {
           </div>
         </section>
 
-        {/* Slide 2 : Bienvenue */}
+        {/* Slide 2 : Bienvenue — scrollable + padding bas pour ne pas tronquer les boutons sur mobile */}
         <section
-          className="relative flex min-h-full min-w-full shrink-0 snap-start snap-always flex-col overflow-hidden text-white"
+          className="relative flex min-h-full min-w-full shrink-0 snap-start snap-always flex-col overflow-y-auto overflow-x-hidden text-white"
           style={bgStyle2}
           aria-label="Page 2 sur 2"
         >
@@ -221,7 +221,7 @@ export default function StartCarouselPage() {
           </div>
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[20%]" style={{ background: "linear-gradient(0deg, rgba(20,184,166,0.2) 0%, rgba(255,255,255,0.06) 50%, transparent 100%)" }} aria-hidden />
 
-          <div className="relative z-10 flex flex-1 flex-col px-6 pt-14 pb-10">
+          <div className="relative z-10 flex flex-1 flex-col px-6 pt-10 pb-28 min-h-0">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Bienvenue !</h1>
             {freeMonthReceived && (
               <div className="mt-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-3">
@@ -245,7 +245,7 @@ export default function StartCarouselPage() {
                 <path d="M12 2l1.5 4.5L18 8l-3.5 2.5L16 15l-4-2.5L8 15l1.5-4.5L6 8l4.5-1.5L12 2z" />
               </svg>
             </div>
-            <div className="mt-auto flex max-w-[420px] flex-col gap-3 pt-12">
+            <div className="mt-auto flex max-w-[420px] flex-col gap-3 pt-8 pb-6">
               <button
                 type="button"
                 onClick={handleGoogleCommencer}
@@ -298,8 +298,8 @@ export default function StartCarouselPage() {
         </section>
       </div>
 
-      {/* Indicateur de page fixe en bas */}
-      <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+      {/* Indicateur de page fixe en bas — au-dessus de la barre système mobile */}
+      <div className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 gap-2">
         <button
           type="button"
           onClick={() => goToSlide(0)}
