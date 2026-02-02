@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getDailyActionLabels, getDailyActionsWithSins, getSinLabel } from "@/lib/storage";
+import { getProfile } from "@/lib/authState";
 import { generatePlan } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
 import { getTemptationStats, incrementTempted } from "@/lib/temptationStats";
@@ -326,7 +327,7 @@ export default function HomePage() {
     const user = getUser();
     const legacyName = typeof window === "undefined" ? null : window.localStorage.getItem("user_name");
     const legacyDays = typeof window === "undefined" ? null : window.localStorage.getItem("days_clean");
-    setName(user?.name?.trim() || legacyName?.trim() || "");
+    setName(user?.name?.trim() || getProfile()?.name?.trim() || legacyName?.trim() || "");
     setStreakDays(user?.streakDays ?? (legacyDays != null && legacyDays !== "" ? parseInt(legacyDays, 10) : null));
     if (typeof window !== "undefined") {
       let start = window.localStorage.getItem(LAST_STREAK_START_KEY);
@@ -350,6 +351,19 @@ export default function HomePage() {
       }
     }
   }, []);
+
+  // Re-lit le prénom après hydratation Supabase (connexion) pour afficher "[Prénom], tu es sur la bonne voie"
+  useEffect(() => {
+    if (!supabaseUser?.id) return;
+    const t = setTimeout(() => {
+      const u = getUser();
+      const profile = getProfile();
+      const legacy = typeof window === "undefined" ? "" : window.localStorage.getItem("user_name")?.trim() || "";
+      setName(u?.name?.trim() || profile?.name?.trim() || legacy || "");
+      if (u?.streakDays != null) setStreakDays(u.streakDays);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [supabaseUser?.id]);
 
   const displayName = name?.trim() || null;
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
