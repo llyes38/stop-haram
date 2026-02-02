@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
-import { setAuth, setProfile, setState } from "@/lib/authState";
+import { getState, setAuth, setProfile, setState } from "@/lib/authState";
 import type { StopharamProfile, StopharamState } from "@/lib/authState";
 import { loadProgress } from "@/lib/progressStorage";
 import { saveUser } from "@/lib/storage";
@@ -49,7 +49,11 @@ export function useAuthStatus() {
 
 function syncAuthState(session: Session | null) {
   if (!session?.user) {
-    setAuth({ isLoggedIn: false });
+    // Ne pas marquer déconnecté si on était invité : peut être le retour OAuth (session pas encore en cookie)
+    const wasGuest = typeof window !== "undefined" && window.localStorage.getItem("stopharam_guest_mode") === "true";
+    if (!wasGuest) {
+      setAuth({ isLoggedIn: false });
+    }
     if (typeof window !== "undefined") {
       window.localStorage.removeItem("stopharam_guest_mode");
     }
@@ -83,7 +87,13 @@ function hydrateFromProgress(userId: string, sessionUser: User | null) {
       setProfile({ name: getGoogleFallbackName(sessionUser) });
     }
     if (data.state && typeof data.state === "object" && Object.keys(data.state).length > 0) {
-      setState(data.state as StopharamState);
+      const loaded = data.state as StopharamState;
+      const current = getState();
+      // Invité qui a fini le parcours puis se connecte (Google) : ne pas écraser onboardingComplete
+      const merged: StopharamState = current?.onboardingComplete === true && loaded?.onboardingComplete !== true
+        ? { ...loaded, onboardingComplete: true }
+        : loaded;
+      setState(merged);
     }
     if (data.storage_user && typeof data.storage_user === "object") {
       try {
