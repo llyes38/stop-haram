@@ -1,4 +1,5 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -14,9 +15,9 @@ if (!supabaseAnonKey) {
   );
 }
 
-export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    flowType: "pkce",
-    detectSessionInUrl: true,
-  },
-});
+/**
+ * Client Supabase pour le navigateur (composants client).
+ * Utilise @supabase/ssr pour stocker le code verifier PKCE dans des cookies,
+ * ce qui évite l'erreur "PKCE code verifier not found" après la redirection Google.
+ */
+export const supabase: SupabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);

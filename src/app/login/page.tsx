@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
@@ -28,7 +29,7 @@ export default function LoginPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getAppUrl()}/auth/callback?redirect=${encodeURIComponent(redirect)}` },
+        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=${encodeURIComponent(redirect)}` },
       });
       if (err) setError(err.message);
     } catch (e) {
@@ -50,7 +51,7 @@ export default function LoginPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getAppUrl()}/auth/callback?redirect=${encodeURIComponent(redirect)}` },
+        options: { emailRedirectTo: `${getAppUrl()}/api/auth/callback?redirect=${encodeURIComponent(redirect)}` },
       });
       if (err) setError(err.message);
       else setMagicLinkSent(true);
@@ -123,9 +124,19 @@ export default function LoginPage() {
           )}
 
           {(error || callbackError) && (
-            <p className="text-red-300 text-sm text-center">
-              {callbackError ? "La connexion a échoué. Réessaie ou utilise un autre moyen." : error}
-            </p>
+            <div className="text-center space-y-2">
+              <p className="text-red-300 text-sm">
+                {callbackError ? "La connexion a échoué. Réessaie ou utilise un autre moyen." : error}
+              </p>
+              {(error?.toLowerCase().includes("redirect") || callbackError) && (
+                <Link
+                  href="/auth/google-setup"
+                  className="text-emerald-400 text-xs hover:underline block"
+                >
+                  Problème Google (redirect_uri) → voir l’URI à configurer
+                </Link>
+              )}
+            </div>
           )}
         </section>
       </div>

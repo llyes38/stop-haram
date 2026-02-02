@@ -27,7 +27,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "apple",
-        options: { redirectTo: `${getAppUrl()}/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
     } catch (e) {
@@ -43,7 +43,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getAppUrl()}/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
     } catch (e) {
@@ -65,7 +65,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getAppUrl()}/auth/callback?redirect=/home` },
+        options: { emailRedirectTo: `${getAppUrl()}/api/auth/callback?redirect=/home` },
       });
       if (err) setError(err.message);
       else setMagicLinkSent(true);

@@ -44,24 +44,18 @@ export default function AuthCallbackPage() {
     };
 
     const run = async () => {
-      // 0) Si code dans l'URL (PKCE), échanger contre une session
+      // 0) Si code dans l'URL (PKCE), laisser le serveur gérer l'échange (route handler)
+      //    pour éviter "PKCE code verifier not found" (cookies lus côté serveur).
       if (typeof window !== "undefined") {
         const params = new URLSearchParams(window.location.search);
         const code = params.get("code");
         if (code) {
-          const { data, error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code);
-          if (exchangeErr) {
-            setError(exchangeErr.message);
-            return;
-          }
-          if (data?.session?.user) {
-            finish(data.session);
-            return;
-          }
+          window.location.replace(window.location.pathname + window.location.search);
+          return;
         }
       }
 
-      // 1) Essayer getSession avec retries (Supabase peut mettre un moment à parser le hash)
+      // 1) Pas de code : essayer getSession avec retries (session déjà établie par le serveur) (Supabase peut mettre un moment à parser le hash)
       for (let i = 0; i < MAX_RETRIES; i++) {
         const { data: { session }, error: err } = await supabase.auth.getSession();
         if (err) {
