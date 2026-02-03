@@ -851,9 +851,11 @@ export default function HomePage() {
                       const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
                       return itemsToShow.map((item, i) => {
                         const id = String(i + 1) as ActionId;
+                        const isBaseAction = item.title === "Invocations du matin";
                         const isDhikr = /dhikr|invocation/i.test(item.title);
                         const done = isDhikr ? dhikrDoneToday : completedTitles.includes(item.title);
                         const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
+                        const numberedIndex = itemsToShow.filter((_, j) => j < i && itemsToShow[j].title !== "Invocations du matin").length + 1;
                         return (
                         <button
                           key={id}
@@ -862,26 +864,36 @@ export default function HomePage() {
                           className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-start gap-3 transition-all ${
                             done
                               ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
-                              : "action-todo bg-emerald-500/15 border-emerald-400/35 hover:bg-emerald-500/20"
+                              : isBaseAction
+                                ? "border-amber-400/40 bg-amber-500/15 hover:bg-amber-500/20"
+                                : "action-todo bg-emerald-500/15 border-emerald-400/35 hover:bg-emerald-500/20"
                           }`}
                         >
                           <span
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
                               done
                                 ? "bg-emerald-500/30 text-emerald-200"
-                                : item.sin === focusSin
-                                  ? "bg-amber-500/25 text-amber-200"
-                                  : "bg-emerald-500/20 text-emerald-200"
+                                : isBaseAction
+                                  ? "bg-amber-400/40 text-amber-100"
+                                  : item.sin === focusSin
+                                    ? "bg-amber-500/25 text-amber-200"
+                                    : "bg-emerald-500/20 text-emerald-200"
                             }`}
                             aria-hidden
+                            title={isBaseAction ? "Action de base pour tout le monde" : undefined}
                           >
-                            {done ? "✓" : i + 1}
+                            {done ? "✓" : isBaseAction ? "★" : numberedIndex}
                           </span>
                           <div className="flex-1 min-w-0">
                             <span className={`text-sm font-medium ${done ? "text-white/80 line-through" : "text-white"}`}>
                               {item.title}
                             </span>
-                            {sinLabel && (
+                            {isBaseAction && (
+                              <p className="text-xs mt-0.5 text-amber-200/90 font-medium">
+                                Action de base pour tout le monde
+                              </p>
+                            )}
+                            {sinLabel && !isBaseAction && (
                               <p className="text-xs mt-0.5 text-emerald-200/70">
                                 → {sinLabel}
                               </p>
@@ -1156,8 +1168,12 @@ export default function HomePage() {
             >
               <div className="p-6 max-h-[85vh] overflow-y-auto">
                 <div className="flex items-start justify-between gap-3 mb-4">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500/25 text-emerald-200 text-lg font-bold">
-                    {selectedActionIndex + 1}
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
+                    item.title === "Invocations du matin"
+                      ? "bg-amber-400/40 text-amber-100"
+                      : "bg-emerald-500/25 text-emerald-200"
+                  }`}>
+                    {item.title === "Invocations du matin" ? "★" : itemsToShow.filter((_, j) => j < selectedActionIndex && itemsToShow[j].title !== "Invocations du matin").length + 1}
                   </span>
                   <button
                     type="button"
