@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import { supabase } from "@/lib/supabase/client";
 import { getSiteUrl } from "@/lib/siteUrl";
-import { setAuth, setProfile, completeOnboarding } from "@/lib/authState";
+import { setAuth, setProfile, completeOnboarding, isOnboardingComplete } from "@/lib/authState";
 import { markRechuteDoneForToday } from "@/lib/rechuteCheck";
 
 const INTENT_GOOGLE_KEY = "stopharam_intent_google";
+const FROM_CHECKOUT_KEY = "stopharam_from_checkout";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -17,6 +18,14 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [intentGoogle, setIntentGoogle] = useState(false);
+
+  // Parcours : /signup uniquement après paiement (checkout). Sinon redirection vers checkout.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage.getItem(FROM_CHECKOUT_KEY) === "true") return;
+    if (isOnboardingComplete()) return;
+    router.replace("/checkout");
+  }, [router]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage.getItem(INTENT_GOOGLE_KEY) === "true") {
@@ -87,6 +96,7 @@ export default function SignupPage() {
     setProfile({ name: "Utilisateur" });
     if (typeof window !== "undefined") {
       window.localStorage.setItem("is_logged_in", "true");
+      window.sessionStorage.removeItem(FROM_CHECKOUT_KEY);
       markRechuteDoneForToday(true);
     }
     router.replace("/home");

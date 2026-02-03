@@ -142,6 +142,7 @@ export default function CheckoutPage() {
     const forfait: "mensuel" | "annuel" = plan === "annual" ? "annuel" : "mensuel";
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_forfait", forfait);
+      window.sessionStorage.setItem("stopharam_from_checkout", "true");
       const u = getUser();
       if (u) {
         u.profileInfo = { ...u.profileInfo, forfait };

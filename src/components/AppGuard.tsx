@@ -56,6 +56,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     // Sur /home avec session (ex. retour OAuth après "Continuer avec Google" sur la page signup) → considérer onboarding terminé et laisser entrer
     if (pathname === "/home" && !onboardingComplete) {
       completeOnboarding();
+      if (typeof window !== "undefined") window.sessionStorage.removeItem("stopharam_from_checkout");
       setReady(true);
       return;
     }
