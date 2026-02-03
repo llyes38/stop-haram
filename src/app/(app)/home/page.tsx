@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getDailyActionLabels, getDailyActionsWithSins, getSinLabel } from "@/lib/storage";
 import { getProfile } from "@/lib/authState";
@@ -39,6 +39,14 @@ import ShareCard from "@/components/ShareCard";
 import LockedFeatureCard from "@/components/LockedFeatureCard";
 import { APP_URL } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { compressImageToBase64 } from "@/lib/profilePhoto";
+import { saveProgress } from "@/lib/progressStorage";
+import {
+  getDhikrMatinCountsForToday,
+  incrementDhikrMatin,
+  DHIKR_MATIN_TARGETS,
+  type DhikrMatinCounts,
+} from "@/lib/dhikrMatinCounts";
 
 const DEFI_JOURS = 30;
 
@@ -277,6 +285,10 @@ export default function HomePage() {
   const [sadaqaDoneToday, setSadaqaDoneToday] = useState(false);
   const [defiStatus, setDefiStatus] = useState<Record<number, "validated" | "failed">>({});
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
+  const [dhikrMatinCounts, setDhikrMatinCounts] = useState<DhikrMatinCounts | null>(null);
 
   useEffect(() => {
     let u = getUser();
@@ -318,6 +330,20 @@ export default function HomePage() {
   useEffect(() => {
     setStats(getTemptationStats());
   }, [pathname]);
+
+  useEffect(() => {
+    if (selectedActionIndex == null) {
+      setDhikrMatinCounts(null);
+      return;
+    }
+    const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
+    const item = itemsToShow[selectedActionIndex];
+    if (item?.title === "Invocations du matin") {
+      setDhikrMatinCounts(getDhikrMatinCountsForToday());
+    } else {
+      setDhikrMatinCounts(null);
+    }
+  }, [selectedActionIndex, actionItems, actionLabels]);
 
   useEffect(() => {
     const items = actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }));
@@ -415,6 +441,35 @@ export default function HomePage() {
     setWhyStopDraft("");
   };
 
+  const handlePhotoClick = () => {
+    if (profilePhoto) {
+      setPhotoModalOpen(true);
+    } else {
+      router.push(supabaseUser ? "/account" : "/login");
+    }
+  };
+
+  const handlePhotoSelectFromHome = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    e.target.value = "";
+    setPhotoUploading(true);
+    try {
+      const u = getUser();
+      if (!u) return;
+      const dataUrl = await compressImageToBase64(file);
+      const updated = { ...u, profileInfo: { ...u.profileInfo, profilePhoto: dataUrl } };
+      saveUser(updated);
+      setProfilePhoto(dataUrl);
+      if (supabaseUser?.id) await saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, supabaseUser.id);
+      setPhotoModalOpen(false);
+    } catch {
+      // ignore
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   const handleToggleActionByTitle = (title: string) => {
     const aboutToMarkDone = !completedTitles.includes(title);
     if (aboutToMarkDone && isVerseAction(title)) {
@@ -455,9 +510,9 @@ export default function HomePage() {
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            onClick={() => router.push(supabaseUser ? "/account" : "/login")}
+            onClick={handlePhotoClick}
             className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            aria-label={supabaseUser ? "Mon compte" : "Se connecter"}
+            aria-label={profilePhoto ? "Voir ou modifier ma photo" : supabaseUser ? "Mon compte" : "Se connecter"}
           >
             {profilePhoto ? (
               <img src={profilePhoto} alt="" className="h-full w-full object-cover" />
@@ -467,6 +522,14 @@ export default function HomePage() {
               </div>
             )}
           </button>
+          <input
+            type="file"
+            accept="image/*"
+            ref={photoFileInputRef}
+            onChange={handlePhotoSelectFromHome}
+            className="hidden"
+            aria-hidden
+          />
           {displayName && (
             <p className="text-white font-semibold text-base truncate shrink min-w-0" title={displayName}>
               {displayName}
@@ -498,6 +561,45 @@ export default function HomePage() {
         </button>
         )}
       </header>
+
+      {/* Modal photo de profil : voir en grand + modifier */}
+      {photoModalOpen && profilePhoto && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/80 px-4"
+          onClick={() => setPhotoModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo de profil"
+        >
+          <div
+            className="w-full max-w-[320px] flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={profilePhoto}
+              alt="Photo de profil"
+              className="w-64 h-64 rounded-full object-cover border-4 border-white/30 shadow-xl"
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => photoFileInputRef.current?.click()}
+                disabled={photoUploading}
+                className="rounded-xl bg-emerald-500/80 hover:bg-emerald-500 text-white font-semibold px-5 py-2.5 disabled:opacity-60"
+              >
+                {photoUploading ? "Chargement…" : "Modifier"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPhotoModalOpen(false)}
+                className="rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-2.5"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Réalisations / Statuts (masqué en mode essai) */}
       {!isGuest && statutModalOpen && (
@@ -1120,6 +1222,60 @@ export default function HomePage() {
                       Recommencer cette action
                     </button>
                   </>
+                ) : item.title === "Invocations du matin" && dhikrMatinCounts ? (
+                  <div className="space-y-3">
+                    <p className="text-white/70 text-sm">Touche pour compter (vibration à chaque touche).</p>
+                    {(["subhanallah", "alhamdulillah", "allahu_akbar"] as const).map((key) => {
+                      const count = dhikrMatinCounts[key];
+                      const target = DHIKR_MATIN_TARGETS[key];
+                      const label =
+                        key === "subhanallah"
+                          ? "SubhanAllah"
+                          : key === "alhamdulillah"
+                            ? "Alhamdulillah"
+                            : "Allahu Akbar";
+                      const isComplete = count >= target;
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => {
+                            if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(50);
+                            const next = incrementDhikrMatin(key);
+                            setDhikrMatinCounts(next);
+                            if (
+                              next.subhanallah >= DHIKR_MATIN_TARGETS.subhanallah &&
+                              next.alhamdulillah >= DHIKR_MATIN_TARGETS.alhamdulillah &&
+                              next.allahu_akbar >= DHIKR_MATIN_TARGETS.allahu_akbar
+                            ) {
+                              setDhikrDoneToday(true);
+                              setCompletedTitles((prev) =>
+                                prev.includes(item.title) ? prev : [...prev, item.title]
+                              );
+                            }
+                          }}
+                          disabled={isComplete}
+                          className={`w-full rounded-xl border py-4 px-4 flex items-center justify-between transition-colors ${
+                            isComplete
+                              ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+                              : "bg-white/10 border-white/20 text-white hover:bg-white/15 active:scale-[0.98]"
+                          }`}
+                        >
+                          <span className="font-semibold">{label}</span>
+                          <span className="tabular-nums font-bold text-lg">
+                            {count}<span className="text-white/50 font-normal">/{target}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedActionIndex(null)}
+                      className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/80 text-sm"
+                    >
+                      Fermer
+                    </button>
+                  </div>
                 ) : isDhikr ? (
                   <button
                     type="button"
