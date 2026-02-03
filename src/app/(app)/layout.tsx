@@ -79,6 +79,9 @@ export default function AppLayout({
         {children}
       </main>
       <AuthNudgePopup />
+      <p className="fixed bottom-16 left-0 right-0 z-10 text-center text-white/70 text-xs px-4 py-2 max-w-[420px] mx-auto">
+        De temps en temps, rafraîchis l&apos;app pour avoir les dernières mises à jour.
+      </p>
       <BottomNav />
     </div>
   );

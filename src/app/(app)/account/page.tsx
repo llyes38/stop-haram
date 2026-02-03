@@ -515,9 +515,6 @@ export default function AccountPage() {
           </div>
 
           <p className="text-white/40 text-xs text-center mt-2">Version 1.0</p>
-          <p className="text-white/35 text-[11px] text-center max-w-[280px] mx-auto mt-1.5">
-            De temps en temps, rafraîchis l&apos;app pour avoir les dernières mises à jour.
-          </p>
         </section>
       ) : (
         /* === CONTENU ONDLET (profil, objectifs, plan, notifications) === */
