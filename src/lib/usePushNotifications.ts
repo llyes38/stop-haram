@@ -28,7 +28,7 @@ export function usePushNotifications() {
       .catch(() => {});
   }, []);
 
-  const subscribe = useCallback(async () => {
+  const subscribe = useCallback(async (userId?: string) => {
     setError(null);
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       setStatus("unsupported");
@@ -66,7 +66,7 @@ export function usePushNotifications() {
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subJson }),
+        body: JSON.stringify({ subscription: subJson, userId: userId ?? undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -84,7 +84,7 @@ export function usePushNotifications() {
     }
   }, []);
 
-  const requestPermissionAndSubscribe = useCallback(async () => {
+  const requestPermissionAndSubscribe = useCallback(async (userId?: string) => {
     if (typeof Notification === "undefined") {
       setStatus("unsupported");
       return;
@@ -95,7 +95,7 @@ export function usePushNotifications() {
       setError("Autorisation refusée.");
       return;
     }
-    if (perm === "granted") await subscribe();
+    if (perm === "granted") await subscribe(userId);
   }, [subscribe]);
 
   return { status, error, subscribe, requestPermissionAndSubscribe };

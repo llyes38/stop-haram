@@ -247,17 +247,17 @@ export default function AccountPage() {
   const handleNotifPriereChange = (v: boolean) => {
     setNotifPriere(v);
     setNotifPriereState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
   };
   const handleNotifActionsChange = (v: boolean) => {
     setNotifActions(v);
     setNotifActionsState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
   };
   const handleNotifVersetHadithChange = (v: boolean) => {
     setNotifVersetHadith(v);
     setNotifVersetHadithState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe();
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
   };
 
   const handleSaveProfil = () => {
@@ -527,6 +527,24 @@ export default function AccountPage() {
         <>
       {tab === "notifications" && (
         <section className="space-y-5">
+          {pushStatus !== "subscribed" && pushStatus !== "denied" && (
+            <div className="rounded-xl bg-amber-500/15 border border-amber-400/30 px-4 py-4">
+              <p className="text-amber-200 text-sm font-medium mb-1">Autoriser les notifications sur cet appareil</p>
+              <p className="text-white/70 text-xs mb-3">Pour recevoir les rappels (check-in, actions du jour), ton téléphone doit autoriser l’app à envoyer des notifications. Clique ci-dessous : le navigateur affichera « Autoriser ».</p>
+              <button
+                type="button"
+                onClick={() => requestPermissionAndSubscribe(supabaseUser?.id)}
+                className="w-full rounded-xl bg-amber-500/40 border border-amber-400/50 py-3 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors"
+              >
+                Activer les notifications
+              </button>
+            </div>
+          )}
+          {pushStatus === "denied" && (
+            <p className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 text-red-200 text-sm">
+              Les notifications sont bloquées. Pour les activer : paramètres du navigateur → Autorisations → Notifications → StopHaram → Autoriser.
+            </p>
+          )}
           {pushStatus === "subscribed" && (
             <p className="rounded-xl bg-emerald-500/15 border border-emerald-400/25 px-4 py-3 text-emerald-200 text-sm">
               ✓ Notifications push activées. Tu recevras les rappels sur cet appareil.
@@ -553,12 +571,13 @@ export default function AccountPage() {
             />
           </div>
           <div className="mt-6 pt-4 border-t border-white/10">
+            <p className="text-white/60 text-xs mb-2">Tu ne reçois pas les notifs ? Bouge un toggle ci-dessus (ex. « Rappel actions du jour ») : le navigateur affichera « Autoriser » et tu recevras les rappels.</p>
             <p className="text-white/60 text-xs mb-2">Tester les notifications push</p>
             <button
               type="button"
               onClick={async () => {
                 try {
-                  const res = await fetch("/api/push/send", {
+                  const res = await fetch("/api/push/send-test", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

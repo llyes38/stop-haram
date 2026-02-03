@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { usePushNotifications } from "@/lib/usePushNotifications";
 import { supabase } from "@/lib/supabase/client";
 
 type Prefs = {
@@ -71,6 +72,7 @@ function fromTimeInput(s: string): string {
 export default function SettingsNotificationsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useSupabaseAuth();
+  const { status: pushStatus, requestPermissionAndSubscribe } = usePushNotifications();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -184,6 +186,25 @@ export default function SettingsNotificationsPage() {
         </div>
         <p className="text-white/70 text-sm">Check-in quotidien, actions du matin/soir et rappel optionnel. Les heures sont dans ton fuseau.</p>
       </header>
+
+      {pushStatus !== "subscribed" && pushStatus !== "denied" && (
+        <div className="rounded-xl bg-amber-500/15 border border-amber-400/30 px-4 py-4 mb-6">
+          <p className="text-amber-200 text-sm font-medium mb-1">Autoriser les notifications sur cet appareil</p>
+          <p className="text-white/70 text-xs mb-3">Pour recevoir les rappels à l’heure choisie, ton téléphone doit autoriser l’app. Clique ci-dessous : le navigateur affichera « Autoriser ».</p>
+          <button
+            type="button"
+            onClick={() => requestPermissionAndSubscribe(user?.id)}
+            className="w-full rounded-xl bg-amber-500/40 border border-amber-400/50 py-3 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors"
+          >
+            Activer les notifications
+          </button>
+        </div>
+      )}
+      {pushStatus === "denied" && (
+        <p className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 text-red-200 text-sm mb-6">
+          Les notifications sont bloquées. Paramètres du navigateur → Notifications → StopHaram → Autoriser.
+        </p>
+      )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Ville / Pays */}
