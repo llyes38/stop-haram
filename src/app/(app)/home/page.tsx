@@ -911,23 +911,19 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => router.push("/sadaqa")}
-                      className={`w-full rounded-xl border px-4 py-3.5 text-left flex items-center gap-3 transition-all ${
-                        sadaqaDoneToday
-                          ? "bg-white/5 border-white/10 opacity-70 hover:opacity-90"
-                          : "border-amber-400/35 bg-amber-500/15 hover:bg-amber-500/20"
-                      }`}
+                      className="w-full rounded-xl border border-amber-400/35 bg-amber-500/15 hover:bg-amber-500/20 px-4 py-3.5 text-left flex items-center gap-3 transition-all"
                     >
-                      <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm ${sadaqaDoneToday ? "bg-emerald-500/30 text-emerald-200" : "bg-amber-500/25 text-amber-200"}`} aria-hidden>
-                        {sadaqaDoneToday ? "✓" : "🤲"}
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm bg-amber-500/25 text-amber-200" aria-hidden>
+                        🤲
                       </span>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${sadaqaDoneToday ? "text-white/80 line-through" : "text-white"}`}>
+                        <p className="text-sm font-medium text-white">
                           Faire une sadaqa (don)
                         </p>
                         <p className="text-amber-200/80 text-xs mt-0.5">La sadaqa efface le péché comme l&apos;eau éteint le feu.</p>
                         {sadaqaDoneToday && (
-                          <span className="inline-block mt-1 rounded-full bg-emerald-500/30 px-2 py-0.5 text-emerald-200 text-xs font-semibold">
-                            Terminé
+                          <span className="inline-block mt-1 text-emerald-200/90 text-xs">
+                            Tu as déjà fait un don aujourd&apos;hui — tu peux en refaire si tu veux.
                           </span>
                         )}
                       </div>

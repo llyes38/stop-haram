@@ -4,8 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, getDailyActionsWithSins } from "@/lib/storage";
 import { getCompletedActionTitlesForToday } from "@/lib/dailyActions";
-import { getDons, hasDonToday } from "@/lib/sadaqaStorage";
+import { getDons } from "@/lib/sadaqaStorage";
 import { todayKey } from "@/lib/date";
+
+function formatDateIso(iso: string): string {
+  const d = new Date(iso + "T12:00:00");
+  const today = todayKey();
+  if (iso === today) return "Aujourd'hui";
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (iso === yesterday.toISOString().slice(0, 10)) return "Hier";
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+}
 
 const STORAGE_KEYS = { days_clean: "days_clean" } as const;
 
@@ -49,7 +59,7 @@ export default function ProgresPage() {
     setDonsToday(dons.filter((d) => d.dateIso === today).length);
     setRecentDons(
       dons
-        .slice(-10)
+        .slice()
         .reverse()
         .map((d) => ({ label: d.causeLabel, amount: d.amountEur, date: d.dateIso }))
     );
@@ -129,9 +139,9 @@ export default function ProgresPage() {
           </div>
         )}
 
-        {/* Carte : Dons enregistrés */}
+        {/* Partie : Dons que l'utilisateur a enregistrés */}
         <div className="space-y-2">
-          <h2 className="text-white/90 text-sm font-semibold">Dons enregistrés</h2>
+          <h2 className="text-white/90 text-sm font-semibold">Dons que tu as enregistrés</h2>
           <div className="rounded-xl bg-amber-500/10 border border-amber-400/25 px-4 py-4">
             <div className="flex items-center gap-3 mb-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-lg">
@@ -139,21 +149,26 @@ export default function ProgresPage() {
               </span>
               <div>
                 <p className="font-semibold text-white">
-                  {donsToday > 0 ? `${donsToday} don${donsToday > 1 ? "s" : ""} aujourd'hui` : "Aucun don aujourd'hui"}
+                  {recentDons.length > 0
+                    ? `${recentDons.length} don${recentDons.length > 1 ? "s" : ""} enregistré${recentDons.length > 1 ? "s" : ""}`
+                    : "Aucun don enregistré"}
                 </p>
                 <p className="text-white/60 text-xs">
-                  {recentDons.length > 0
-                    ? `${recentDons.length} don(s) récent(s) enregistré(s)`
-                    : "Tes dons enregistrés apparaîtront ici"}
+                  {donsToday > 0
+                    ? `${donsToday} don${donsToday > 1 ? "s" : ""} aujourd'hui`
+                    : "Tes dons apparaîtront ici quand tu en enregistreras un."}
                 </p>
               </div>
             </div>
             {recentDons.length > 0 && (
-              <ul className="space-y-2 border-t border-amber-400/20 pt-3">
-                {recentDons.slice(0, 5).map((d, i) => (
-                  <li key={i} className="flex justify-between items-center text-sm">
-                    <span className="text-white/80 truncate mr-2">{d.label}</span>
-                    <span className="text-amber-200 font-medium shrink-0">{d.amount} €</span>
+              <ul className="space-y-2.5 border-t border-amber-400/20 pt-3 max-h-64 overflow-y-auto">
+                {recentDons.map((d, i) => (
+                  <li key={i} className="flex justify-between items-start gap-2 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-white/90 block truncate">{d.label}</span>
+                      <span className="text-white/50 text-xs">{formatDateIso(d.date)}</span>
+                    </div>
+                    <span className="text-amber-200 font-semibold shrink-0">{d.amount} €</span>
                   </li>
                 ))}
               </ul>
