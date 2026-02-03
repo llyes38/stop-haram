@@ -654,7 +654,7 @@ const BASE_ACTIONS_PRIERE: Array<{ title: string; desc: string }> = [
 ];
 
 /** Actions spécifiques pour les péchés personnalisés ("autre") — mappés par mot-clé */
-const CUSTOM_SIN_ACTIONS: Record<string, { action1: Array<{ title: string; desc: string }>; focus: Array<{ title: string; desc: string }> }> = {
+export const CUSTOM_SIN_ACTIONS: Record<string, { action1: Array<{ title: string; desc: string }>; focus: Array<{ title: string; desc: string }> }> = {
   gaspillage: {
     action1: [
       { title: "Dire Alhamdulillah avant et après chaque repas", desc: "Remercie Allah pour chaque bouchée. La gratitude (shukr) nous empêche de gaspiller. Le Prophète (saws) ne critiquait jamais la nourriture." },

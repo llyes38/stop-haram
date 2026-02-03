@@ -21,11 +21,22 @@ export interface SadaqaCause {
   label: string;
   description: string;
   icon: string;
+  /** Lien externe vers un partenaire pour donner pour de vrai (ex. Ummah Charity). */
+  externalUrl?: string;
+  /** Nom du partenaire affiché (ex. "Ummah Charity"). */
+  partnerLabel?: string;
 }
 
 /** Liste des causes de dons (construct. puits, orphelins, etc.). À enrichir plus tard. */
 export const SADAQA_CAUSES: SadaqaCause[] = [
-  { id: "puits", label: "Construction de puits", description: "Eau potable pour des communautés.", icon: "💧" },
+  {
+    id: "puits",
+    label: "Construction de puits / forages",
+    description: "Eau potable pour des communautés. Forages durables (OMS).",
+    icon: "💧",
+    externalUrl: "https://ummahcharity.org/forage/",
+    partnerLabel: "Ummah Charity",
+  },
   { id: "orphelins", label: "Aider des orphelins", description: "Parrainage, éducation, soins.", icon: "🧒" },
   { id: "nourriture", label: "Nourriture (Ramadan, quotidien)", description: "Paniers, repas, soupes populaires.", icon: "🫒" },
   { id: "santé", label: "Santé et soins", description: "Médicaments, opérations, hôpitaux.", icon: "🏥" },
