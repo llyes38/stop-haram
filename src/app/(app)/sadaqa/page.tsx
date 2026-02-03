@@ -110,6 +110,15 @@ export default function SadaqaPage() {
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 text-lg">
                   {c.icon}
                 </span>
+                {getPartnerLogoUrl(c) && (
+                  <img
+                    src={getPartnerLogoUrl(c)!}
+                    alt=""
+                    className="h-8 w-8 shrink-0 rounded-full object-contain bg-white/10"
+                    width={32}
+                    height={32}
+                  />
+                )}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-white">{c.label}</p>
                   <p className="text-white/60 text-xs mt-0.5">{c.description}</p>
