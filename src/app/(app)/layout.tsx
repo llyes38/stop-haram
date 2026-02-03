@@ -21,7 +21,7 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isGuest: isGuestAuth } = useAuthStatus();
+  const { isGuest: isGuestAuth, user: authUser } = useAuthStatus();
   const [guestModeFlag, setGuestModeFlag] = useState(false);
   const [ready, setReady] = useState(false);
   const isGuest = isGuestAuth || guestModeFlag;
@@ -31,6 +31,12 @@ export default function AppLayout({
       setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && authUser) {
+      window.localStorage.removeItem("stopharam_intent_google");
+    }
+  }, [authUser]);
 
   useEffect(() => {
     if (!isLoggedIn()) {

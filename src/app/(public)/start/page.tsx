@@ -85,11 +85,28 @@ export default function StartCarouselPage() {
   const handleGoogleCommencer = async () => {
     setGoogleLoading(true);
     try {
-      const { data } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+      // Ne pas connecter Google tout de suite : l'utilisateur doit d'abord faire tout le parcours (onboarding + paiement).
+      // Après le paiement (checkout → signup), il pourra se connecter avec Google pour accéder à l'app.
+      await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("stopharam_intent_google", "true");
+      }
+      clearDecouverteSeen();
+      resetTemptationStats();
+      clearDefiDaysStatus();
+      setAuth({ isLoggedIn: true });
+      setState({
+        onboardingComplete: false,
+        lastRoute: undefined,
+        startDate: undefined,
+        dayCount: 0,
+        relapse: undefined,
       });
-      if (data?.url) window.location.href = data.url;
+      persistLocalStateToProgress(null);
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("stopharam_guest_mode");
+      }
+      router.push("/profile");
     } finally {
       setGoogleLoading(false);
     }
