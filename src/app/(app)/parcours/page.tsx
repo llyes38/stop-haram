@@ -16,7 +16,19 @@ import {
   POINTS_FOR_FREE_MONTH,
 } from "@/lib/pointsGratitude";
 import { copyToClipboard } from "@/lib/share";
+import { getDons } from "@/lib/sadaqaStorage";
+import { todayKey } from "@/lib/date";
 import type { SelectedSin } from "@/lib/storage";
+
+function formatDateIso(iso: string): string {
+  const d = new Date(iso + "T12:00:00");
+  const today = todayKey();
+  if (iso === today) return "Aujourd'hui";
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (iso === yesterday.toISOString().slice(0, 10)) return "Hier";
+  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+}
 
 const DEFI_JOURS = 30;
 type Tab = "parcours" | "progres";
@@ -267,6 +279,44 @@ export default function ParcoursPage() {
               )}
             </div>
           </div>
+          {/* Dons enregistrés */}
+          {(() => {
+            const dons = getDons().slice().reverse();
+            const today = todayKey();
+            const donsToday = dons.filter((d) => d.dateIso === today).length;
+            return (
+              <div className="rounded-2xl bg-amber-500/10 border border-amber-400/25 px-5 py-4">
+                <p className="text-amber-200 font-semibold text-sm mb-1">Dons enregistrés</p>
+                <p className="text-white/60 text-xs mb-3">
+                  {dons.length > 0
+                    ? donsToday > 0
+                      ? `${donsToday} don${donsToday > 1 ? "s" : ""} aujourd'hui · ${dons.length} au total`
+                      : `${dons.length} don${dons.length > 1 ? "s" : ""} enregistré${dons.length > 1 ? "s" : ""}`
+                    : "Tes dons apparaîtront ici quand tu en enregistreras un."}
+                </p>
+                {dons.length > 0 && (
+                  <ul className="space-y-2 border-t border-amber-400/20 pt-3 max-h-48 overflow-y-auto">
+                    {dons.slice(0, 8).map((d, i) => (
+                      <li key={i} className="flex justify-between items-start gap-2 text-sm">
+                        <div className="min-w-0 flex-1">
+                          <span className="text-white/90 block truncate">{d.causeLabel}</span>
+                          <span className="text-white/50 text-xs">{formatDateIso(d.dateIso)}</span>
+                        </div>
+                        <span className="text-amber-200 font-semibold shrink-0">{d.amountEur} €</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <button
+                  type="button"
+                  onClick={() => router.push("/sadaqa")}
+                  className="mt-3 w-full rounded-xl bg-amber-500/20 border border-amber-400/30 py-2.5 text-amber-200 text-sm font-medium hover:bg-amber-500/25 transition-colors"
+                >
+                  Faire un don
+                </button>
+              </div>
+            );
+          })()}
           <div className="rounded-2xl bg-violet-500/10 border border-violet-400/25 px-5 py-5">
             <p className="text-violet-200/95 text-sm font-medium text-center mb-1">Au fil de ta progression</p>
             <p className="text-white/90 text-sm text-center mb-3">Offre StopHaram à un proche — augmente ton bien et celui des autres.</p>
