@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { isOnboardingComplete } from "@/lib/authState";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 export default function LoginPage() {
@@ -17,10 +18,21 @@ export default function LoginPage() {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const callbackError = searchParams.get("error") === "callback";
 
+  useEffect(() => {
+    if (!isOnboardingComplete()) {
+      router.replace("/start");
+    }
+  }, [router]);
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Nouveau user (parcours non terminé) → doit faire onboarding + paiement sur /start, pas OAuth direct.
+      if (!isOnboardingComplete()) {
+        router.replace("/start");
+        return;
+      }
       const { data, error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=${encodeURIComponent(redirect)}` },
