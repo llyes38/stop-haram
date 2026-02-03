@@ -310,6 +310,9 @@ export default function HomePage() {
     setSadaqaDoneToday(hasDonToday());
     setDefiStatus(getDefiDaysStatus());
     setProfilePhoto(u?.profileInfo?.profilePhoto ?? null);
+    // Re-lit le nom à chaque affichage de la page (ex. retour du profil après modification)
+    const legacyName = typeof window === "undefined" ? null : window.localStorage.getItem("user_name");
+    setName(u?.name?.trim() || getProfile()?.name?.trim() || legacyName?.trim() || "");
   }, [pathname]);
 
   useEffect(() => {
