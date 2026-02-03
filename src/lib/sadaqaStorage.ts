@@ -1,5 +1,5 @@
 /**
- * Stockage des dons (sadaqa) — simulation, pas de paiement réel.
+ * Stockage des dons (sadaqa) — enregistrement pour le suivi personnel. Les vrais dons se font sur le site du partenaire.
  */
 
 const KEY = "stopharam_sadaqa_dons";

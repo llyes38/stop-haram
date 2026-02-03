@@ -89,14 +89,12 @@ export default function SadaqaPage() {
       {!selected ? (
         <>
           <p className="text-white/80 text-sm mb-3">
-            Choisis une cause pour ton don. <span className="text-amber-200/90">Paiement simulé</span> — aucun prélèvement réel.
+            Choisis une cause, puis donne directement sur la page du partenaire.
           </p>
           <div className="rounded-xl bg-amber-500/10 border border-amber-400/20 px-4 py-3 mb-4">
             <p className="text-amber-200/90 text-xs font-medium mb-1">Projets sadaqa</p>
             <p className="text-white/80 text-xs leading-relaxed">
-              Les projets sont <strong className="text-white">tracés</strong> et <strong className="text-white">mis en ligne</strong>, 
-              en partenariat avec des <strong className="text-white">sponsors authentiques</strong>. 
-              Quand les partenariats seront actifs, tu pourras donner pour de vrai.
+              Les dons se font sur le site de chaque association partenaire. Tu seras redirigé vers leur page sécurisée.
             </p>
           </div>
           <div className="grid gap-3">
@@ -138,7 +136,7 @@ export default function SadaqaPage() {
           <p className="text-emerald-200 font-semibold text-lg">Don enregistré</p>
           <p className="text-white/90 text-sm mt-1">Barakallahou fik.</p>
           <p className="text-white/60 text-xs mt-3">
-            {effectiveAmount} € — {selected.label} (simulation)
+            {effectiveAmount} € — {selected.label}
           </p>
           <div className="flex gap-3 mt-6">
             <button
@@ -202,7 +200,7 @@ export default function SadaqaPage() {
           )}
 
           <div>
-            <p className="text-white/80 text-sm font-medium mb-3">Montant (simulation)</p>
+            <p className="text-white/80 text-sm font-medium mb-3">Montant (pour enregistrer dans ton suivi)</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {AMOUNT_PRESETS.map((a) => (
                 <button
@@ -240,7 +238,7 @@ export default function SadaqaPage() {
           </div>
 
           <p className="text-white/50 text-xs">
-            Paiement simulé — aucun prélèvement. Les projets sont tracés et mis en ligne avec des sponsors authentiques ; les vrais dons arriveront quand les partenariats seront en place.
+            Pour donner, clique sur « Donner pour de vrai » ci-dessus : tu seras redirigé vers le site sécurisé du partenaire.
           </p>
 
           <div className="flex gap-3 pt-2">
@@ -260,17 +258,17 @@ export default function SadaqaPage() {
               {loading ? (
                 <>
                   <span className="inline-block h-4 w-4 rounded-full border-2 border-amber-200/60 border-t-amber-200 animate-spin" />
-                  Simulation…
+                  Enregistrement…
                 </>
               ) : (
-                <>Faire le don · {effectiveAmount} €</>
+                <>Enregistrer mon don · {effectiveAmount} €</>
               )}
             </button>
           </div>
         </div>
       )}
 
-      {(!selected || !done) && (
+      {selected && !done && (
         <button
           type="button"
           onClick={() => router.push("/home")}

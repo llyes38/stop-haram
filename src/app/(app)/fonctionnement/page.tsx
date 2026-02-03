@@ -258,7 +258,7 @@ export default function FonctionnementPage() {
               <li>En partenariat avec des <strong className="text-white">sponsors authentiques</strong></li>
             </ul>
             <p className="text-white/70 text-xs mt-3">
-              Pour l&apos;instant, le paiement est simulé. Quand les partenariats seront en place, tu pourras donner pour de vrai.
+              Les dons se font directement sur le site de chaque association partenaire (lien sécurisé).
             </p>
           </div>
         </section>
