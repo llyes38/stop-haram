@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, saveUser, getSinLabel, getDailyActionLabels } from "@/lib/storage";
-import { getAideForSin } from "@/lib/urgenceAide";
+import { getAideForSin, getRappelEnfant, getRappelMarie, getRappelConverti, getRappelMarieSousTexte, getRappelConvertiSousTexte } from "@/lib/urgenceAide";
 import { incrementResisted } from "@/lib/temptationStats";
 import { setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { clearTodayActions } from "@/lib/dailyActions";
@@ -164,6 +164,9 @@ export default function UrgencePage() {
 
   const sins = user?.selectedSins?.length ? user.selectedSins : (["autre"] as SelectedSin[]);
   const aide = selectedSinCraquer ? getAideForSin(selectedSinCraquer) : null;
+  const rappelEnfant = selectedSinCraquer && user ? getRappelEnfant(selectedSinCraquer, user) : null;
+  const rappelMarie = selectedSinCraquer && user ? getRappelMarie(selectedSinCraquer, user) : null;
+  const rappelConverti = selectedSinCraquer && user ? getRappelConverti(selectedSinCraquer, user) : null;
 
   return (
     <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white relative">
@@ -267,6 +270,39 @@ export default function UrgencePage() {
                 </p>
               )}
             </div>
+
+            {rappelEnfant && (
+              <div className="rounded-2xl bg-amber-500/20 border-2 border-amber-400/50 px-5 py-5 text-center">
+                <p className="text-amber-200 font-semibold text-base leading-relaxed">
+                  {rappelEnfant}
+                </p>
+                <p className="text-amber-200/80 text-xs mt-2">
+                  Pense à eux. Tu peux tenir.
+                </p>
+              </div>
+            )}
+
+            {rappelMarie && (
+              <div className="rounded-2xl bg-violet-500/15 border-2 border-violet-400/40 px-5 py-5 text-center">
+                <p className="text-violet-200 font-semibold text-sm leading-relaxed">
+                  {rappelMarie}
+                </p>
+                <p className="text-violet-200/80 text-xs mt-2">
+                  {getRappelMarieSousTexte()}
+                </p>
+              </div>
+            )}
+
+            {rappelConverti && (
+              <div className="rounded-2xl bg-cyan-500/15 border-2 border-cyan-400/40 px-5 py-5 text-center">
+                <p className="text-cyan-200 font-semibold text-sm leading-relaxed">
+                  {rappelConverti}
+                </p>
+                <p className="text-cyan-200/80 text-xs mt-2">
+                  {getRappelConvertiSousTexte()}
+                </p>
+              </div>
+            )}
 
             <div className="space-y-4">
               <blockquote className="text-white/70 text-sm leading-relaxed italic pl-4 border-l-2 border-emerald-400/40">
