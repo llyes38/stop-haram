@@ -117,6 +117,7 @@ export default function BottomNav() {
             }
             const { href, label, icon } = tab as { href: string; label: string; icon: string };
           const active = pathname === href;
+          const isCommunity = href === "/community";
           return (
             <Link
               key={href}
@@ -126,7 +127,14 @@ export default function BottomNav() {
               }`}
               aria-current={active ? "page" : undefined}
             >
-              <TabIcon icon={icon} active={active} />
+              <div className="relative">
+                <TabIcon icon={icon} active={active} />
+                {isCommunity && (
+                  <span className="absolute -top-1 -right-2 rounded bg-amber-500/80 text-[8px] font-bold text-amber-950 px-1" title="En construction">
+                    BETA
+                  </span>
+                )}
+              </div>
               <span className="text-[10px] font-medium">{label}</span>
             </Link>
           );

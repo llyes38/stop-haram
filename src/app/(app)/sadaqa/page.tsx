@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   SADAQA_HADITH,
@@ -59,6 +59,28 @@ export default function SadaqaPage() {
     setCustomAmount("");
     setDone(false);
   };
+
+  // Quand une cause est sélectionnée, ajouter une entrée dans l'historique pour que le bouton "retour" du téléphone revienne à la liste
+  useEffect(() => {
+    if (selected) {
+      window.history.pushState({ sadaqaDetail: true }, "", window.location.pathname);
+    }
+  }, [selected]);
+
+  // Intercepter le bouton retour du navigateur/téléphone : revenir à la liste des dons au lieu de quitter la page
+  const selectedRef = useRef(selected);
+  const handleBackRef = useRef(handleBack);
+  selectedRef.current = selected;
+  handleBackRef.current = handleBack;
+  useEffect(() => {
+    const onPopState = () => {
+      if (selectedRef.current) {
+        handleBackRef.current();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const partnerLogoUrl = selected ? getPartnerLogoUrl(selected) : null;
 

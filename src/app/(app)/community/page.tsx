@@ -72,9 +72,14 @@ export default function CommunityPage() {
   return (
     <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white max-w-[420px] mx-auto">
       <header className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight text-white">Communauté</h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h1 className="text-xl font-bold tracking-tight text-white">Communauté</h1>
+          <span className="inline-flex items-center rounded-full bg-amber-500/30 border border-amber-400/50 px-2.5 py-0.5 text-xs font-semibold text-amber-200">
+            BETA
+          </span>
+        </div>
         <p className="text-white/60 text-sm mt-1">
-          Avance avec d&apos;autres Stopprs. Chaque semaine, un défi simple. Ensemble, c&apos;est plus facile.
+          En construction. Avance avec d&apos;autres Stopprs. Chaque semaine, un défi simple. Ensemble, c&apos;est plus facile.
         </p>
       </header>
 
