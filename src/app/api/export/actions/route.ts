@@ -2,11 +2,21 @@ import { NextResponse } from "next/server";
 import { ACTION_1, FOCUS_ACTIONS, CUSTOM_SIN_ACTIONS } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
 
+/** Évite le prerender au build (ACTION_1 / FOCUS_ACTIONS peuvent être undefined en contexte statique). */
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/export/actions — Liste de toutes les actions par type de péché (JSON).
  * Pour étudier les actions côté projet ou les réutiliser.
  */
 export async function GET() {
+  if (!ACTION_1 || !FOCUS_ACTIONS) {
+    return NextResponse.json(
+      { error: "Données actions non disponibles." },
+      { status: 503 }
+    );
+  }
+
   const sinLabels: Record<SelectedSin, string> = {
     porno: "Relations illicites",
     musique: "Musique",
