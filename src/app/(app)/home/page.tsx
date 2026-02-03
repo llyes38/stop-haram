@@ -967,7 +967,7 @@ export default function HomePage() {
         <div className="rounded-2xl bg-amber-500/15 border-2 border-amber-400/40 px-5 py-5">
           <p className="text-amber-200 font-semibold text-center mb-2">Débloque tout le parcours</p>
           <p className="text-white/90 text-sm text-center mb-4">
-            Crée un compte pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours, à la communauté et à la synchronisation sur tous tes appareils.
+            Crée un compte pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours et à la synchronisation sur tous tes appareils.
           </p>
           <button
             type="button"
