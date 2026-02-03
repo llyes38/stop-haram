@@ -347,7 +347,8 @@ export default function HomePage() {
 
   useEffect(() => {
     const items = actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }));
-    const allDone = items.every((item) => {
+    const itemsToValidate = items.filter((item) => item.title !== "Invocations du matin");
+    const allDone = itemsToValidate.every((item) => {
       const label = item.title;
       const isDhikr = /dhikr|invocation/i.test(label);
       return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
@@ -404,7 +405,6 @@ export default function HomePage() {
     return () => clearTimeout(t);
   }, [supabaseUser?.id]);
 
-  const displayName = name?.trim() || null;
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
   const currentStatut = getCurrentStatut(streakDays ?? null);
 
@@ -530,11 +530,6 @@ export default function HomePage() {
             className="hidden"
             aria-hidden
           />
-          {displayName && (
-            <p className="text-white font-semibold text-base truncate shrink min-w-0" title={displayName}>
-              {displayName}
-            </p>
-          )}
           <div className="min-w-0">
             <StopHaramLogo size={140} variant="dark" className="block" />
             <div className="flex items-center gap-2 mt-0.5">
@@ -701,11 +696,7 @@ export default function HomePage() {
         ) : (
           <>
             <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
-              {displayName ? (
-                <><span className="text-white">{displayName}</span>, tu es sur la bonne voie depuis</>
-              ) : (
-                "Tu es sur la bonne voie depuis"
-              )}
+              Tu es sur la bonne voie depuis
             </p>
             <div className="text-center">
               {hasStreak && (
@@ -828,12 +819,15 @@ export default function HomePage() {
                 </button>
               </div>
             ) : (() => {
-              const actionsCount = actionLabels.length;
-              const allDone = (actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }))).every((item, i) => {
-                const label = "title" in item ? item.title : item;
-                const isDhikr = /dhikr|invocation/i.test(label);
-                return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
-              });
+              const itemsToCount = actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }));
+              const actionsCount = itemsToCount.filter((item) => item.title !== "Invocations du matin").length;
+              const allDone = itemsToCount
+                .filter((item) => item.title !== "Invocations du matin")
+                .every((item) => {
+                  const label = "title" in item ? item.title : item;
+                  const isDhikr = /dhikr|invocation/i.test(label);
+                  return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
+                });
               return (
                 <>
                   <div className="flex items-center justify-between gap-3 mb-1">
@@ -844,7 +838,7 @@ export default function HomePage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount}. Si tu rechutes, tu perds la validation du jour.</p>
+                  <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount} actions (1, 2, 3). L&apos;action commune ★ ne compte pas. Si tu rechutes, tu perds la validation du jour.</p>
                   <div className="space-y-3">
                     {(() => {
                       const u = getUser();
