@@ -25,6 +25,8 @@ export interface SadaqaCause {
   externalUrl?: string;
   /** Nom du partenaire affiché (ex. "Ummah Charity"). */
   partnerLabel?: string;
+  /** URL du logo de l'association partenaire (affiché sur le don). Si absent, un favicon du domaine est utilisé. */
+  partnerLogoUrl?: string;
 }
 
 /** Liste des causes de dons (construct. puits, orphelins, etc.). À enrichir plus tard. */
@@ -36,6 +38,7 @@ export const SADAQA_CAUSES: SadaqaCause[] = [
     icon: "💧",
     externalUrl: "https://ummahcharity.org/forage/",
     partnerLabel: "Ummah Charity",
+    partnerLogoUrl: "https://ummahcharity.org/favicon.ico",
   },
   { id: "orphelins", label: "Aider des orphelins", description: "Parrainage, éducation, soins.", icon: "🧒" },
   { id: "nourriture", label: "Nourriture (Ramadan, quotidien)", description: "Paniers, repas, soupes populaires.", icon: "🫒" },

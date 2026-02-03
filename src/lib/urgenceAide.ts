@@ -185,29 +185,40 @@ export function getRappelEnfant(sin: SelectedSin, user: StopHaramUser | null): s
   return messages[sin] ?? messages.autre;
 }
 
+/** "ta conjointe" si homme, "ton conjoint" si femme (pour les rappels marié). */
+function getConjointLabel(user: StopHaramUser): string {
+  return user?.profileInfo?.genre === "homme" ? "ta conjointe" : "ton conjoint";
+}
+
 /** Rappel lié au fait d'être marié(e). Retourne null si pas marié. */
 export function getRappelMarie(sin: SelectedSin, user: StopHaramUser | null): string | null {
   if (!user?.profileInfo || user.profileInfo.situation !== "marie") return null;
 
+  const c = getConjointLabel(user);
+  const present = user.profileInfo.genre === "homme" ? "sois présent" : "sois présente";
+  const seul = user.profileInfo.genre === "homme" ? "seul" : "seule";
+
   const messages: Record<SelectedSin, string> = {
-    porno: "Tu as fait une promesse à ton conjoint devant Allah. Reste fidèle — la fidélité protège ton foyer et ton nikah.",
-    regard: "Ton conjoint mérite ton regard et ta pudeur. Détourne-toi de ce qui n'est pas pour toi.",
+    porno: `Tu as fait une promesse à ${c} devant Allah. Reste fidèle — la fidélité protège ton foyer et ton nikah.`,
+    regard: `${c.charAt(0).toUpperCase() + c.slice(1)} mérite ton regard et ta pudeur. Détourne-toi de ce qui n'est pas pour toi.`,
     colere: "Pense à ton couple. La colère brise ce qu'on a bâti. Le Prophète (saws) a dit : le meilleur d'entre vous est celui qui est meilleur envers sa famille.",
-    drogue: "Ton conjoint et ta famille comptent sur toi. Tiens bon pour eux — tu es un pilier du foyer.",
-    alcool: "Ton conjoint et ta famille comptent sur toi. Un verre de moins, c'est les garder et honorer ton engagement.",
-    jeux: "Ton conjoint mérite ton temps et ta présence. Pose l'écran et sois présent(e) — le mariage est une amana.",
-    mensonge: "La confiance de ton conjoint mérite la vérité. Ne la brise pas ; la sincérité fortifie le couple.",
+    drogue: `${c.charAt(0).toUpperCase() + c.slice(1)} et ta famille comptent sur toi. Tiens bon pour eux — tu es un pilier du foyer.`,
+    alcool: `${c.charAt(0).toUpperCase() + c.slice(1)} et ta famille comptent sur toi. Un verre de moins, c'est les garder et honorer ton engagement.`,
+    jeux: `${c.charAt(0).toUpperCase() + c.slice(1)} mérite ton temps et ta présence. Pose l'écran et ${present} — le mariage est une amana.`,
+    mensonge: `La confiance de ${c} mérite la vérité. Ne la brise pas ; la sincérité fortifie le couple.`,
     priere: "Ton foyer a besoin de ta prière. Prie ensemble quand tu peux — la prière en couple bénit la maison.",
-    musique: "Quel exemple pour ton conjoint ? Remplace par du dhikr ou du Coran et construisez un foyer pieux.",
-    autre: "Pense à ton conjoint. Tu n'es pas seul(e) — tiens bon pour votre foyer et votre engagement devant Allah.",
+    musique: `Quel exemple pour ${c} ? Remplace par du dhikr ou du Coran et construisez un foyer pieux.`,
+    autre: `Pense à ${c}. Tu n'es pas ${seul} — tiens bon pour votre foyer et votre engagement devant Allah.`,
   };
 
   return messages[sin] ?? messages.autre;
 }
 
 /** Sous-rappel affiché sous le bloc marié (renforcement). */
-export function getRappelMarieSousTexte(): string {
-  return "Pense à ton foyer. Ton conjoint compte sur toi.";
+export function getRappelMarieSousTexte(user: StopHaramUser | null): string {
+  if (!user) return "Pense à ton foyer.";
+  const c = getConjointLabel(user);
+  return `Pense à ton foyer. ${c.charAt(0).toUpperCase() + c.slice(1)} compte sur toi.`;
 }
 
 /** Rappel lié au fait d'être converti(e). Retourne null si pas converti. */

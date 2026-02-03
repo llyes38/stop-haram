@@ -288,7 +288,7 @@ export default function UrgencePage() {
                   {rappelMarie}
                 </p>
                 <p className="text-violet-200/80 text-xs mt-2">
-                  {getRappelMarieSousTexte()}
+                  {getRappelMarieSousTexte(user)}
                 </p>
               </div>
             )}
