@@ -252,8 +252,11 @@ export default function SettingsNotificationsPage() {
 
         {/* Check-in quotidien */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-white/90 text-sm font-medium">Check-in quotidien</label>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Check-in quotidien</label>
+              <p className="text-white/55 text-xs mt-0.5">Rappel pour faire ton check-in du jour (comment tu vas, rechute, etc.).</p>
+            </div>
             <button
               type="button"
               role="switch"
@@ -280,8 +283,11 @@ export default function SettingsNotificationsPage() {
 
         {/* Actions matin */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-white/90 text-sm font-medium">Rappel actions du matin</label>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Rappel actions du matin</label>
+              <p className="text-white/55 text-xs mt-0.5">Rappel le matin pour penser à tes actions du jour (invocations, objectifs).</p>
+            </div>
             <button
               type="button"
               role="switch"
@@ -308,8 +314,11 @@ export default function SettingsNotificationsPage() {
 
         {/* Actions soir */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-white/90 text-sm font-medium">Rappel actions du soir</label>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Rappel actions du soir</label>
+              <p className="text-white/55 text-xs mt-0.5">Rappel le soir pour valider ou faire les actions du jour avant la nuit.</p>
+            </div>
             <button
               type="button"
               role="switch"
@@ -336,8 +345,11 @@ export default function SettingsNotificationsPage() {
 
         {/* Rappel optionnel (sin) */}
         <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-white/90 text-sm font-medium">Rappel personnalisé</label>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Rappel personnalisé</label>
+              <p className="text-white/55 text-xs mt-0.5">Un rappel à l&apos;heure que tu choisis (optionnel).</p>
+            </div>
             <button
               type="button"
               role="switch"
