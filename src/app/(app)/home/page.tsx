@@ -979,23 +979,6 @@ export default function HomePage() {
         </div>
         )}
 
-        {/* Lien vers Coin Communauté — verrouillé en mode essai */}
-        {isGuest ? (
-          <LockedFeatureCard
-            title="🤝 Communauté"
-            description="Défis de la semaine, WhatsApp, partage avec les Stopprs."
-          />
-        ) : (
-        <button
-          type="button"
-          onClick={() => router.push("/community")}
-          className="w-full rounded-2xl bg-white/5 border border-white/10 px-5 py-4 text-left hover:bg-white/10 transition-colors"
-        >
-          <span className="text-white font-semibold text-base">🤝 Communauté</span>
-          <p className="text-white/60 text-sm mt-1">Défis de la semaine, WhatsApp, partage</p>
-        </button>
-        )}
-
         {/* Rappel prière + Horaires — verrouillé en mode essai */}
         {isGuest ? (
           <LockedFeatureCard
