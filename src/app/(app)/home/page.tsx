@@ -464,6 +464,11 @@ export default function HomePage() {
               </div>
             )}
           </button>
+          {displayName && (
+            <p className="text-white font-semibold text-base truncate shrink min-w-0" title={displayName}>
+              {displayName}
+            </p>
+          )}
           <div className="min-w-0">
             <StopHaramLogo size={140} variant="dark" className="block" />
             <div className="flex items-center gap-2 mt-0.5">
