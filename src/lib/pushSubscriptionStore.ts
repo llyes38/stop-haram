@@ -9,7 +9,8 @@ export type PushSubscriptionJSON = {
   keys: { p256dh: string; auth: string };
 };
 
-const KEY = "stopharam_push_subs";
+const KEY_GLOBAL = "stopharam_push_subs";
+const KEY_PREFIX_USER = "stopharam_push_subs:";
 
 // Mémoire (fallback local)
 type SubscriptionRecord = { subscription: PushSubscriptionJSON; userId?: string };
@@ -43,13 +44,14 @@ export async function addPushSubscription(
 ): Promise<void> {
   if (useRedis()) {
     const redis = await getRedisClient();
-    const raw = await redis.get<PushSubscriptionJSON[]>(KEY);
+    const key = userId ? `${KEY_PREFIX_USER}${userId}` : KEY_GLOBAL;
+    const raw = await redis.get<PushSubscriptionJSON[]>(key);
     const list = Array.isArray(raw) ? raw : [];
     const idx = list.findIndex((s) => s.endpoint === subscription.endpoint);
     const record = { ...subscription };
     if (idx >= 0) list[idx] = record;
     else list.push(record);
-    await redis.set(KEY, list);
+    await redis.set(key, list);
     return;
   }
   const idx = memoryStore.findIndex((s) => s.subscription.endpoint === subscription.endpoint);
@@ -58,11 +60,44 @@ export async function addPushSubscription(
   else memoryStore.push(record);
 }
 
+/** Retourne les abonnements push d'un utilisateur (pour envoi ciblé). */
+export async function getSubscriptionsByUserId(userId: string): Promise<PushSubscriptionJSON[]> {
+  if (useRedis()) {
+    try {
+      const redis = await getRedisClient();
+      const key = `${KEY_PREFIX_USER}${userId}`;
+      const raw = await redis.get<PushSubscriptionJSON[]>(key);
+      return Array.isArray(raw) ? raw : [];
+    } catch {
+      return [];
+    }
+  }
+  return memoryStore.filter((s) => s.userId === userId).map((s) => s.subscription);
+}
+
+/** Supprime un abonnement par endpoint (ex. après 410 Gone). */
+export async function removePushSubscriptionByEndpoint(
+  endpoint: string,
+  userId?: string
+): Promise<void> {
+  if (useRedis()) {
+    const redis = await getRedisClient();
+    const key = userId ? `${KEY_PREFIX_USER}${userId}` : KEY_GLOBAL;
+    const raw = await redis.get<PushSubscriptionJSON[]>(key);
+    const list = Array.isArray(raw) ? raw : [];
+    const next = list.filter((s) => s.endpoint !== endpoint);
+    await redis.set(key, next);
+    return;
+  }
+  const idx = memoryStore.findIndex((s) => s.subscription.endpoint === endpoint);
+  if (idx >= 0) memoryStore.splice(idx, 1);
+}
+
 export async function getAllSubscriptions(): Promise<PushSubscriptionJSON[]> {
   if (useRedis()) {
     try {
       const redis = await getRedisClient();
-      const raw = await redis.get<PushSubscriptionJSON[]>(KEY);
+      const raw = await redis.get<PushSubscriptionJSON[]>(KEY_GLOBAL);
       return Array.isArray(raw) ? raw : [];
     } catch {
       return [];

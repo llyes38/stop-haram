@@ -157,4 +157,13 @@ Pour **2 notifications** par jour (matin + soir) :
 | Changer l’heure du rappel | `vercel.json` → `schedule`     | `"0 9 * * *"` = 10h Paris (hiver) |
 | Ajouter un 2ᵉ rappel (soir) | Nouvelle route + 2ᵉ entrée dans `crons` | Rappel soir à 18h Paris          |
 
-Pour que **chaque utilisateur** choisisse son heure (ex. 8h, 9h ou 10h), il faudrait en plus stocker l’heure préférée par abonnement (Redis/DB) et adapter le cron (ex. un cron qui tourne toutes les heures et n’envoie qu’aux users dont l’heure préférée est maintenant).
+---
+
+## Rappels planifiés par utilisateur (QStash)
+
+Chaque utilisateur peut configurer ses rappels (check-in quotidien, actions matin/soir, rappel optionnel) dans **Compte → Rappels planifiés (push)** (`/settings/notifications`). Les préférences sont stockées dans Supabase (`notification_prefs`). L’envoi repose sur **Upstash QStash** pour contourner la limite d’un cron par jour sur Vercel Hobby.
+
+- **Planification** : `POST /api/cron/daily?secret=CRON_SECRET` — à appeler 1 fois par jour (ex. 03:00 UTC).
+- **Envoi** : `POST /api/cron/tick?secret=CRON_SECRET` — à appeler toutes les 15 minutes.
+
+Détail : voir **`docs/QSTASH-SCHEDULES.md`**.
