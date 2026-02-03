@@ -85,8 +85,19 @@ export default function StartCarouselPage() {
   const handleGoogleCommencer = async () => {
     setGoogleLoading(true);
     try {
-      // Ne pas connecter Google tout de suite : l'utilisateur doit d'abord faire tout le parcours (onboarding + paiement).
-      // Après le paiement (checkout → signup), il pourra se connecter avec Google pour accéder à l'app.
+      // Déjà inscrit (onboarding + paiement terminés) → connexion Google directe vers l'app
+      if (isOnboardingComplete()) {
+        const { data, error: err } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+        });
+        if (err) return;
+        if (data?.url) {
+          window.location.href = data.url;
+          return;
+        }
+      }
+      // Nouveau user : ne pas connecter Google tout de suite, faire tout le parcours (onboarding + paiement) puis signup
       await supabase.auth.signOut();
       if (typeof window !== "undefined") {
         window.localStorage.setItem("stopharam_intent_google", "true");
