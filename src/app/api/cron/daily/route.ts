@@ -22,6 +22,7 @@ type NotificationPrefRow = {
   sin_reminder_time: string;
   quiet_start: string;
   quiet_end: string;
+  checkin_2h_enabled?: boolean;
 };
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const rows: { user_id: string; type: string; scheduled_at: string; payload: object }[] = [];
+    const countsByType: Record<string, number> = {};
 
     for (const p of (prefs ?? []) as NotificationPrefRow[]) {
       const tz = p.timezone || "Europe/Paris";
@@ -96,6 +98,7 @@ export async function POST(request: NextRequest) {
           scheduled_at: scheduled.toISOString(),
           payload: { title, body, url },
         });
+        countsByType[type] = (countsByType[type] ?? 0) + 1;
       };
 
       if (p.daily_checkin_enabled) {
@@ -169,7 +172,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ queued: rows.length, users: prefs?.length ?? 0 });
+    return NextResponse.json({ queued: rows.length, users: prefs?.length ?? 0, by_type: countsByType });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erreur inconnue";
     return NextResponse.json(

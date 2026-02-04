@@ -79,7 +79,12 @@ export async function POST(request: NextRequest) {
         .eq("id", row.id);
     }
 
-    return NextResponse.json({ processed: items.length, sent, failed });
+    return NextResponse.json({
+      processed: items.length,
+      sent,
+      failed,
+      ...(failed > 0 && { hint: "failed = souvent aucun abonnement push pour cet user (activer notifs dans l'app)" }),
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erreur inconnue";
     return NextResponse.json(
