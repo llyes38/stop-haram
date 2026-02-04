@@ -79,7 +79,7 @@ export default function SignupPage() {
     try {
       const { error: err } = await supabase.auth.signInWithOtp({
         email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+        options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?redirect=/home` },
       });
       if (err) setError(err.message);
       else setMagicLinkSent(true);

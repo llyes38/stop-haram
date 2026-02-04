@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getSiteUrl } from "@/lib/siteUrl";
 
 export default function GoogleSetupPage() {
   const [data, setData] = useState<{ redirectUri?: string; error?: string } | null>(null);
+  const siteUrl = getSiteUrl();
 
   useEffect(() => {
     fetch("/api/auth/google-redirect-uri")
@@ -35,7 +37,7 @@ export default function GoogleSetupPage() {
           <ol className="text-sm text-white/70 space-y-1 list-decimal list-inside">
             <li><a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="text-emerald-400 underline">Credentials</a> → Create Credentials → OAuth client ID.</li>
             <li>Application type : <strong>Web application</strong>.</li>
-            <li>Authorized JavaScript origins : <code className="bg-black/30 px-1 rounded">https://stop-haram.vercel.app</code> (et <code className="bg-black/30 px-1 rounded">http://localhost:3000</code> si tu testes en local).</li>
+            <li>Authorized JavaScript origins : <code className="bg-black/30 px-1 rounded">{siteUrl}</code> (et <code className="bg-black/30 px-1 rounded">http://localhost:3000</code> si tu testes en local).</li>
             <li>Authorized redirect URIs : ajoute <strong>exactement</strong> l’URI ci-dessous (c’est l’URL Supabase, pas ton site).</li>
           </ol>
           {data?.error && <p className="text-red-300 text-sm">{data.error}</p>}
@@ -62,8 +64,8 @@ export default function GoogleSetupPage() {
           <h2 className="font-semibold text-emerald-300">Étape 4 — Supabase : URL Configuration</h2>
           <ol className="text-sm text-white/70 space-y-1 list-decimal list-inside">
             <li>Authentication → URL Configuration.</li>
-            <li>Site URL : <code className="bg-black/30 px-1 rounded">https://stop-haram.vercel.app</code></li>
-            <li>Redirect URLs : ajoute <code className="bg-black/30 px-1 rounded">https://stop-haram.vercel.app/api/auth/callback</code> (et <code className="bg-black/30 px-1 rounded">http://localhost:3000/api/auth/callback</code> si besoin).</li>
+            <li>Site URL : <code className="bg-black/30 px-1 rounded">{siteUrl}</code></li>
+            <li>Redirect URLs : ajoute <code className="bg-black/30 px-1 rounded">{siteUrl}/api/auth/callback</code> et <code className="bg-black/30 px-1 rounded">{siteUrl}/auth/confirm</code> (et <code className="bg-black/30 px-1 rounded">http://localhost:3000/api/auth/callback</code>, <code className="bg-black/30 px-1 rounded">http://localhost:3000/auth/confirm</code> si besoin).</li>
             <li>Save.</li>
           </ol>
         </section>

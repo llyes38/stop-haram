@@ -135,7 +135,7 @@ export default function StartCarouselPage() {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: magicEmail.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+        options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?redirect=/home` },
       });
       if (error) setMagicError(error.message);
       else setMagicLinkSent(true);

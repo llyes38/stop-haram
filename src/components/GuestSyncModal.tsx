@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
 import {
   hasGuestProgress,
@@ -21,6 +22,7 @@ const MODAL_DISMISSED_KEY = "stopharam_guest_sync_modal_dismissed";
  * - Non => ne pas écraser Supabase (par défaut), marquer modal comme vue
  */
 export default function GuestSyncModal() {
+  const router = useRouter();
   const { user, isAuthenticated } = useAuthStatus();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,10 @@ export default function GuestSyncModal() {
         const merged: ProgressData = { ...guest, ...existing };
         await saveProgress(merged, user.id);
         if (guest.state && typeof guest.state === "object") {
-          setState(guest.state as StopharamState);
+          const state = guest.state as StopharamState;
+          setState({ ...state, onboardingComplete: true });
+        } else {
+          setState({ onboardingComplete: true });
         }
         if (guest.profile && typeof guest.profile === "object") {
           setProfile(guest.profile as StopharamProfile);
@@ -55,6 +60,7 @@ export default function GuestSyncModal() {
       clearGuestProgress();
       window.sessionStorage.setItem(MODAL_DISMISSED_KEY, "1");
       setOpen(false);
+      router.replace("/home");
     } finally {
       setLoading(false);
     }
