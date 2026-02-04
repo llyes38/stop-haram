@@ -23,12 +23,6 @@ import {
 import PrayerTimesCard from "@/components/PrayerTimesCard";
 import QuizLudiqueBlock from "@/components/QuizLudiqueBlock";
 import { todayKey } from "@/lib/date";
-import {
-  getNotifPriere,
-  setNotifPriere,
-  getNotifActions,
-  setNotifActions,
-} from "@/lib/notificationPrefs";
 import { hasDonToday } from "@/lib/sadaqaStorage";
 import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { addDefiDayPoints } from "@/lib/pointsGratitude";
@@ -203,46 +197,6 @@ function getVerseOuHadithPourAction(
   return VERSETS_GENERIQUES[idx];
 }
 
-function HomeNotifToggle({
-  label,
-  checked,
-  onToggle,
-  offMessage,
-}: {
-  label: string;
-  checked: boolean;
-  onToggle: (v: boolean) => void;
-  offMessage: string;
-}) {
-  return (
-    <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-white/90 text-sm font-medium">{label}</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={checked}
-          onClick={() => onToggle(!checked)}
-          className={`relative inline-flex h-7 w-12 flex-shrink-0 rounded-full border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${
-            checked ? "border-emerald-400/50 bg-emerald-500/30" : "border-white/20 bg-white/10"
-          }`}
-        >
-          <span
-            className={`pointer-events-none inline-block h-6 w-6 translate-y-0.5 rounded-full bg-white shadow transition-transform ${
-              checked ? "translate-x-5" : "translate-x-0.5"
-            }`}
-          />
-        </button>
-      </div>
-      {!checked && (
-        <p className="text-amber-200/90 text-xs mt-2.5 leading-relaxed">
-          {offMessage}
-        </p>
-      )}
-    </div>
-  );
-}
-
 function formatElapsed(ms: number): { days: number; hours: number; minutes: number; seconds: number } {
   const sec = Math.floor(ms / 1000) % 60;
   const min = Math.floor(ms / 60000) % 60;
@@ -292,8 +246,6 @@ export default function HomePage() {
   const [focusSin, setFocusSin] = useState<SelectedSin | null>(null);
   const [baseSin, setBaseSin] = useState<SelectedSin | null>(null);
   const [dhikrDoneToday, setDhikrDoneToday] = useState(false);
-  const [notifPriere, setNotifPriereState] = useState(true);
-  const [notifActions, setNotifActionsState] = useState(true);
   const [sadaqaDoneToday, setSadaqaDoneToday] = useState(false);
   const [defiStatus, setDefiStatus] = useState<Record<number, "validated" | "failed">>({});
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
@@ -334,8 +286,6 @@ export default function HomePage() {
       const rawSoir = window.localStorage.getItem("dhikr_soir_done");
       setDhikrSoirDoneToday(rawSoir === todayKey());
     }
-    setNotifPriereState(getNotifPriere());
-    setNotifActionsState(getNotifActions());
     setSadaqaDoneToday(hasDonToday());
     setDefiStatus(getDefiDaysStatus());
     setProfilePhoto(u?.profileInfo?.profilePhoto ?? null);
@@ -1031,19 +981,6 @@ export default function HomePage() {
                     </button>
                   </div>
                   )}
-                  {!isGuest && (
-                  <div className="mt-4 pt-4 border-t border-white/10">
-                    <HomeNotifToggle
-                      label="Rappel actions du jour"
-                      checked={notifActions}
-                      onToggle={(v) => {
-                        setNotifActions(v);
-                        setNotifActionsState(v);
-                      }}
-                      offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de notifications ni de vibration pour les actions du jour. Tu peux réactiver à tout moment dans Compte > Notifications. Khayr in cha Allah."
-                    />
-                  </div>
-                  )}
                 </>
               );
             })()}
@@ -1186,18 +1123,7 @@ export default function HomePage() {
             description="Reçois une notification avant chaque prière et consulte les horaires."
           />
         ) : (
-        <div className="space-y-3">
-          <HomeNotifToggle
-            label="Rappel heure de prière"
-            checked={notifPriere}
-            onToggle={(v) => {
-              setNotifPriere(v);
-              setNotifPriereState(v);
-            }}
-            offMessage="Pour ton bien et le suivi de ton plan, nous te conseillons de garder les rappels activés. Si tu désactives : tu ne recevras plus de rappels avant l'heure de prière (notifications et vibration). Tu peux réactiver à tout moment dans Compte > Notifications. Khayr in cha Allah."
-          />
           <PrayerTimesCard />
-        </div>
         )}
 
         {/* Quiz du jour — verrouillé en mode essai */}
