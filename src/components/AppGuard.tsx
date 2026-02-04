@@ -8,7 +8,6 @@ import {
   isPublicRoute,
   isParcoursRoute,
   FIRST_PARCOURS_STEP,
-  completeOnboarding,
 } from "@/lib/authState";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import InstallPrompt from "./InstallPrompt";
@@ -53,15 +52,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Sur /home avec session (ex. retour OAuth après "Continuer avec Google" sur la page signup) → considérer onboarding terminé et laisser entrer
-    if (pathname === "/home" && !onboardingComplete) {
-      completeOnboarding();
-      if (typeof window !== "undefined") window.sessionStorage.removeItem("stopharam_from_checkout");
-      setReady(true);
-      return;
-    }
-
-    // Pas encore inscrit (onboarding non terminé) → envoyer vers le parcours (ex. /profile), pas vers /start
+    // Pas encore inscrit (onboarding non terminé) → envoyer vers le parcours (ex. /profile), pas vers /home
     if (!onboardingComplete) {
       if (!isParcours) {
         router.replace(FIRST_PARCOURS_STEP);

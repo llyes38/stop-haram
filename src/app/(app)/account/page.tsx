@@ -37,7 +37,7 @@ import {
 } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
-import { saveProgress } from "@/lib/progressStorage";
+import { saveProgress, deleteAllUserDataFromSupabase } from "@/lib/progressStorage";
 
 type Tab = "profil" | "objectifs" | "plan" | "notifications";
 type View = "list" | Tab;
@@ -365,10 +365,18 @@ export default function AccountPage() {
     }
   };
 
-  const handleDeleteData = () => {
-    if (typeof window === "undefined" || !confirm("Supprimer toutes tes données locales ? Tu devras repasser par le questionnaire.")) return;
+  const handleDeleteData = async () => {
+    if (typeof window === "undefined" || !confirm("Supprimer toutes tes données ? Tu seras déconnecté et devras repasser par le questionnaire si tu te reconnectes.")) return;
+    if (supabaseUser?.id) {
+      try {
+        await deleteAllUserDataFromSupabase(supabaseUser.id);
+        await supabaseSignOut();
+      } catch {
+        // Même en cas d'erreur (ex. politiques DELETE pas encore en place), on déconnecte et on vide le local
+      }
+    }
     setAuth({ isLoggedIn: false });
-    localStorage.clear();
+    if (typeof window !== "undefined") localStorage.clear();
     window.location.href = "/start";
   };
 

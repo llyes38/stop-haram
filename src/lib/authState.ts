@@ -87,8 +87,7 @@ export function isLoggedIn(): boolean {
 
 export function isOnboardingComplete(): boolean {
   const state = getState();
-  if (state && "onboardingComplete" in state) return state.onboardingComplete === true;
-  return true;
+  return state?.onboardingComplete === true;
 }
 
 export function resetOnboarding(): void {

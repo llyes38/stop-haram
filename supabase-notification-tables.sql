@@ -38,6 +38,10 @@ DROP POLICY IF EXISTS "notification_prefs_update_own" ON public.notification_pre
 CREATE POLICY "notification_prefs_update_own" ON public.notification_prefs
   FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "notification_prefs_delete_own" ON public.notification_prefs;
+CREATE POLICY "notification_prefs_delete_own" ON public.notification_prefs
+  FOR DELETE USING (auth.uid() = user_id);
+
 -- 2) File d'attente des notifications
 CREATE TABLE IF NOT EXISTS public.notification_queue (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -70,3 +74,7 @@ CREATE POLICY "notification_queue_insert_own" ON public.notification_queue
 DROP POLICY IF EXISTS "notification_queue_update_own" ON public.notification_queue;
 CREATE POLICY "notification_queue_update_own" ON public.notification_queue
   FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "notification_queue_delete_own" ON public.notification_queue;
+CREATE POLICY "notification_queue_delete_own" ON public.notification_queue
+  FOR DELETE USING (auth.uid() = user_id);

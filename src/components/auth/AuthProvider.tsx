@@ -5,8 +5,8 @@ import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase/client";
 import { getState, setAuth, setProfile, setState } from "@/lib/authState";
 import type { StopharamProfile, StopharamState } from "@/lib/authState";
-import { loadProgress } from "@/lib/progressStorage";
-import { saveUser } from "@/lib/storage";
+import { loadProgress, saveProgress } from "@/lib/progressStorage";
+import { getUser, saveUser } from "@/lib/storage";
 import type { StopHaramUser } from "@/lib/storage";
 
 type AuthContextType = {
@@ -74,28 +74,47 @@ function getGoogleFallbackName(user: User): string {
 }
 
 function hydrateFromProgress(userId: string, sessionUser: User | null) {
-  loadProgress(userId).then((data) => {
+  loadProgress(userId).then(async (data) => {
+    const hasAccountData = data?.storage_user && typeof data.storage_user === "object" && Object.keys(data.storage_user).length > 0;
+    const hasState = data?.state && typeof data.state === "object" && Object.keys(data.state).length > 0;
+
     // Prénom = celui enregistré dans "Mon compte" (Supabase), jamais le nom Google
-    if (data.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
+    if (data?.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
       setProfile(data.profile as StopharamProfile);
     } else if (sessionUser) {
-      // Nouveau compte : pas encore de prénom dans Mon compte → fallback Google une seule fois
       setProfile({ name: getGoogleFallbackName(sessionUser) });
     }
-    if (data.state && typeof data.state === "object" && Object.keys(data.state).length > 0) {
+
+    if (hasAccountData && hasState) {
+      // Compte existant : restaurer state et user
       const loaded = data.state as StopharamState;
       const current = getState();
-      // Invité qui a fini le parcours puis se connecte (Google) : ne pas écraser onboardingComplete
       const merged: StopharamState = current?.onboardingComplete === true && loaded?.onboardingComplete !== true
         ? { ...loaded, onboardingComplete: true }
         : loaded;
       setState(merged);
-    }
-    if (data.storage_user && typeof data.storage_user === "object") {
       try {
         saveUser(data.storage_user as StopHaramUser);
       } catch {
         /* ignore invalid shape */
+      }
+    } else {
+      // Aucune donnée Supabase : invité qui vient de lier Google → sauvegarder son parcours ; sinon nouveau compte → onboarding
+      const localUser = typeof window !== "undefined" ? getUser() : null;
+      const localState = getState();
+      const hasGuestCompleted = localUser?.plan?.days?.length && localState?.onboardingComplete === true;
+      if (hasGuestCompleted && localUser && localState) {
+        await saveProgress(
+          { state: localState as unknown as Record<string, unknown>, profile: getProfile() as unknown as Record<string, unknown>, storage_user: localUser as unknown as Record<string, unknown> },
+          userId
+        );
+        setState(localState);
+        saveUser(localUser);
+      } else {
+        setState({ onboardingComplete: false });
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("stopharam_user");
+        }
       }
     }
   });

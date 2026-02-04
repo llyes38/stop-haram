@@ -68,4 +68,7 @@ CREATE POLICY "insert own progress" ON public.user_progress FOR INSERT WITH CHEC
 DROP POLICY IF EXISTS "update own progress" ON public.user_progress;
 CREATE POLICY "update own progress" ON public.user_progress FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "delete own progress" ON public.user_progress;
+CREATE POLICY "delete own progress" ON public.user_progress FOR DELETE USING (auth.uid() = user_id);
+
 CREATE INDEX IF NOT EXISTS user_progress_updated_at_idx ON public.user_progress(updated_at);

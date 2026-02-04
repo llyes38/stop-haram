@@ -111,6 +111,16 @@ export function getGuestProgressRaw(): ProgressData | null {
 }
 
 /**
+ * Supprime toutes les données Supabase de l'utilisateur (user_progress, notification_prefs, notification_queue).
+ * À appeler avant déconnexion quand l'utilisateur choisit "Supprimer mes données" pour que la reconnexion reparte de zéro.
+ */
+export async function deleteAllUserDataFromSupabase(userId: string): Promise<void> {
+  await supabase.from("user_progress").delete().eq("user_id", userId);
+  await supabase.from("notification_prefs").delete().eq("user_id", userId);
+  await supabase.from("notification_queue").delete().eq("user_id", userId);
+}
+
+/**
  * Persiste l'état local actuel (state + profile) dans la couche progress.
  * À appeler après modifications state/profile pour garder guest et Supabase en sync.
  */
