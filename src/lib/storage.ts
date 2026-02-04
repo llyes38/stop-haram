@@ -238,6 +238,10 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
     title: "Invocations du matin",
     desc: "SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.",
   };
+  const invocationsSoirDefault = {
+    title: "Invocations avant de dormir",
+    desc: "SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.",
+  };
 
   const nDefault = user?.profileInfo?.actionsPerDay ?? 3;
   const defList = [
@@ -247,14 +251,14 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
   ];
 
   if (!user?.plan?.days?.length || !user.startDateISO) {
-    return [invocationsMatinDefault, ...defList.slice(0, nDefault)];
+    return [invocationsMatinDefault, invocationsSoirDefault, ...defList.slice(0, nDefault)];
   }
 
   const dayNum = getDayNumber(user.startDateISO);
   const idx = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const d = user.plan.days[idx];
   if (!d) {
-    return [invocationsMatinDefault, ...defList.slice(0, user.profileInfo?.actionsPerDay ?? 3)];
+    return [invocationsMatinDefault, invocationsSoirDefault, ...defList.slice(0, user.profileInfo?.actionsPerDay ?? 3)];
   }
 
   let action1Title = d.intention?.title;
