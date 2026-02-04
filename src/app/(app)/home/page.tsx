@@ -36,7 +36,7 @@ import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
 import LockedFeatureCard from "@/components/LockedFeatureCard";
-import { APP_URL } from "@/lib/share";
+import { APP_URL, shareWithNative, copyToClipboard } from "@/lib/share";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import { compressImageToBase64 } from "@/lib/profilePhoto";
 import { saveProgress } from "@/lib/progressStorage";
@@ -565,18 +565,8 @@ export default function HomePage() {
             className="hidden"
             aria-hidden
           />
-          <div className="min-w-0 pt-0">
+          <div className="min-w-0 -mt-1">
             <StopHaramLogo size={200} variant="dark" className="block" />
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-white/60 text-sm">Un pas à la fois</p>
-              <button
-                type="button"
-                onClick={() => router.push(supabaseUser ? "/account" : "/login")}
-                className="text-emerald-400/90 text-xs font-medium hover:text-emerald-300 underline underline-offset-1"
-              >
-                {supabaseUser ? "Mon compte" : "Se connecter"}
-              </button>
-            </div>
           </div>
         </div>
         {!isGuest && (
@@ -704,32 +694,40 @@ export default function HomePage() {
       )}
 
       {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours — ou Mode essai pour invité */}
-      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-6">
+      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative">
         {isGuest ? (
           <>
             <p className="text-amber-200 text-sm font-semibold text-center mb-2">Mode essai</p>
             <p className="text-white/90 text-sm text-center mb-4">
               Valide tes actions du jour et invite un proche. Crée un compte pour débloquer tout le parcours.
             </p>
-            <div className="flex flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => router.push("/login")}
-                className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
-              >
-                Créer un compte (Google ou email)
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/fonctionnement")}
-                className="text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline"
-              >
-                Comment ça marche ?
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/login")}
+              className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
+            >
+              Créer un compte (Google ou email)
+            </button>
           </>
         ) : (
           <>
+            <button
+              type="button"
+              onClick={async () => {
+                const text = hasStreak && streakDays != null
+                  ? `Je suis sur la bonne voie depuis ${streakDays} jour${streakDays > 1 ? "s" : ""} avec StopHaram. Rejoins-moi ! ${APP_URL}`
+                  : `Je reprends le contrôle avec StopHaram. Rejoins-moi ! ${APP_URL}`;
+                const ok = await shareWithNative({ title: "StopHaram", text, url: APP_URL });
+                if (!ok) await copyToClipboard(text);
+              }}
+              className="absolute top-3 right-3 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Partager mon résultat"
+              title="Partager mon résultat"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+            </button>
             <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
               {name ? (
                 <>
@@ -756,16 +754,16 @@ export default function HomePage() {
               )}
             </div>
             <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
-            <button
-              type="button"
-              onClick={() => router.push("/fonctionnement")}
-              className="block mx-auto mt-3 text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline transition-colors"
-            >
-              Comment ça marche ?
-            </button>
           </>
         )}
       </div>
+      <button
+        type="button"
+        onClick={() => router.push("/fonctionnement")}
+        className="block w-full text-center text-emerald-300/90 hover:text-emerald-200 text-xs font-medium underline mb-6 transition-colors"
+      >
+        Comment ça marche ?
+      </button>
 
       <section className="flex flex-col gap-6 pb-28">
         {/* Bloc : Défi 30 jours — verrouillé en mode essai */}
