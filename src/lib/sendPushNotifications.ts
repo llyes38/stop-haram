@@ -9,10 +9,14 @@ import {
 } from "@/lib/pushSubscriptionStore";
 import webpush from "web-push";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
+
 export type SendPushOptions = {
   title?: string;
   body?: string;
   url?: string;
+  /** URL absolue de l'icône (ex. favicon) affichée dans la notification */
+  icon?: string;
 };
 
 function getWebPush() {
@@ -37,6 +41,7 @@ export async function sendPushToAll(options: SendPushOptions = {}): Promise<{ se
     title,
     body,
     url: options.url ?? "/",
+    icon: options.icon ?? `${SITE_URL}/favicon.png`,
     vibrate: [300, 100, 300, 100, 300],
   });
 
@@ -63,6 +68,7 @@ export async function sendPushToUser(
     title,
     body,
     url: options.url ?? "/",
+    icon: options.icon ?? `${SITE_URL}/favicon.png`,
     vibrate: [300, 100, 300, 100, 300],
   });
 

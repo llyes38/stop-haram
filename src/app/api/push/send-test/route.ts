@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { sendPushToUser, sendPushToAll } from "@/lib/sendPushNotifications";
+import { sendPushToUser } from "@/lib/sendPushNotifications";
 
 /**
- * Envoie une notif de test à l'utilisateur connecté (ses abonnements push).
- * Si aucun abonnement lié au compte : tente l'envoi à tous (clé globale) pour compat ancien stockage.
+ * Envoie une notif de test uniquement à l'utilisateur connecté (ses abonnements push).
+ * N'envoie jamais aux autres appareils.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -17,19 +17,21 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (user?.id) {
-      const { sent, total } = await sendPushToUser(user.id, opts);
-      if (total > 0) return NextResponse.json({ sent, total });
-    }
-
-    const fallback = await sendPushToAll(opts);
-    if (fallback.error) {
+    if (!user?.id) {
       return NextResponse.json(
-        { sent: 0, total: 0, error: fallback.error === "Clés VAPID manquantes (variables d'environnement)." ? fallback.error : "Aucun abonnement. Bouge un toggle ci-dessus ou clique « Activer les notifications », puis réessaie." },
-        { status: fallback.error?.includes("VAPID") ? 500 : 200 }
+        { sent: 0, total: 0, error: "Connecte-toi pour recevoir la notif de test sur ton appareil." },
+        { status: 200 }
       );
     }
-    return NextResponse.json({ sent: fallback.sent, total: fallback.total });
+
+    const { sent, total } = await sendPushToUser(user.id, opts);
+    if (total === 0) {
+      return NextResponse.json(
+        { sent: 0, total: 0, error: "Aucun appareil enregistré pour ce compte. Va dans Compte > Notifications, active un rappel et accepte « Autoriser » pour enregistrer cet appareil." },
+        { status: 200 }
+      );
+    }
+    return NextResponse.json({ sent, total });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Erreur inconnue";
     return NextResponse.json(
