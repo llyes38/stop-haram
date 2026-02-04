@@ -251,14 +251,14 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
   ];
 
   if (!user?.plan?.days?.length || !user.startDateISO) {
-    return [invocationsMatinDefault, invocationsSoirDefault, ...defList.slice(0, nDefault)];
+    return [invocationsMatinDefault, ...defList.slice(0, nDefault), invocationsSoirDefault];
   }
 
   const dayNum = getDayNumber(user.startDateISO);
   const idx = Math.min(Math.max(dayNum - 1, 0), user.plan.days.length - 1);
   const d = user.plan.days[idx];
   if (!d) {
-    return [invocationsMatinDefault, invocationsSoirDefault, ...defList.slice(0, user.profileInfo?.actionsPerDay ?? 3)];
+    return [invocationsMatinDefault, ...defList.slice(0, user.profileInfo?.actionsPerDay ?? 3), invocationsSoirDefault];
   }
 
   let action1Title = d.intention?.title;
@@ -281,14 +281,6 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
     title: "Invocations avant de dormir",
     desc: "SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.",
   };
-  const baseItems: Array<{ title: string; desc?: string; sin?: SelectedSin }> = [
-    invocationsMatinAction,
-    invocationsSoirAction,
-    { title: action1Title, desc: action1Desc, sin: focusSin },
-    { title: d.focus?.title ?? defaultFocus, desc: d.focus?.desc ?? defaultFocusDesc, sin: focusSin },
-    { title: d.base?.title ?? defaultBase, desc: d.base?.desc ?? defaultBaseDesc, sin: baseSin },
-  ];
-
   const additionalItems =
     d.additionalActions?.map((a) => ({ title: a.title, desc: a.desc, sin: a.sin })) ?? [];
   const itemsSansInvocations = [
@@ -298,5 +290,6 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
   ];
   const n = Math.max(actionsPerDay, 1);
   const personnalisees = [...itemsSansInvocations, ...additionalItems].slice(0, n);
-  return [invocationsMatinAction, invocationsSoirAction, ...personnalisees];
+  /** Matin en premier, actions du jour au milieu, invocations avant de dormir en dernier. */
+  return [invocationsMatinAction, ...personnalisees, invocationsSoirAction];
 }
