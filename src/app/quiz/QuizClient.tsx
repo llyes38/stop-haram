@@ -543,15 +543,21 @@ export default function QuizClient() {
           );
         })()}
 
-        {/* Skip test */}
+        {/* Skip test : retour à la page d'où on vient (accueil, parcours ou compte) */}
         {currentStep < 12 && (
           <div className="mt-auto pt-6">
-            <Link
-              href="/profile"
-              className="block text-center text-white/60 text-sm hover:text-white/90 focus:outline-none focus:underline"
+            <button
+              type="button"
+              onClick={() => {
+                if (fromAccount) router.push("/account");
+                else if (fromParcours) router.push("/parcours");
+                else if (fromCompanion) router.push("/home");
+                else router.push("/home");
+              }}
+              className="block w-full text-center text-white/60 text-sm hover:text-white/90 focus:outline-none focus:underline"
             >
               Skip test
-            </Link>
+            </button>
           </div>
         )}
       </div>
