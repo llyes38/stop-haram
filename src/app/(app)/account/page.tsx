@@ -197,7 +197,7 @@ export default function AccountPage() {
   const [notifPriere, setNotifPriereState] = useState(true);
   const [notifActions, setNotifActionsState] = useState(true);
   const [notifVersetHadith, setNotifVersetHadithState] = useState(true);
-  const { status: pushStatus, requestPermissionAndSubscribe } = usePushNotifications();
+  const { status: pushStatus, requestPermissionAndSubscribe, subscribe } = usePushNotifications();
 
   useEffect(() => {
     let u = getUser();
@@ -243,6 +243,13 @@ export default function AccountPage() {
     setNotifActionsState(getNotifActions());
     setNotifVersetHadithState(getNotifVersetHadith());
   }, []);
+
+  // Ré-enregistrer l'appareil avec le compte quand on ouvre l'onglet Notifications (pour les abonnements créés avant la liaison user_id)
+  useEffect(() => {
+    if (tab === "notifications" && pushStatus === "subscribed" && supabaseUser?.id) {
+      subscribe(supabaseUser.id);
+    }
+  }, [tab, pushStatus, supabaseUser?.id, subscribe]);
 
   const handleNotifPriereChange = (v: boolean) => {
     setNotifPriere(v);
