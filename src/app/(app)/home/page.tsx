@@ -696,7 +696,13 @@ export default function HomePage() {
         ) : (
           <>
             <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
-              Tu es sur la bonne voie depuis
+              {name ? (
+                <>
+                  <span className="text-white">{name}</span>, tu es sur la bonne voie depuis
+                </>
+              ) : (
+                "Tu es sur la bonne voie depuis"
+              )}
             </p>
             <div className="text-center">
               {hasStreak && (
