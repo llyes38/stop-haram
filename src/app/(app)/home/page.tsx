@@ -1234,61 +1234,20 @@ export default function HomePage() {
                       Recommencer cette action
                     </button>
                   </>
-                ) : item.title === "Invocations du matin" && dhikrMatinCounts ? (
+                ) : item.title === "Invocations du matin" ? (
                   <div className="space-y-3">
-                    <p className="text-white/70 text-sm">Touche pour compter (vibration à chaque touche).</p>
-                    {(["subhanallah", "alhamdulillah", "allahu_akbar"] as const).map((key) => {
-                      const count = dhikrMatinCounts[key];
-                      const target = DHIKR_MATIN_TARGETS[key];
-                      const label =
-                        key === "subhanallah"
-                          ? "SubhanAllah"
-                          : key === "alhamdulillah"
-                            ? "Alhamdulillah"
-                            : "Allahu Akbar";
-                      const isComplete = count >= target;
-                      return (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => {
-                            if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(50);
-                            const next = incrementDhikrMatin(key);
-                            setDhikrMatinCounts(next);
-                            if (
-                              next.subhanallah >= DHIKR_MATIN_TARGETS.subhanallah &&
-                              next.alhamdulillah >= DHIKR_MATIN_TARGETS.alhamdulillah &&
-                              next.allahu_akbar >= DHIKR_MATIN_TARGETS.allahu_akbar
-                            ) {
-                              setDhikrDoneToday(true);
-                              setCompletedTitles((prev) =>
-                                prev.includes(item.title) ? prev : [...prev, item.title]
-                              );
-                            }
-                          }}
-                          disabled={isComplete}
-                          className={`w-full rounded-xl border py-4 px-4 flex items-center justify-between transition-colors ${
-                            isComplete
-                              ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
-                              : "bg-white/10 border-white/20 text-white hover:bg-white/15 active:scale-[0.98]"
-                          }`}
-                        >
-                          <span className="font-semibold">{label}</span>
-                          <span className="tabular-nums font-bold text-lg">
-                            {count}<span className="text-white/50 font-normal">/{target}</span>
-                          </span>
-                        </button>
-                      );
-                    })}
+                    <p className="text-white/70 text-sm">
+                      Compteur (33/33/34), invocations (Âyatu-l-Kursî, phonétique, audio…) : tout sur une seule page.
+                    </p>
                     <button
                       type="button"
                       onClick={() => {
                         setSelectedActionIndex(null);
                         router.push("/dhikr/matin");
                       }}
-                      className="w-full rounded-xl bg-amber-500/25 border border-amber-400/50 py-3 text-amber-200 font-semibold hover:bg-amber-500/35 transition-colors"
+                      className="w-full rounded-xl bg-emerald-500/25 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/35 transition-colors"
                     >
-                      Voir toutes les invocations (Âyatu-l-Kursî, phonétique, audio…)
+                      Ouvrir les invocations du matin
                     </button>
                     <button
                       type="button"

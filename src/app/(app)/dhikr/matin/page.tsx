@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { dhikrMatin, INVOCATIONS_MATIN_AUDIO_SOURCE, type DhikrItem } from "@/lib/dhikr";
+import {
+  getDhikrMatinCountsForToday,
+  incrementDhikrMatin,
+  DHIKR_MATIN_TARGETS,
+  type DhikrMatinCounts,
+} from "@/lib/dhikrMatinCounts";
 import { todayKey } from "@/lib/date";
 import { addInvocations } from "@/lib/progressStats";
 
@@ -12,11 +18,13 @@ export default function DhikrMatinPage() {
   const router = useRouter();
   const [toast, setToast] = useState(false);
   const [doneToday, setDoneToday] = useState(false);
+  const [dhikrMatinCounts, setDhikrMatinCounts] = useState<DhikrMatinCounts | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = window.localStorage.getItem(DONE_KEY);
     setDoneToday(raw === todayKey());
+    setDhikrMatinCounts(getDhikrMatinCountsForToday());
   }, []);
 
   const copyItem = (item: DhikrItem) => {
@@ -46,16 +54,61 @@ export default function DhikrMatinPage() {
         <p className="text-white/70 text-sm mt-1">
           Commence ta journée par le rappel d&apos;Allah. Chaque invocation est une protection et une bénédiction.
         </p>
-        <a
-          href={INVOCATIONS_MATIN_AUDIO_SOURCE}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-white/90 text-sm font-medium hover:bg-white/15 transition-colors"
-        >
-          <span aria-hidden>🔊</span>
-          Écouter avec audio et phonétique (Hisnii)
-        </a>
       </header>
+
+      {/* Compteur avec vibration (33/33/34) */}
+      <section className="mb-6 rounded-xl bg-white/5 border border-white/10 px-4 py-4">
+        <p className="text-white/70 text-sm mb-2">
+          SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.
+        </p>
+        <p className="text-emerald-200/90 text-sm mb-3 border-l-2 border-emerald-400/40 pl-2">
+          « N&apos;est-ce pas par l&apos;évocation d&apos;Allah que s&apos;apaisent les cœurs ? » — Sourate Ar-Ra&apos;d, v.28
+        </p>
+        <p className="text-white/60 text-xs mb-3">Touche pour compter (vibration à chaque touche).</p>
+        {dhikrMatinCounts && (
+          <div className="space-y-2">
+            {(["subhanallah", "alhamdulillah", "allahu_akbar"] as const).map((key) => {
+              const count = dhikrMatinCounts[key];
+              const target = DHIKR_MATIN_TARGETS[key];
+              const label =
+                key === "subhanallah" ? "SubhanAllah" : key === "alhamdulillah" ? "Alhamdulillah" : "Allahu Akbar";
+              const isComplete = count >= target;
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(50);
+                    setDhikrMatinCounts(incrementDhikrMatin(key));
+                  }}
+                  disabled={isComplete}
+                  className={`w-full rounded-xl border py-4 px-4 flex items-center justify-between transition-colors ${
+                    isComplete
+                      ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-200"
+                      : "bg-white/10 border-white/20 text-white hover:bg-white/15 active:scale-[0.98]"
+                  }`}
+                >
+                  <span className="font-semibold">{label}</span>
+                  <span className="tabular-nums font-bold text-lg">
+                    {count}<span className="text-white/50 font-normal">/{target}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Audio BETA — pas de mention Hisnii */}
+      <a
+        href={INVOCATIONS_MATIN_AUDIO_SOURCE}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-6 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-white/90 text-sm font-medium hover:bg-white/15 transition-colors"
+      >
+        <span aria-hidden>🔊</span>
+        Audio (BETA)
+      </a>
 
       <div className="space-y-4 flex-1">
         {dhikrMatin.map((item) => (
@@ -100,7 +153,7 @@ export default function DhikrMatinPage() {
                   className="w-full h-9 rounded-lg"
                   src={item.audioUrl}
                 >
-                  Ton navigateur ne supporte pas l&apos;audio. <a href={INVOCATIONS_MATIN_AUDIO_SOURCE} target="_blank" rel="noopener noreferrer" className="underline">Écouter sur Hisnii</a>.
+                  Ton navigateur ne supporte pas l&apos;audio. <a href={INVOCATIONS_MATIN_AUDIO_SOURCE} target="_blank" rel="noopener noreferrer" className="underline">Écouter (BETA)</a>.
                 </audio>
               </div>
             )}
