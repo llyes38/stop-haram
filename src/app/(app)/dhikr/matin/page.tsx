@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { dhikrMatin, INVOCATIONS_MATIN_AUDIO_SOURCE, type DhikrItem } from "@/lib/dhikr";
+import { dhikrMatin, type DhikrItem } from "@/lib/dhikr";
 import {
   getDhikrMatinCountsForToday,
   incrementDhikrMatin,
@@ -99,16 +99,14 @@ export default function DhikrMatinPage() {
         )}
       </section>
 
-      {/* Audio BETA — pas de mention Hisnii */}
-      <a
-        href={INVOCATIONS_MATIN_AUDIO_SOURCE}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mb-6 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-white/90 text-sm font-medium hover:bg-white/15 transition-colors"
-      >
-        <span aria-hidden>🔊</span>
-        Audio (BETA)
-      </a>
+      <div className="mb-6 flex items-center gap-2 text-white/50 text-sm">
+        <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400/80" aria-hidden title="En construction">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+          </svg>
+        </span>
+        <span>(bientôt)</span>
+      </div>
 
       <div className="space-y-4 flex-1">
         {dhikrMatin.map((item) => (
@@ -153,7 +151,7 @@ export default function DhikrMatinPage() {
                   className="w-full h-9 rounded-lg"
                   src={item.audioUrl}
                 >
-                  Ton navigateur ne supporte pas l&apos;audio. <a href={INVOCATIONS_MATIN_AUDIO_SOURCE} target="_blank" rel="noopener noreferrer" className="underline">Écouter (BETA)</a>.
+                  Ton navigateur ne supporte pas l&apos;audio.
                 </audio>
               </div>
             )}

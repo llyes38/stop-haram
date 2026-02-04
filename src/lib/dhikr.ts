@@ -1,7 +1,6 @@
 /**
- * Invocations du matin — structure inspirée de Hisnii (phonétique, arabe, référence, audio).
- * Pour l'audio : option 1) ajouter une URL MP3 dans audioUrl (hébergement propre ou source autorisée) ;
- * option 2) lien vers Hisnii pour écouter en ligne : https://hisnii.com/invocations-matin/
+ * Invocations du matin (phonétique, arabe, référence).
+ * Pour l'audio plus tard : ajouter une URL MP3 dans audioUrl (hébergement propre).
  */
 
 export type DhikrItem = {
@@ -17,12 +16,9 @@ export type DhikrItem = {
   reference?: string;
   /** Court texte sur le mérite (optionnel) */
   merit?: string;
-  /** URL d'un fichier audio MP3 (si hébergé ou source autorisée). Sinon, proposer le lien Hisnii. */
+  /** URL d'un fichier audio MP3 (bientôt). */
   audioUrl?: string;
 };
-
-/** Lien externe pour écouter les invocations avec audio (phonétique + récitation). */
-export const INVOCATIONS_MATIN_AUDIO_SOURCE = "https://hisnii.com/invocations-matin/";
 
 export const dhikrMatin: DhikrItem[] = [
   {
