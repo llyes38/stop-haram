@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted } from "@/lib/storage";
+import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted, getDailyActionsWithSins } from "@/lib/storage";
 import { generatePlan, ACTION_1 } from "@/lib/programEngine";
 import { getLevelFromDay, LEVEL_NAMES, LEVEL_EMOJIS, getLevelBounds } from "@/lib/defiLevels";
 import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
 import { getTemptationStats } from "@/lib/temptationStats";
 import { getCurrentStatut } from "@/lib/statuts";
-import { getProgressStats, type ProgressStats } from "@/lib/progressStats";
+import { getProgressStats, getInvocationsBreakdownToday, type ProgressStats } from "@/lib/progressStats";
 import {
   getTotalPoints,
   canOfferFreeMonth,
@@ -17,6 +17,8 @@ import {
 } from "@/lib/pointsGratitude";
 import { copyToClipboard } from "@/lib/share";
 import { getDons } from "@/lib/sadaqaStorage";
+import { getCompletedActionTitlesForToday } from "@/lib/dailyActions";
+import { getFoisTarget, getDhikrFoisCount } from "@/lib/dhikrFoisCount";
 import { todayKey } from "@/lib/date";
 import type { SelectedSin } from "@/lib/storage";
 
@@ -51,6 +53,7 @@ export default function ParcoursPage() {
   const [tab, setTab] = useState<Tab>("parcours");
   const [stats, setStats] = useState<{ tempted: number; resisted: number }>({ tempted: 0, resisted: 0 });
   const [progressStats, setProgressStats] = useState<ProgressStats | null>(null);
+  const [invocationsBreakdown, setInvocationsBreakdown] = useState<{ total: number; items: Array<{ label: string; count: number }> }>({ total: 0, items: [] });
   const [points, setPoints] = useState(0);
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [offerUrl, setOfferUrl] = useState<string | null>(null);
@@ -65,6 +68,22 @@ export default function ParcoursPage() {
     setStats(getTemptationStats());
     setProgressStats(getProgressStats());
     setPoints(getTotalPoints());
+    if (tab === "progres") {
+      const u = getUser();
+      const actionItems = getDailyActionsWithSins(u ?? null);
+      const completedTitles = getCompletedActionTitlesForToday();
+      const dhikrMatinDone =
+        typeof window !== "undefined" && window.localStorage.getItem("dhikr_matin_done") === todayKey();
+      setInvocationsBreakdown(
+        getInvocationsBreakdownToday({
+          dhikrMatinDone,
+          actionItems,
+          completedTitles,
+          getFoisTarget,
+          getDhikrFoisCount,
+        })
+      );
+    }
   }, [tab]);
 
   const handleOfferFreeMonth = () => {
@@ -251,17 +270,30 @@ export default function ParcoursPage() {
           </div>
           <div className="rounded-2xl bg-emerald-500/10 border border-emerald-400/25 px-5 py-4">
             <p className="text-emerald-200 font-semibold text-sm mb-1">Versets & invocations</p>
-            <p className="text-white/60 text-xs mb-4">Coran, rappels, dhikr du jour</p>
-            <div className="grid grid-cols-2 gap-4">
+            <p className="text-white/60 text-xs mb-4">Coran, rappels, dhikr du jour — tout ce que tu as récité</p>
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
                 <p className="text-2xl font-bold text-emerald-200 tabular-nums">{progressStats?.versetsToday ?? 0}</p>
                 <p className="text-emerald-200/80 text-xs">versets</p>
               </div>
               <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-                <p className="text-2xl font-bold text-emerald-200 tabular-nums">{progressStats?.invocationsToday ?? 0}</p>
+                <p className="text-2xl font-bold text-emerald-200 tabular-nums">{invocationsBreakdown.total}</p>
                 <p className="text-emerald-200/80 text-xs">invocations</p>
               </div>
             </div>
+            {invocationsBreakdown.items.length > 0 && (
+              <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                <p className="text-emerald-200/90 text-xs font-medium mb-2">Détail (33, 34, 100…)</p>
+                <ul className="space-y-1.5 max-h-32 overflow-y-auto">
+                  {invocationsBreakdown.items.map((item, i) => (
+                    <li key={i} className="flex justify-between items-center gap-2 text-xs">
+                      <span className="text-white/80 truncate">{item.label}</span>
+                      <span className="text-emerald-200 font-semibold tabular-nums shrink-0">{item.count}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           <div className="rounded-2xl bg-amber-500/15 border border-amber-400/30 px-5 py-4">
             <p className="text-amber-200 font-semibold text-sm mb-1">Points de gratitude</p>

@@ -99,3 +99,51 @@ export function versetsFromActionLabel(label: string): number {
 export function isVerseAction(label: string): boolean {
   return versetsFromActionLabel(label) > 0;
 }
+
+/** Un élément comptabilisé (label court + nombre). */
+export interface InvocationBreakdownItem {
+  label: string;
+  count: number;
+}
+
+/** Paramètres pour calculer le détail des invocations du jour. */
+export interface InvocationsBreakdownParams {
+  dhikrMatinDone: boolean;
+  actionItems: Array<{ title: string; desc?: string }>;
+  completedTitles: string[];
+  getFoisTarget: (title: string, desc?: string) => number | null;
+  getDhikrFoisCount: (title: string) => number;
+}
+
+/**
+ * Calcule tout ce qui est comptabilisable comme invocations aujourd'hui :
+ * Invocations du matin (33+33+34 = 100) + chaque action "X fois" complétée (100, 50, etc.).
+ */
+export function getInvocationsBreakdownToday(params: InvocationsBreakdownParams): {
+  total: number;
+  items: InvocationBreakdownItem[];
+} {
+  const { dhikrMatinDone, actionItems, completedTitles, getFoisTarget, getDhikrFoisCount } = params;
+  const items: InvocationBreakdownItem[] = [];
+  let total = 0;
+
+  if (dhikrMatinDone) {
+    const count = 33 + 33 + 34;
+    items.push({ label: "Invocations du matin (33+33+34)", count });
+    total += count;
+  }
+
+  for (const item of actionItems) {
+    if (item.title === "Invocations du matin") continue;
+    const target = getFoisTarget(item.title, item.desc);
+    if (target == null) continue;
+    const count = getDhikrFoisCount(item.title);
+    const completed = count >= target || completedTitles.includes(item.title);
+    if (!completed) continue;
+    const shortLabel = item.title.length > 35 ? item.title.slice(0, 32) + "…" : item.title;
+    items.push({ label: shortLabel, count: target });
+    total += target;
+  }
+
+  return { total, items };
+}
