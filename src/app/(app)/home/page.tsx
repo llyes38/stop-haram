@@ -1282,6 +1282,16 @@ export default function HomePage() {
                     })}
                     <button
                       type="button"
+                      onClick={() => {
+                        setSelectedActionIndex(null);
+                        router.push("/dhikr/matin");
+                      }}
+                      className="w-full rounded-xl bg-amber-500/25 border border-amber-400/50 py-3 text-amber-200 font-semibold hover:bg-amber-500/35 transition-colors"
+                    >
+                      Voir toutes les invocations (Âyatu-l-Kursî, phonétique, audio…)
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setSelectedActionIndex(null)}
                       className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/80 text-sm"
                     >
