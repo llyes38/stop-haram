@@ -1,5 +1,7 @@
 -- StopHaram - Tables notifications planifiées (QStash)
 -- Exécuter dans Supabase SQL Editor
+-- Pour ajouter checkin_2h_enabled sur une base existante :
+-- ALTER TABLE public.notification_prefs ADD COLUMN IF NOT EXISTS checkin_2h_enabled boolean NOT NULL DEFAULT false;
 
 -- 1) Préférences de notification par utilisateur
 CREATE TABLE IF NOT EXISTS public.notification_prefs (
@@ -15,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.notification_prefs (
   sin_reminder_time text NOT NULL DEFAULT '23:00',
   quiet_start text NOT NULL DEFAULT '23:30',
   quiet_end text NOT NULL DEFAULT '08:00',
+  checkin_2h_enabled boolean NOT NULL DEFAULT false,
   city text,
   country text,
   created_at timestamptz DEFAULT now(),

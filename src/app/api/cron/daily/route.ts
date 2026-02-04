@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     const admin = createAdminClient();
     const { data: prefs, error: prefsError } = await admin
       .from("notification_prefs")
-      .select("user_id, timezone, daily_checkin_enabled, daily_checkin_time, actions_morning, actions_morning_time, actions_evening, actions_evening_time, sin_reminder_enabled, sin_reminder_time, quiet_start, quiet_end");
+      .select("user_id, timezone, daily_checkin_enabled, daily_checkin_time, actions_morning, actions_morning_time, actions_evening, actions_evening_time, sin_reminder_enabled, sin_reminder_time, quiet_start, quiet_end, checkin_2h_enabled");
 
     if (prefsError) {
       return NextResponse.json(
@@ -133,6 +133,18 @@ export async function POST(request: NextRequest) {
           "Un instant pour toi.",
           `${SITE_URL}/home`
         );
+      }
+      if (p.checkin_2h_enabled) {
+        const feelCheckTimes = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00", "22:00"];
+        for (const timeStr of feelCheckTimes) {
+          enqueue(
+            "feel_check",
+            timeStr,
+            "StopHaram — Comment te sens-tu ?",
+            "Ouvre l'app pour un rappel adapté à ton état.",
+            `${SITE_URL}/checkin`
+          );
+        }
       }
     }
 

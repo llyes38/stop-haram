@@ -95,6 +95,7 @@ export default function SettingsNotificationsPage() {
             timezone: (data.timezone as string) ?? DEFAULT_PREFS.timezone,
             daily_checkin_enabled: (data.daily_checkin_enabled as boolean) ?? true,
             daily_checkin_time: toTimeInput((data.daily_checkin_time as string) ?? ""),
+            checkin_2h_enabled: (data.checkin_2h_enabled as boolean) ?? false,
             actions_morning: (data.actions_morning as boolean) ?? true,
             actions_morning_time: toTimeInput((data.actions_morning_time as string) ?? ""),
             actions_evening: (data.actions_evening as boolean) ?? true,
@@ -123,6 +124,7 @@ export default function SettingsNotificationsPage() {
       timezone: prefs.timezone,
       daily_checkin_enabled: prefs.daily_checkin_enabled,
       daily_checkin_time: fromTimeInput(prefs.daily_checkin_time),
+      checkin_2h_enabled: prefs.checkin_2h_enabled,
       actions_morning: prefs.actions_morning,
       actions_morning_time: fromTimeInput(prefs.actions_morning_time),
       actions_evening: prefs.actions_evening,
@@ -279,6 +281,25 @@ export default function SettingsNotificationsPage() {
               />
             </div>
           )}
+        </div>
+
+        {/* Check-in toutes les 2 h */}
+        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Check-in toutes les 2 h</label>
+              <p className="text-white/55 text-xs mt-0.5">Toutes les 2 h (8h, 10h, 12h… jusqu&apos;à 22h), on te demande comment tu te sens et on t&apos;envoie une invocation adaptée. Respecte les heures calmes.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={prefs.checkin_2h_enabled}
+              onClick={() => setPrefs((p) => ({ ...p, checkin_2h_enabled: !p.checkin_2h_enabled }))}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.checkin_2h_enabled ? "bg-emerald-500" : "bg-white/20"}`}
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.checkin_2h_enabled ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
+            </button>
+          </div>
         </div>
 
         {/* Actions matin */}

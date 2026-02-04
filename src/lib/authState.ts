@@ -143,5 +143,5 @@ export function isParcoursRoute(pathname: string): boolean {
 }
 
 export function isAppRoute(pathname: string): boolean {
-  return ["/home", "/parcours", "/progress", "/account", "/community", "/urgence", "/sadaqa", "/"].includes(pathname) || pathname.startsWith("/home") || pathname.startsWith("/parcours") || pathname.startsWith("/progress") || pathname.startsWith("/account") || pathname.startsWith("/community") || pathname.startsWith("/sadaqa");
+  return ["/home", "/parcours", "/progress", "/account", "/community", "/urgence", "/sadaqa", "/checkin", "/"].includes(pathname) || pathname.startsWith("/home") || pathname.startsWith("/parcours") || pathname.startsWith("/progress") || pathname.startsWith("/account") || pathname.startsWith("/community") || pathname.startsWith("/sadaqa") || pathname.startsWith("/checkin");
 }
