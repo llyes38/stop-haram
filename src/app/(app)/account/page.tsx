@@ -546,8 +546,14 @@ export default function AccountPage() {
             </p>
           )}
           {pushStatus === "subscribed" && (
-            <p className="rounded-xl bg-emerald-500/15 border border-emerald-400/25 px-4 py-3 text-emerald-200 text-sm">
-              ✓ Notifications push activées. Tu recevras les rappels sur cet appareil.
+            <p className={`rounded-xl px-4 py-3 text-sm ${
+              notifPriere || notifActions || notifVersetHadith
+                ? "bg-emerald-500/15 border border-emerald-400/25 text-emerald-200"
+                : "bg-amber-500/15 border border-amber-400/25 text-amber-200"
+            }`}>
+              {notifPriere || notifActions || notifVersetHadith
+                ? "✓ Notifications push activées. Tu recevras les rappels sur cet appareil."
+                : "✓ Notifications push activées. Active au moins un rappel ci-dessous pour recevoir des notifs."}
             </p>
           )}
           <div className="space-y-3">
@@ -573,6 +579,7 @@ export default function AccountPage() {
           <div className="mt-6 pt-4 border-t border-white/10">
             <p className="text-white/60 text-xs mb-2">Tu ne reçois pas les notifs ? Bouge un toggle ci-dessus (ex. « Rappel actions du jour ») : le navigateur affichera « Autoriser » et tu recevras les rappels.</p>
             <p className="text-white/60 text-xs mb-2">Tester les notifications push</p>
+            <p className="text-amber-200/90 text-xs mb-2">Astuce : si l'app est ouverte, la notif ne s'affiche souvent pas. Minimise l'app ou verrouille l'écran, puis clique — tu verras la notif sur l'écran d'accueil.</p>
             <button
               type="button"
               onClick={async () => {
@@ -587,7 +594,7 @@ export default function AccountPage() {
                   });
                   const data = await res.json().catch(() => ({}));
                   if (res.ok && (data.sent ?? 0) > 0) {
-                    alert(`Notif envoyée à ${data.sent} appareil(s). Vérifie ton téléphone ou cette fenêtre.`);
+                    alert(`Notif envoyée à ${data.sent} appareil(s).\n\nSi tu ne vois pas la notif : quand l'app est ouverte, le téléphone l'affiche souvent pas. Minimise l'app (ou verrouille l'écran), puis réessaie — la notif apparaîtra sur l'écran d'accueil ou dans le tiroir des notifs.`);
                   } else {
                     alert(data.error || "Aucun abonnement. Active un toggle ci-dessus puis réessaie.");
                   }
