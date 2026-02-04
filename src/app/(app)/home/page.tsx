@@ -275,6 +275,7 @@ export default function HomePage() {
   const [challengeDay, setChallengeDay] = useState<number>(0);
   const [startDateISO, setStartDateISO] = useState<string | null>(null);
   const [statutModalOpen, setStatutModalOpen] = useState(false);
+  const [shareNudgeModalOpen, setShareNudgeModalOpen] = useState(false);
   const [actionLabels, setActionLabels] = useState<string[]>([
     "Faire mon intention du jour",
     "Lire un rappel ou une invocation",
@@ -517,6 +518,15 @@ export default function HomePage() {
     setActionsState(getTodayActionsState(cnt));
   };
 
+  const handleShareResult = async () => {
+    const text = hasStreak && streakDays != null
+      ? `Je suis sur la bonne voie depuis ${streakDays} jour${streakDays > 1 ? "s" : ""} avec StopHaram. Rejoins-moi ! ${APP_URL}`
+      : `Je reprends le contrôle avec StopHaram. Rejoins-moi ! ${APP_URL}`;
+    const ok = await shareWithNative({ title: "StopHaram", text, url: APP_URL });
+    if (!ok) await copyToClipboard(text);
+    setShareNudgeModalOpen(false);
+  };
+
   return (
     <div className="w-full flex flex-col px-6 pt-12 pb-12 text-white">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -713,13 +723,7 @@ export default function HomePage() {
           <>
             <button
               type="button"
-              onClick={async () => {
-                const text = hasStreak && streakDays != null
-                  ? `Je suis sur la bonne voie depuis ${streakDays} jour${streakDays > 1 ? "s" : ""} avec StopHaram. Rejoins-moi ! ${APP_URL}`
-                  : `Je reprends le contrôle avec StopHaram. Rejoins-moi ! ${APP_URL}`;
-                const ok = await shareWithNative({ title: "StopHaram", text, url: APP_URL });
-                if (!ok) await copyToClipboard(text);
-              }}
+              onClick={() => setShareNudgeModalOpen(true)}
               className="absolute top-3 right-3 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Partager mon résultat"
               title="Partager mon résultat"
@@ -757,6 +761,46 @@ export default function HomePage() {
           </>
         )}
       </div>
+
+      {/* Modale partage : message motivant avant de partager */}
+      {shareNudgeModalOpen && !isGuest && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-8 pt-8"
+          onClick={() => setShareNudgeModalOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-nudge-title"
+        >
+          <div
+            className="w-full max-w-[360px] rounded-2xl bg-[#0a1f12] border border-emerald-400/30 shadow-xl p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p id="share-nudge-title" className="text-emerald-200 font-semibold text-center mb-2">
+              Partage ton résultat
+            </p>
+            <p className="text-white/85 text-sm text-center leading-relaxed mb-5">
+              Envoie ton avancée à tes proches : ça te motive et peut encourager quelqu&apos;un à te rejoindre sur le chemin. Chaque partage compte.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={handleShareResult}
+                className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
+              >
+                Partager maintenant
+              </button>
+              <button
+                type="button"
+                onClick={() => setShareNudgeModalOpen(false)}
+                className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/70 text-sm font-medium hover:bg-white/15 transition-colors"
+              >
+                Plus tard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => router.push("/fonctionnement")}
