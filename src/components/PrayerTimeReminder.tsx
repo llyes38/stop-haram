@@ -24,25 +24,33 @@ export default function PrayerTimeReminder() {
   const timingsRef = useRef<Timings | null>(null);
   const actionsRemindFiredRef = useRef(false);
 
+  const fetchTimings = () => {
+    const settings = getPrayerSettings();
+    if (!settings) return;
+    const params = new URLSearchParams({
+      city: settings.city,
+      country: settings.country,
+      method: window.localStorage.getItem("stopharam_prayer_method") ?? "3",
+      school: window.localStorage.getItem("stopharam_school") ?? "0",
+    });
+    fetch(`/api/prayer-times?${params.toString()}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { timings?: Timings } | null) => {
+        if (data?.timings) timingsRef.current = data.timings;
+      })
+      .catch(() => {});
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const settings = getPrayerSettings();
-    if (settings) {
-      const params = new URLSearchParams({
-        city: settings.city,
-        country: settings.country,
-        method: window.localStorage.getItem("stopharam_prayer_method") ?? "3",
-        school: window.localStorage.getItem("stopharam_school") ?? "0",
-      });
+    fetchTimings();
 
-      fetch(`/api/prayer-times?${params.toString()}`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data: { timings?: Timings } | null) => {
-          if (data?.timings) timingsRef.current = data.timings;
-        })
-        .catch(() => {});
-    }
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchTimings();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("storage", onVisible);
 
     const checkPrayer = () => {
       if (!getNotifPriere()) return;
@@ -65,7 +73,7 @@ export default function PrayerTimeReminder() {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("StopHaram — Prière", {
           body: `Prochaine prière : ${next.name} dans ${mins} min (${next.time}).`,
-          icon: "/file.svg",
+          icon: "/favicon.png",
           tag: `prayer_${next.name}_${Date.now()}`,
         });
       }
@@ -87,7 +95,7 @@ export default function PrayerTimeReminder() {
       if (typeof Notification !== "undefined" && Notification.permission === "granted") {
         new Notification("StopHaram — Actions du jour", {
           body: "Pense à faire tes actions du jour pour valider ta journée.",
-          icon: "/file.svg",
+          icon: "/favicon.png",
           tag: `actions_remind_${Date.now()}`,
         });
       }
@@ -101,7 +109,11 @@ export default function PrayerTimeReminder() {
     const id = setInterval(check, CHECK_INTERVAL_MS);
     check();
 
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("storage", onVisible);
+    };
   }, []);
 
   return null;

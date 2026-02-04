@@ -69,10 +69,32 @@ export function setRemindedToday(prayerName: string): void {
   window.localStorage.setItem(getReminderKey(today, prayerName), "1");
 }
 
+const USER_STORAGE_KEY = "stopharam_user";
+const DEFAULT_COUNTRY = "France";
+
+function getProfileVille(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(USER_STORAGE_KEY);
+    if (!raw) return null;
+    const user = JSON.parse(raw) as { profileInfo?: { ville?: string } };
+    const ville = user?.profileInfo?.ville?.trim();
+    return ville || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Retourne ville + pays : d'abord paramètres prière (localStorage), sinon ville du profil + France. */
 export function getPrayerSettings(): { city: string; country: string } | null {
   if (typeof window === "undefined") return null;
-  const city = window.localStorage.getItem(STORAGE_KEYS.city)?.trim();
-  const country = window.localStorage.getItem(STORAGE_KEYS.country)?.trim();
+  let city = window.localStorage.getItem(STORAGE_KEYS.city)?.trim();
+  let country = window.localStorage.getItem(STORAGE_KEYS.country)?.trim();
+  if (!city) {
+    city = getProfileVille() ?? null;
+    if (!country && city) country = DEFAULT_COUNTRY;
+  }
+  if (!country && city) country = DEFAULT_COUNTRY;
   if (!city || !country) return null;
   return { city, country };
 }

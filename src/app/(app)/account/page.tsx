@@ -566,7 +566,7 @@ export default function AccountPage() {
           <div className="space-y-3">
             <NotifToggle
               label="Rappel heure de prière"
-              description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée)."
+              description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée). Fonctionne quand l&apos;app est ouverte ou en arrière-plan."
               checked={notifPriere}
               onChange={handleNotifPriereChange}
             />

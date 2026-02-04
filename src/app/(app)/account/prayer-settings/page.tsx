@@ -39,8 +39,25 @@ export default function PrayerSettingsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      setCity(window.localStorage.getItem(STORAGE_KEYS.city) ?? "");
-      setCountry(window.localStorage.getItem(STORAGE_KEYS.country) ?? "");
+      let city = window.localStorage.getItem(STORAGE_KEYS.city)?.trim() ?? "";
+      let country = window.localStorage.getItem(STORAGE_KEYS.country)?.trim() ?? "";
+      if (!city) {
+        try {
+          const raw = window.localStorage.getItem("stopharam_user");
+          if (raw) {
+            const user = JSON.parse(raw) as { profileInfo?: { ville?: string } };
+            const ville = user?.profileInfo?.ville?.trim();
+            if (ville) {
+              city = ville;
+              if (!country) country = "France";
+            }
+          }
+        } catch {
+          // ignore
+        }
+      }
+      setCity(city);
+      setCountry(country);
       setMethod(window.localStorage.getItem(STORAGE_KEYS.method) ?? "3");
       setSchool(window.localStorage.getItem(STORAGE_KEYS.school) ?? "0");
     } finally {
@@ -77,6 +94,9 @@ export default function PrayerSettingsPage() {
           <h1 className="text-xl font-bold tracking-tight text-white">Horaires de prière</h1>
         </div>
         <p className="text-white/70 text-sm">Choisis ta ville pour afficher les horaires.</p>
+        <p className="text-amber-200/90 text-xs mt-2">
+          Les rappels (vibration + notif 5 min avant chaque prière) fonctionnent lorsque l&apos;app est ouverte ou en arrière-plan. Ferme pas l&apos;onglet pour les recevoir.
+        </p>
       </header>
 
       {!loaded ? (
