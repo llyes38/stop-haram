@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { dhikrMatin, type DhikrItem } from "@/lib/dhikr";
+import { dhikrMatin, INVOCATIONS_MATIN_AUDIO_SOURCE, type DhikrItem } from "@/lib/dhikr";
 import { todayKey } from "@/lib/date";
 import { addInvocations } from "@/lib/progressStats";
 
@@ -42,10 +42,19 @@ export default function DhikrMatinPage() {
   return (
     <div className="w-full min-h-full flex flex-col px-6 pt-8 pb-8 text-white max-w-[420px] mx-auto">
       <header className="mb-6">
-        <h1 className="text-xl font-bold tracking-tight text-white">Dhikr du matin</h1>
+        <h1 className="text-xl font-bold tracking-tight text-white">Invocations du matin</h1>
         <p className="text-white/70 text-sm mt-1">
           Commence ta journée par le rappel d&apos;Allah. Chaque invocation est une protection et une bénédiction.
         </p>
+        <a
+          href={INVOCATIONS_MATIN_AUDIO_SOURCE}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 py-2.5 text-white/90 text-sm font-medium hover:bg-white/15 transition-colors"
+        >
+          <span aria-hidden>🔊</span>
+          Écouter avec audio et phonétique (Hisnii)
+        </a>
       </header>
 
       <div className="space-y-4 flex-1">
@@ -57,7 +66,7 @@ export default function DhikrMatinPage() {
             <div className="flex items-start justify-between gap-3 mb-2">
               <h2 className="text-emerald-200 font-semibold text-sm">{item.title}</h2>
               {item.repeat != null && (
-                <span className="rounded-full bg-emerald-500/25 px-2.5 py-0.5 text-emerald-200 text-xs font-semibold">
+                <span className="rounded-full bg-emerald-500/25 px-2.5 py-0.5 text-emerald-200 text-xs font-semibold shrink-0">
                   ×{item.repeat}
                 </span>
               )}
@@ -67,7 +76,34 @@ export default function DhikrMatinPage() {
                 {item.arabic}
               </p>
             )}
-            <p className="text-white/80 text-sm mb-3">{item.french}</p>
+            {item.phonetic && (
+              <p className="text-white/60 text-xs mb-2 italic" dir="ltr">
+                {item.phonetic}
+              </p>
+            )}
+            <p className="text-white/80 text-sm mb-2">{item.french}</p>
+            {item.reference && (
+              <p className="text-white/50 text-xs mb-2">
+                {item.reference}
+              </p>
+            )}
+            {item.merit && (
+              <p className="text-emerald-200/80 text-xs mb-3 border-l-2 border-emerald-400/40 pl-2">
+                {item.merit}
+              </p>
+            )}
+            {item.audioUrl && (
+              <div className="mb-3">
+                <audio
+                  controls
+                  preload="metadata"
+                  className="w-full h-9 rounded-lg"
+                  src={item.audioUrl}
+                >
+                  Ton navigateur ne supporte pas l&apos;audio. <a href={INVOCATIONS_MATIN_AUDIO_SOURCE} target="_blank" rel="noopener noreferrer" className="underline">Écouter sur Hisnii</a>.
+                </audio>
+              </div>
+            )}
             <button
               type="button"
               onClick={() => copyItem(item)}
