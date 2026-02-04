@@ -33,7 +33,6 @@ import { hasDonToday } from "@/lib/sadaqaStorage";
 import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
 import { addDefiDayPoints } from "@/lib/pointsGratitude";
 import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
-import { getActionIcon } from "@/components/ActionIcon";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
 import LockedFeatureCard from "@/components/LockedFeatureCard";
