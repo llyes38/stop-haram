@@ -45,6 +45,7 @@ import {
   getDhikrMatinCountsForToday,
   incrementDhikrMatin,
   DHIKR_MATIN_TARGETS,
+  resetDhikrMatinCountsForToday,
   type DhikrMatinCounts,
 } from "@/lib/dhikrMatinCounts";
 
@@ -1221,8 +1222,9 @@ export default function HomePage() {
                       onClick={() => {
                         if (isDhikr) {
                           if (typeof window !== "undefined") {
-                            window.localStorage.removeItem("dhikr_matin_done");
+                            resetDhikrMatinCountsForToday();
                             setDhikrDoneToday(false);
+                            setDhikrMatinCounts(getDhikrMatinCountsForToday());
                           }
                         } else {
                           handleToggleActionByTitle(item.title);

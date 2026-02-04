@@ -66,3 +66,14 @@ export function isDhikrMatinDoneToday(): boolean {
   if (typeof window === "undefined") return false;
   return window.localStorage.getItem(DONE_KEY) === todayKey();
 }
+
+/** Remet le compteur du jour à zéro et retire la validation "terminé". */
+export function resetDhikrMatinCountsForToday(): DhikrMatinCounts {
+  if (typeof window === "undefined") return { subhanallah: 0, alhamdulillah: 0, allahu_akbar: 0 };
+  const key = todayKey();
+  const data = loadRaw();
+  data[key] = { subhanallah: 0, alhamdulillah: 0, allahu_akbar: 0 };
+  saveRaw(data);
+  window.localStorage.removeItem(DONE_KEY);
+  return data[key];
+}
