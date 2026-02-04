@@ -542,11 +542,11 @@ export default function HomePage() {
       `}} />
 
       <header className="mb-8 flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-start gap-3 min-w-0">
           <button
             type="button"
             onClick={handlePhotoClick}
-            className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+            className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 mt-0.5"
             aria-label={profilePhoto ? "Voir ou modifier ma photo" : supabaseUser ? "Mon compte" : "Se connecter"}
           >
             {profilePhoto ? (
@@ -565,8 +565,8 @@ export default function HomePage() {
             className="hidden"
             aria-hidden
           />
-          <div className="min-w-0">
-            <StopHaramLogo size={140} variant="dark" className="block" />
+          <div className="min-w-0 pt-0">
+            <StopHaramLogo size={200} variant="dark" className="block" />
             <div className="flex items-center gap-2 mt-0.5">
               <p className="text-white/60 text-sm">Un pas à la fois</p>
               <button
