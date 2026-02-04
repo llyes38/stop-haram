@@ -109,6 +109,7 @@ export interface InvocationBreakdownItem {
 /** Paramètres pour calculer le détail des invocations du jour. */
 export interface InvocationsBreakdownParams {
   dhikrMatinDone: boolean;
+  dhikrSoirDone: boolean;
   actionItems: Array<{ title: string; desc?: string }>;
   completedTitles: string[];
   getFoisTarget: (title: string, desc?: string) => number | null;
@@ -117,13 +118,13 @@ export interface InvocationsBreakdownParams {
 
 /**
  * Calcule tout ce qui est comptabilisable comme invocations aujourd'hui :
- * Invocations du matin (33+33+34 = 100) + chaque action "X fois" complétée (100, 50, etc.).
+ * Invocations du matin (33+33+34) + invocations avant de dormir (33+33+34) + chaque action "X fois" complétée.
  */
 export function getInvocationsBreakdownToday(params: InvocationsBreakdownParams): {
   total: number;
   items: InvocationBreakdownItem[];
 } {
-  const { dhikrMatinDone, actionItems, completedTitles, getFoisTarget, getDhikrFoisCount } = params;
+  const { dhikrMatinDone, dhikrSoirDone, actionItems, completedTitles, getFoisTarget, getDhikrFoisCount } = params;
   const items: InvocationBreakdownItem[] = [];
   let total = 0;
 
@@ -133,8 +134,14 @@ export function getInvocationsBreakdownToday(params: InvocationsBreakdownParams)
     total += count;
   }
 
+  if (dhikrSoirDone) {
+    const count = 33 + 33 + 34;
+    items.push({ label: "Invocations avant de dormir (33+33+34)", count });
+    total += count;
+  }
+
   for (const item of actionItems) {
-    if (item.title === "Invocations du matin") continue;
+    if (item.title === "Invocations du matin" || item.title === "Invocations avant de dormir") continue;
     const target = getFoisTarget(item.title, item.desc);
     if (target == null) continue;
     const count = getDhikrFoisCount(item.title);

@@ -49,6 +49,11 @@ import {
   type DhikrMatinCounts,
 } from "@/lib/dhikrMatinCounts";
 import {
+  getDhikrSoirCountsForToday,
+  resetDhikrSoirCountsForToday,
+  type DhikrSoirCounts,
+} from "@/lib/dhikrSoirCounts";
+import {
   getFoisTarget,
   getDhikrFoisCount,
   incrementDhikrFoisCount,
@@ -296,6 +301,8 @@ export default function HomePage() {
   const [photoUploading, setPhotoUploading] = useState(false);
   const photoFileInputRef = useRef<HTMLInputElement>(null);
   const [dhikrMatinCounts, setDhikrMatinCounts] = useState<DhikrMatinCounts | null>(null);
+  const [dhikrSoirDoneToday, setDhikrSoirDoneToday] = useState(false);
+  const [dhikrSoirCounts, setDhikrSoirCounts] = useState<DhikrSoirCounts | null>(null);
   const [dhikrFoisCount, setDhikrFoisCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -324,6 +331,8 @@ export default function HomePage() {
     if (typeof window !== "undefined") {
       const raw = window.localStorage.getItem("dhikr_matin_done");
       setDhikrDoneToday(raw === todayKey());
+      const rawSoir = window.localStorage.getItem("dhikr_soir_done");
+      setDhikrSoirDoneToday(rawSoir === todayKey());
     }
     setNotifPriereState(getNotifPriere());
     setNotifActionsState(getNotifActions());
@@ -342,6 +351,7 @@ export default function HomePage() {
   useEffect(() => {
     if (selectedActionIndex == null) {
       setDhikrMatinCounts(null);
+      setDhikrSoirCounts(null);
       setDhikrFoisCount(null);
       return;
     }
@@ -349,12 +359,19 @@ export default function HomePage() {
     const item = itemsToShow[selectedActionIndex];
     if (item?.title === "Invocations du matin") {
       setDhikrMatinCounts(getDhikrMatinCountsForToday());
+      setDhikrSoirCounts(null);
+      setDhikrFoisCount(null);
+    } else if (item?.title === "Invocations avant de dormir") {
+      setDhikrSoirCounts(getDhikrSoirCountsForToday());
+      setDhikrMatinCounts(null);
       setDhikrFoisCount(null);
     } else if (item && getFoisTarget(item.title, item.desc) != null) {
       setDhikrFoisCount(getDhikrFoisCount(item.title));
       setDhikrMatinCounts(null);
+      setDhikrSoirCounts(null);
     } else {
       setDhikrMatinCounts(null);
+      setDhikrSoirCounts(null);
       setDhikrFoisCount(null);
     }
   }, [selectedActionIndex, actionItems, actionLabels]);
@@ -364,6 +381,7 @@ export default function HomePage() {
     const itemsToValidate = items.filter((item) => item.title !== "Invocations du matin");
     const allDone = itemsToValidate.every((item) => {
       const label = item.title;
+      if (label === "Invocations avant de dormir") return dhikrSoirDoneToday;
       const target = getFoisTarget(item.title, item.desc ?? "");
       if (target != null) {
         return getDhikrFoisCount(item.title) >= target || completedTitles.includes(label);
@@ -379,7 +397,7 @@ export default function HomePage() {
         addDefiDayPoints(challengeDay);
       }
     }
-  }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, challengeDay]);
+  }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, dhikrSoirDoneToday, challengeDay]);
 
   useEffect(() => {
     const user = getUser();
@@ -844,11 +862,13 @@ export default function HomePage() {
               </div>
             ) : (() => {
               const itemsToCount = actionItems.length > 0 ? actionItems : actionLabels.map((l) => ({ title: l }));
-              const actionsCount = itemsToCount.filter((item) => item.title !== "Invocations du matin").length;
+              const baseTitles = ["Invocations du matin", "Invocations avant de dormir"];
+              const actionsCount = itemsToCount.filter((item) => !baseTitles.includes(item.title)).length;
               const allDone = itemsToCount
                 .filter((item) => item.title !== "Invocations du matin")
                 .every((item) => {
                   const label = "title" in item ? item.title : item;
+                  if (label === "Invocations avant de dormir") return dhikrSoirDoneToday;
                   const isDhikr = /dhikr|invocation/i.test(label);
                   return isDhikr ? dhikrDoneToday : completedTitles.includes(label);
                 });
@@ -862,18 +882,28 @@ export default function HomePage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount} actions (1, 2, 3). L&apos;action commune ★ ne compte pas. Si tu rechutes, tu perds la validation du jour.</p>
+                  <p className="text-white/60 text-xs mb-4">Tu valides ta journée en accomplissant les {actionsCount} actions. Les actions communes (★ matin, 🌙 soir) ne comptent pas dans ce nombre. Si tu rechutes, tu perds la validation du jour.</p>
                   <div className="space-y-3">
                     {(() => {
                       const u = getUser();
                       const itemsToShow = actionItems.length > 0 ? actionItems : actionLabels.map((title) => ({ title }));
                       return itemsToShow.map((item, i) => {
                         const id = String(i + 1) as ActionId;
-                        const isBaseAction = item.title === "Invocations du matin";
-                        const isDhikr = /dhikr|invocation/i.test(item.title);
-                        const done = isDhikr ? dhikrDoneToday : completedTitles.includes(item.title);
+                        const isInvocationsMatin = item.title === "Invocations du matin";
+                        const isInvocationsSoir = item.title === "Invocations avant de dormir";
+                        const isBaseAction = isInvocationsMatin || isInvocationsSoir;
+                        const done =
+                          isInvocationsMatin
+                            ? dhikrDoneToday
+                            : isInvocationsSoir
+                              ? dhikrSoirDoneToday
+                              : /dhikr|invocation/i.test(item.title)
+                                ? dhikrDoneToday
+                                : completedTitles.includes(item.title);
                         const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
-                        const numberedIndex = itemsToShow.filter((_, j) => j < i && itemsToShow[j].title !== "Invocations du matin").length + 1;
+                        const numberedIndex = itemsToShow.filter(
+                          (_, j) => j < i && itemsToShow[j].title !== "Invocations du matin" && itemsToShow[j].title !== "Invocations avant de dormir"
+                        ).length + 1;
                         return (
                         <button
                           key={id}
@@ -900,7 +930,7 @@ export default function HomePage() {
                             aria-hidden
                             title={isBaseAction ? "Action de base pour tout le monde" : undefined}
                           >
-                            {done ? "✓" : isBaseAction ? "★" : numberedIndex}
+                            {done ? "✓" : isInvocationsMatin ? "★" : isInvocationsSoir ? "🌙" : numberedIndex}
                           </span>
                           <div className="flex-1 min-w-0">
                             <span className={`text-sm font-medium ${done ? "text-white/80 line-through" : "text-white"}`}>
@@ -1170,9 +1200,11 @@ export default function HomePage() {
         const done =
           item.title === "Invocations du matin"
             ? dhikrDoneToday
-            : foisTarget != null
-              ? foisCount >= foisTarget || completedTitles.includes(item.title)
-              : completedTitles.includes(item.title);
+            : item.title === "Invocations avant de dormir"
+              ? dhikrSoirDoneToday
+              : foisTarget != null
+                ? foisCount >= foisTarget || completedTitles.includes(item.title)
+                : completedTitles.includes(item.title);
         const sinLabel = item.sin && u ? getSinLabel(item.sin, u) : null;
         return (
           <div
@@ -1192,9 +1224,20 @@ export default function HomePage() {
                   <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold ${
                     item.title === "Invocations du matin"
                       ? "bg-amber-400/40 text-amber-100"
-                      : "bg-emerald-500/25 text-emerald-200"
+                      : item.title === "Invocations avant de dormir"
+                        ? "bg-indigo-400/40 text-indigo-100"
+                        : "bg-emerald-500/25 text-emerald-200"
                   }`}>
-                    {item.title === "Invocations du matin" ? "★" : itemsToShow.filter((_, j) => j < selectedActionIndex && itemsToShow[j].title !== "Invocations du matin").length + 1}
+                    {item.title === "Invocations du matin"
+                      ? "★"
+                      : item.title === "Invocations avant de dormir"
+                        ? "🌙"
+                        : itemsToShow.filter(
+                            (_, j) =>
+                              j < selectedActionIndex &&
+                              itemsToShow[j].title !== "Invocations du matin" &&
+                              itemsToShow[j].title !== "Invocations avant de dormir"
+                          ).length + 1}
                   </span>
                   <button
                     type="button"
@@ -1250,6 +1293,12 @@ export default function HomePage() {
                             setDhikrDoneToday(false);
                             setDhikrMatinCounts(getDhikrMatinCountsForToday());
                           }
+                        } else if (item.title === "Invocations avant de dormir") {
+                          if (typeof window !== "undefined") {
+                            resetDhikrSoirCountsForToday();
+                            setDhikrSoirDoneToday(false);
+                            setDhikrSoirCounts(getDhikrSoirCountsForToday());
+                          }
                         } else if (foisTarget != null) {
                           if (typeof window !== "undefined") {
                             resetDhikrFoisCount(item.title);
@@ -1280,6 +1329,29 @@ export default function HomePage() {
                       className="w-full rounded-xl bg-emerald-500/25 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/35 transition-colors"
                     >
                       Ouvrir les invocations du matin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedActionIndex(null)}
+                      className="w-full rounded-xl bg-white/10 border border-white/20 py-2.5 text-white/80 text-sm"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                ) : item.title === "Invocations avant de dormir" ? (
+                  <div className="space-y-3">
+                    <p className="text-white/70 text-sm">
+                      Compteur (33/33/34), invocations avant de dormir (Âyatu-l-Kursî, phonétique…) : tout sur une seule page.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedActionIndex(null);
+                        router.push("/dhikr/soir");
+                      }}
+                      className="w-full rounded-xl bg-emerald-500/25 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/35 transition-colors"
+                    >
+                      Ouvrir les invocations avant de dormir
                     </button>
                     <button
                       type="button"

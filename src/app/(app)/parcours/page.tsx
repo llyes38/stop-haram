@@ -74,9 +74,12 @@ export default function ParcoursPage() {
       const completedTitles = getCompletedActionTitlesForToday();
       const dhikrMatinDone =
         typeof window !== "undefined" && window.localStorage.getItem("dhikr_matin_done") === todayKey();
+      const dhikrSoirDone =
+        typeof window !== "undefined" && window.localStorage.getItem("dhikr_soir_done") === todayKey();
       setInvocationsBreakdown(
         getInvocationsBreakdownToday({
           dhikrMatinDone,
+          dhikrSoirDone,
           actionItems,
           completedTitles,
           getFoisTarget,

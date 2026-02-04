@@ -268,13 +268,18 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
   }
 
   const actionsPerDay = user.profileInfo?.actionsPerDay ?? 3;
-  /** Action de base commune à tout le monde : invocations du matin (33, 33, 34). */
+  /** Actions de base communes à tout le monde : invocations du matin + invocations avant de dormir. */
   const invocationsMatinAction: { title: string; desc?: string; sin?: SelectedSin } = {
     title: "Invocations du matin",
     desc: "SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.",
   };
+  const invocationsSoirAction: { title: string; desc?: string; sin?: SelectedSin } = {
+    title: "Invocations avant de dormir",
+    desc: "SubhanAllah 33, Alhamdulillah 33, Allahu Akbar 34. Touche pour compter.",
+  };
   const baseItems: Array<{ title: string; desc?: string; sin?: SelectedSin }> = [
     invocationsMatinAction,
+    invocationsSoirAction,
     { title: action1Title, desc: action1Desc, sin: focusSin },
     { title: d.focus?.title ?? defaultFocus, desc: d.focus?.desc ?? defaultFocusDesc, sin: focusSin },
     { title: d.base?.title ?? defaultBase, desc: d.base?.desc ?? defaultBaseDesc, sin: baseSin },
@@ -289,5 +294,5 @@ export function getDailyActionsWithSins(user: StopHaramUser | null): Array<{ tit
   ];
   const n = Math.max(actionsPerDay, 1);
   const personnalisees = [...itemsSansInvocations, ...additionalItems].slice(0, n);
-  return [invocationsMatinAction, ...personnalisees];
+  return [invocationsMatinAction, invocationsSoirAction, ...personnalisees];
 }

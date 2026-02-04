@@ -1,0 +1,103 @@
+/**
+ * Invocations avant de dormir — inspirées de Hisnii (phonétique, arabe, référence).
+ * Pour l'audio plus tard : ajouter une URL MP3 dans audioUrl (hébergement propre).
+ */
+
+import type { DhikrItem } from "@/lib/dhikr";
+
+export const dhikrSoir: DhikrItem[] = [
+  {
+    id: "ayat-kursi-soir",
+    title: "Âyatu-l-Kursî",
+    arabic: "اللهُ لاَ إِلَهَ إِلاَّ هُوَ الحَيُّ القَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَ لاَ نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَ مَا فِي الأَرْضِ…",
+    french: "Réciter Âyatu-l-Kursî (Sourate Al-Baqarah 2:255). Allah te désignera un protecteur et aucun démon ne t'approchera jusqu'au matin.",
+    source: "Sourate Al-Baqarah, verset 255",
+    reference: "Sahîh Al-Bukhârî",
+    merit: "Celui qui la récite en regagnant sa couche aura un protecteur jusqu'au matin.",
+  },
+  {
+    id: "bismika-allahumma-amutu",
+    title: "C'est en Ton nom que je meurs et que je vis",
+    arabic: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَ أَحْيَا",
+    french: "C'est en Ton nom, Ô Allah, que je meurs et que je vis.",
+    phonetic: "Bi-smika-llâhoumma amûtu wa ahyâ.",
+    source: "Invocation",
+    reference: "Mukhtasar Al-Bukhârî n° 2425",
+  },
+  {
+    id: "bismika-rabbi-wada'tu",
+    title: "C'est en Ton nom, Seigneur, que je me couche",
+    arabic: "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَ بِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَ إِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ",
+    french: "C'est en Ton nom, Seigneur, que je me couche, et en Ton nom que je me lève. Si Tu retiens mon âme, fais-lui miséricorde ; et si Tu la renvoies, protège-la comme Tu protèges Tes pieux serviteurs.",
+    phonetic: "Bi-smika Rabbî wada'tu janbî wa bika arfa'uh. Fa-in amsakta nafsî, fa-rhamhâ. Wa in arsaltahâ fa-hfadh-hâ bi-mâ tahfadhu bi-hi 'ibâdaka-s-sâlihîn.",
+    source: "Invocation",
+    reference: "Al-Bukhârî n° 6320",
+    merit: "Le Prophète (saws) enseignait à dire ceci en rejoignant sa couche.",
+  },
+  {
+    id: "allahumma-alima-l-ghaybi",
+    title: "Ô Allah ! Connaisseur de l'invisible et de l'apparent",
+    arabic: "اللَّهُمَّ عَالِمَ الغَيْبِ وَ الشَّهَادَةِ فَاطِرَ السَّمَاوَاتِ وَ الأَرْضِ رَبَّ كُلِّ شَيْءٍ وَ مَلِيكَهُ، أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي، وَ مِنْ شَرِّ الشَّيْطَانِ وَ شِرْكِهِ",
+    french: "Ô Allah ! Connaisseur de l'invisible et de l'apparent, Créateur des cieux et de la Terre, Seigneur et Possesseur de toute chose, j'atteste qu'il n'y a de divinité que Toi, je cherche refuge auprès de Toi contre le mal de mon âme et contre le mal de Satan et de son polythéisme.",
+    phonetic: "Allâhumma 'Âlima-l-ghaybi wa-sh-shahâdah, Fâtira-s-samâwâti wa-l-ard… Ash-hadu an lâ ilâha illâ ant. A'ûdhu bika min sharri nafsî, wa min sharri-sh-shaytâni wa shirkih.",
+    source: "Invocation",
+    reference: "Sahîh Al-Kalim At-Tayyib n° 21",
+    merit: "Le Prophète (saws) a dit : Dis ceci au matin, au soir et lorsque tu rejoins ta couche.",
+  },
+  {
+    id: "allahumma-qini-adhabak",
+    title: "Ô Allah ! Épargne-moi Ton châtiment",
+    arabic: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ",
+    french: "Ô Allah ! Épargne-moi Ton châtiment le jour où Tu ressusciteras Tes serviteurs.",
+    phonetic: "Allâhumma qinî 'adhâbaka yawma tab'athu 'ibâdak.",
+    source: "Invocation",
+    reference: "As-Sahîhah n° 2754",
+    merit: "Le Messager (saws) plaçait sa main droite sous sa joue et disait ceci en se couchant.",
+  },
+  {
+    id: "al-hamdu-li-llahi-lladhi-at'amana",
+    title: "Louange à Allah qui nous a nourris et abreuvés",
+    arabic: "الحَمْدُ للهِ الَّذِي أَطْعَمَنَا وَ سَقَانَا، وَ كَفَانَا، وَ آوَانَا، فَكَمْ مِمَّنْ لاَ كَافِيَ لَهُ وَ لاَ مُؤْوِيَ",
+    french: "Louange à Allah qui nous a nourris, abreuvés, a suffi à nos besoins et nous a abrités ; nombreux sont ceux qui n'ont personne pour les suffire et les abriter.",
+    phonetic: "Al-hamdu li-llâhi-llâdhi at'amanâ, wa saqânâ, wa kafânâ, wa âwânâ, fa-kam mimman lâ kâfiya lahu wa lâ muwiy.",
+    source: "Invocation",
+    reference: "Mukhtasar Muslim n° 1901",
+  },
+  {
+    id: "allahumma-aslamtu-nafsi",
+    title: "Ô Allah ! Je me suis soumis à Toi",
+    arabic: "اللَّهُمَّ أَسْلَمْتُ نَفْسِي إِلَيْكَ، وَ وَجَّهْتُ وَجْهِي إِلَيْكَ، وَ فَوَّضْتُ أَمْرِي إِلَيْكَ… آمَنْتُ بِكِتَابِكَ الَّذِي أَنْزَلْتَ وَ بِنَبِيِّكَ الَّذِي أَرْسَلْتَ",
+    french: "Ô Allah ! Je me suis soumis à Toi, je T'ai confié mes affaires. Je m'en remets à Toi. Il n'existe aucun refuge contre Toi sauf auprès de Toi. J'ai cru au Livre que Tu as descendu et au Prophète que Tu as envoyé.",
+    phonetic: "Allâhumma aslamtu nafsî ilayk, wa wajjahtu wajhî ilayk… Âmantu bi-kitâbika-lladhî anzalt, wa bi-nabiyyika-lladhî arsalt.",
+    source: "Invocation",
+    reference: "Mukhtasar Al-Bukhârî n° 2426",
+    merit: "Le Messager (saws) disait ceci en regagnant sa couche, allongé sur le côté droit.",
+  },
+  {
+    id: "la-ilaha-illa-llah-soir",
+    title: "Il n'y a de divinité qu'Allah (avant de dormir)",
+    arabic: "لاَ إِلَهَ إِلاَّ اللهُ وَحْدَهُ لاَشَرِيكَ لَهُ، لَهُ المُلْكُ وَ لَهُ الحَمْدُ، وَ هُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، وَ لاَ حَوْلَ وَ لاَ قُوَّةَ إِلاَّ بِاللهِ. سُبْحَانَ اللهِ، وَ الحَمْدُ للهِ، وَ لاَ إِلَهَ إِلاَّ اللهُ، وَ اللهُ أَكْبَرُ",
+    french: "Il n'y a de divinité qu'Allah, Seul sans associé. À Lui la royauté et la louange, Il est capable de toute chose. Il n'y a de force ni de puissance qu'en Allah. Gloire et pureté à Allah, louange à Allah, il n'y a de divinité qu'Allah et Allah est le Plus Grand.",
+    phonetic: "Lâ ilâha illa-llâhu wahdahu lâ sharîka lah… Wa lâ hawla wa lâ quwwata illâ bi-llâh. Subhâna-llâhi, wa-l-hamdu li-llâh, wa lâ ilâha illa-llâh, wa-llâhu akbar.",
+    source: "Invocation",
+    reference: "As-Sahîhah n° 3414",
+  },
+  {
+    id: "trois-sourates-soir",
+    title: "Les trois dernières sourates (Al-Ikhlâs, Al-Falaq, An-Nâs)",
+    arabic: "قُلْ هُوَ اللهُ أَحَدٌ — قُلْ أَعُوذُ بِرَبِّ الفَلَقِ — قُلْ أَعُوذُ بِرَبِّ النَّاسِ",
+    french: "Réciter Al-Ikhlâs (112), Al-Falaq (113), An-Nâs (114). Le Prophète (saws) les récitait en joignant les mains, soufflait dedans puis passait les mains sur le corps (3 fois).",
+    repeat: 3,
+    source: "Sourates 112, 113, 114",
+    reference: "Mukhtasar Al-Bukhârî n° 2025",
+  },
+  {
+    id: "bismi-llahi-wada'tu-janbi",
+    title: "Au nom d'Allah je me couche",
+    arabic: "بِسْمِ اللهِ وَضَعْتُ جَنْبِي، اللَّهُمَّ اغْفِرْ لِي ذَنْبِي، وَ اخْسَأْ شَيْطَانِي، وَ فُكَّ رِهَانِي، وَ ثَقِّلْ مِيزَانِي",
+    french: "Au nom d'Allah je me couche. Ô Allah ! Pardonne-moi mes péchés, humilie le démon, libère-moi de mes hypothèques, alourdit ma balance.",
+    phonetic: "Bi-smi-llâhi wada'tu janbî. Allâhumma ghfir lî dhanbî, wa khsa shaytânî, wa fukka rihânî, wa thaqqil mîzânî.",
+    source: "Invocation",
+    reference: "Sahîh Al-Jâmi' n° 4649",
+  },
+];
