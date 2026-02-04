@@ -891,6 +891,7 @@ export default function HomePage() {
                         const isInvocationsMatin = item.title === "Invocations du matin";
                         const isInvocationsSoir = item.title === "Invocations avant de dormir";
                         const isBaseAction = isInvocationsMatin || isInvocationsSoir;
+                        const isDhikr = /dhikr|invocation/i.test(item.title);
                         const done =
                           isInvocationsMatin
                             ? dhikrDoneToday
