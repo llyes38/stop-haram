@@ -12,70 +12,55 @@ type Objective = {
   fill: string;
 };
 
+// Les "objectifs" = bénéfices de ton plan (sélectionnables)
 const OBJECTIVES: Objective[] = [
   {
-    id: "relations",
-    label: "Relations plus fortes",
-    icon: "❤️",
-    color: "bg-red-500/20 border-red-400/40",
-    ring: "ring-red-400/50",
-    fill: "bg-red-500",
-  },
-  {
-    id: "confiance",
-    label: "Confiance en soi améliorée",
-    icon: "👤",
-    color: "bg-blue-500/20 border-blue-400/40",
-    ring: "ring-blue-400/50",
-    fill: "bg-blue-500",
-  },
-  {
-    id: "humeur",
-    label: "Humeur et paix intérieure",
-    icon: "😊",
-    color: "bg-amber-500/20 border-amber-400/40",
-    ring: "ring-amber-400/50",
-    fill: "bg-amber-500",
-  },
-  {
-    id: "energie",
-    label: "Plus d'énergie et de motivation",
-    icon: "⚡",
-    color: "bg-orange-500/20 border-orange-400/40",
-    ring: "ring-orange-400/50",
-    fill: "bg-orange-500",
-  },
-  {
-    id: "maitrise",
-    label: "Maîtrise de soi améliorée",
-    icon: "🧠",
+    id: "serenite",
+    label: "Plus de sérénité au quotidien",
+    icon: "☀️",
     color: "bg-cyan-500/20 border-cyan-400/40",
     ring: "ring-cyan-400/50",
     fill: "bg-cyan-500",
   },
   {
-    id: "concentration",
-    label: "Concentration et clarté",
-    icon: "🎯",
+    id: "discipline",
+    label: "Plus de discipline personnelle",
+    icon: "📋",
+    color: "bg-emerald-600/20 border-emerald-500/40",
+    ring: "ring-emerald-500/50",
+    fill: "bg-emerald-600",
+  },
+  {
+    id: "rechutes",
+    label: "Moins de rechutes",
+    icon: "🛡️",
+    color: "bg-teal-500/20 border-teal-400/40",
+    ring: "ring-teal-400/50",
+    fill: "bg-teal-500",
+  },
+  {
+    id: "culpabilite",
+    label: "Moins de culpabilité",
+    icon: "💚",
     color: "bg-violet-500/20 border-violet-400/40",
     ring: "ring-violet-400/50",
     fill: "bg-violet-500",
   },
   {
-    id: "pensees",
-    label: "Pensées pures et saines",
+    id: "estime",
+    label: "Meilleure estime de soi",
     icon: "✨",
-    color: "bg-emerald-500/20 border-emerald-400/40",
-    ring: "ring-emerald-400/50",
-    fill: "bg-emerald-500",
+    color: "bg-amber-500/20 border-amber-400/40",
+    ring: "ring-amber-400/50",
+    fill: "bg-amber-500",
   },
   {
-    id: "allah",
-    label: "Lien avec Allah renforcé",
-    icon: "🕌",
-    color: "bg-teal-500/20 border-teal-400/40",
-    ring: "ring-teal-400/50",
-    fill: "bg-teal-500",
+    id: "baraka",
+    label: "Plus de baraka dans ton temps",
+    icon: "🕋",
+    color: "bg-lime-600/20 border-lime-500/40",
+    ring: "ring-lime-500/50",
+    fill: "bg-lime-600",
   },
 ];
 
@@ -166,40 +151,11 @@ export default function ObjectivesPage() {
       {/* Intro */}
       <div className="relative z-0 mx-auto w-full max-w-[420px] px-4 pb-4">
         <p className="text-center text-sm leading-relaxed text-white/80">
-          Sélectionne les objectifs que tu souhaites suivre pendant ton redémarrage.
+          Sélectionne les bénéfices que tu souhaites suivre pendant ton redémarrage.
         </p>
       </div>
 
-      {/* Bénéfices de l'app (pastilles colorées style Quittr) */}
-      <div className="relative z-0 mx-auto w-full max-w-[420px] px-4 pb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-          </div>
-          <h2 className="text-sm font-semibold text-white/90">
-            Bénéfices de ton plan
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { label: "Plus de sérénité au quotidien", color: "bg-cyan-500" },
-            { label: "Plus de discipline personnelle", color: "bg-emerald-600" },
-            { label: "Moins de rechutes", color: "bg-teal-500" },
-            { label: "Moins de culpabilité", color: "bg-violet-500" },
-            { label: "Meilleure estime de soi", color: "bg-amber-500" },
-            { label: "Plus de baraka dans ton temps", color: "bg-lime-600" },
-          ].map(({ label, color }) => (
-            <span
-              key={label}
-              className={`flex items-center justify-center rounded-xl ${color} px-3 py-3 text-xs font-medium text-white shadow-sm text-center`}
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Liste scrollable */}
+      {/* Liste des bénéfices (objectifs) sélectionnables */}
       <div className="relative z-0 min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         <div className="mx-auto max-w-[420px] space-y-3">
           {OBJECTIVES.map((obj) => {
@@ -251,7 +207,7 @@ export default function ObjectivesPage() {
           onClick={handleFollow}
           className="flex w-full max-w-[320px] items-center justify-center rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 active:bg-gray-200"
         >
-          Suivre ces objectifs
+          Suivre ces bénéfices
         </button>
       </div>
     </main>
