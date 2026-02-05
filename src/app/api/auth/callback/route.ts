@@ -33,6 +33,20 @@ export async function GET(request: Request) {
   }
 
   if (isNewSignup) {
+    // Créer tout de suite une ligne user_progress pour que la reconnexion fonctionne (la sauvegarde client sur /home peut être en retard ou échouer)
+    try {
+      const admin = createAdminClient();
+      await admin.from("user_progress").upsert(
+        {
+          user_id: user.id,
+          data: { state: { onboardingComplete: true } },
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      );
+    } catch {
+      // Ignorer si admin indisponible ; le client complètera sur /home
+    }
     return NextResponse.redirect(`${origin}${next}`);
   }
 
