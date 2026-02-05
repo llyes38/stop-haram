@@ -12,22 +12,23 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
+  const fromStart = searchParams.get("from") === "start";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const callbackError = searchParams.get("error") === "callback";
 
   useEffect(() => {
+    if (fromStart) return;
     if (!isOnboardingComplete()) {
       router.replace("/start");
     }
-  }, [router]);
+  }, [router, fromStart]);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Nouveau user (parcours non terminé) → doit faire onboarding + paiement sur /start, pas OAuth direct.
-      if (!isOnboardingComplete()) {
+      if (!fromStart && !isOnboardingComplete()) {
         router.replace("/start");
         return;
       }

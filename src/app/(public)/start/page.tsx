@@ -217,7 +217,7 @@ export default function StartCarouselPage() {
               </button>
               <p className="text-center text-sm text-white/60">
                 Déjà un compte ?{" "}
-                <a href="/login" className="font-medium text-white/90 underline hover:text-white">
+                <a href="/login?from=start" className="font-medium text-white/90 underline hover:text-white">
                   Se connecter
                 </a>
               </p>

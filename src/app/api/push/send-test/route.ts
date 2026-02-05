@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const opts = {
       title: body.title ?? "StopHaram — Test",
       body: body.body ?? "Si tu vois ce message, les notifs push fonctionnent.",
-      url: "/",
+      url: "/home",
     };
 
     const supabase = await createClient();
