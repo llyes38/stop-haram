@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCompanionChat } from "@/hooks/useCompanionChat";
 import CompanionChatDrawer from "@/components/companion/CompanionChatDrawer";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
-
-const GUEST_MODE_KEY = "stopharam_guest_mode";
 
 const TABS = [
   { href: "/home", label: "Accueil", icon: "home" },
@@ -15,12 +13,6 @@ const TABS = [
   { companion: true as const },
   { href: "/community", label: "Communauté", icon: "community" },
   { href: "/account", label: "Compte", icon: "user" },
-] as const;
-
-/** Mode essai : seulement Accueil + Compte */
-const GUEST_TABS = [
-  { href: "/home", label: "Accueil", icon: "home" as const },
-  { href: "/account", label: "Compte", icon: "user" as const },
 ] as const;
 
 function HomeIcon({ active }: { active: boolean }) {
@@ -79,18 +71,11 @@ function CompanionIcon() {
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { isGuest: isGuestAuth } = useAuthStatus();
-  const [guestModeFlag, setGuestModeFlag] = useState(false);
-  const isGuest = isGuestAuth || guestModeFlag;
+  const { isGuest } = useAuthStatus();
   const [companionOpen, setCompanionOpen] = useState(false);
   const { messages, loading, error, sendMessage, clearError } = useCompanionChat();
-  const tabs = isGuest ? GUEST_TABS : TABS;
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
-    }
-  }, []);
+  // MVP : si tu as accès à l'app (payé), menu complet. Sinon on ne devrait pas être sur (app).
+  const tabs = TABS;
 
   return (
     <>
@@ -100,7 +85,7 @@ export default function BottomNav() {
       >
         <div className="flex items-center justify-around h-16 px-2 gap-1">
           {tabs.map((tab, i) => {
-            if ("companion" in tab && tab.companion && !isGuest) {
+            if ("companion" in tab && tab.companion) {
               return (
                 <button
                   key="companion"

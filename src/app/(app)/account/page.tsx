@@ -36,7 +36,7 @@ import {
   setNotifVersetHadith,
 } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
-import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { useAuthStatus } from "@/components/auth/AuthProvider";
 import { saveProgress, deleteAllUserDataFromSupabase } from "@/lib/progressStorage";
 
 type Tab = "profil" | "objectifs" | "plan" | "notifications";
@@ -166,7 +166,7 @@ function NotifToggle({
 export default function AccountPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user: supabaseUser, loading: authLoading, signOut: supabaseSignOut } = useSupabaseAuth();
+  const { loading: authLoading, signOut: signOutApp, isAuthenticated } = useAuthStatus();
   const [user, setUser] = useState<StopHaramUser | null>(null);
   const [tab, setTab] = useState<Tab>("profil");
   const [view, setView] = useState<View>("list");
@@ -246,25 +246,25 @@ export default function AccountPage() {
 
   // Ré-enregistrer l'appareil avec le compte quand on ouvre l'onglet Notifications (pour les abonnements créés avant la liaison user_id)
   useEffect(() => {
-    if (tab === "notifications" && pushStatus === "subscribed" && supabaseUser?.id) {
-      subscribe(supabaseUser.id);
+    if (tab === "notifications" && pushStatus === "subscribed" && undefined) {
+      subscribe(null.id);
     }
-  }, [tab, pushStatus, supabaseUser?.id, subscribe]);
+  }, [tab, pushStatus, undefined, subscribe]);
 
   const handleNotifPriereChange = (v: boolean) => {
     setNotifPriere(v);
     setNotifPriereState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
   };
   const handleNotifActionsChange = (v: boolean) => {
     setNotifActions(v);
     setNotifActionsState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
   };
   const handleNotifVersetHadithChange = (v: boolean) => {
     setNotifVersetHadith(v);
     setNotifVersetHadithState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(supabaseUser?.id);
+    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
   };
 
   const handleSaveProfil = () => {
@@ -291,7 +291,7 @@ export default function AccountPage() {
     saveUser(updated);
     setUser(updated);
     setProfile({ name: updated.name });
-    const userId = supabaseUser?.id ?? null;
+    const userId = undefined ?? null;
     if (userId) {
       saveProgress(
         { profile: { name: updated.name }, storage_user: updated as unknown as Record<string, unknown> },
@@ -315,7 +315,7 @@ export default function AccountPage() {
       };
       saveUser(updated);
       setUser(updated);
-      const userId = supabaseUser?.id ?? null;
+      const userId = undefined ?? null;
       if (userId) saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, userId);
     } catch {
       // Silently ignore compression errors
@@ -332,7 +332,7 @@ export default function AccountPage() {
     };
     saveUser(updated);
     setUser(updated);
-    const userId = supabaseUser?.id ?? null;
+    const userId = undefined ?? null;
     if (userId) saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, userId);
   };
 
@@ -366,18 +366,13 @@ export default function AccountPage() {
   };
 
   const handleDeleteData = async () => {
-    if (typeof window === "undefined" || !confirm("Supprimer toutes tes données ? Tu seras déconnecté et devras repasser par le questionnaire si tu te reconnectes.")) return;
-    if (supabaseUser?.id) {
-      try {
-        await deleteAllUserDataFromSupabase(supabaseUser.id);
-        await supabaseSignOut();
-      } catch {
-        // Même en cas d'erreur (ex. politiques DELETE pas encore en place), on déconnecte et on vide le local
-      }
-    }
+    if (typeof window === "undefined" || !confirm("Supprimer toutes tes données ? Tu seras redirigé et devras repasser par l’onboarding et le paywall.")) return;
     setAuth({ isLoggedIn: false });
-    if (typeof window !== "undefined") localStorage.clear();
-    window.location.href = "/start";
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("stopharam_paid");
+      window.localStorage.clear();
+    }
+    window.location.href = "/paywall";
   };
 
   const showBackButton = view !== "list";
@@ -419,21 +414,6 @@ export default function AccountPage() {
       {view === "list" ? (
         /* === VUE LISTE (cards) === */
         <section className="space-y-8">
-          {!supabaseUser && (
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-5 py-5">
-              <h3 className="text-white font-semibold text-base mb-2">Connecte-toi</h3>
-              <p className="text-white/70 text-sm mb-4">
-                Connecte-toi pour sauvegarder tes résultats sur tous tes appareils.
-              </p>
-              <button
-                type="button"
-                onClick={() => router.push("/login?redirect=/account")}
-                className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
-              >
-                Se connecter
-              </button>
-            </div>
-          )}
           <div>
             <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">Paramètres</h2>
             <div className="space-y-2">
@@ -516,20 +496,19 @@ export default function AccountPage() {
                 onClick={handleDeleteData}
                 iconColor="text-red-400"
               />
-              {supabaseUser && (
+              {isAuthenticated && (
                 <button
                   type="button"
                   onClick={async () => {
-                    await supabaseSignOut();
-                    setAuth({ isLoggedIn: false });
-                    router.replace("/start");
+                    await signOutApp();
+                    router.replace("/paywall");
                   }}
                   className="w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3.5 text-left hover:bg-white/10 transition-colors text-white/70 text-sm font-medium"
                 >
                   <svg className="h-5 w-5 text-white/50 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  Se déconnecter
+                  Révoquer l&apos;accès sur cet appareil
                 </button>
               )}
             </div>
@@ -548,7 +527,7 @@ export default function AccountPage() {
               <p className="text-white/70 text-xs mb-3">Pour recevoir les rappels (check-in, actions du jour), ton téléphone doit autoriser l’app à envoyer des notifications. Clique ci-dessous : le navigateur affichera « Autoriser ».</p>
               <button
                 type="button"
-                onClick={() => requestPermissionAndSubscribe(supabaseUser?.id)}
+                onClick={() => requestPermissionAndSubscribe(undefined)}
                 className="w-full rounded-xl bg-amber-500/40 border border-amber-400/50 py-3 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors"
               >
                 Activer les notifications
@@ -563,7 +542,7 @@ export default function AccountPage() {
               <p className="text-red-200/80 text-xs">Après avoir autorisé, clique ici pour réessayer :</p>
               <button
                 type="button"
-                onClick={() => requestPermissionAndSubscribe(supabaseUser?.id)}
+                onClick={() => requestPermissionAndSubscribe(undefined)}
                 className="rounded-lg bg-red-500/30 border border-red-400/40 px-3 py-2 text-red-100 text-sm font-medium hover:bg-red-500/40"
               >
                 Réessayer

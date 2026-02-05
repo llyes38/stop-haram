@@ -159,14 +159,10 @@ export default function SettingsNotificationsPage() {
   if (!user) {
     return (
       <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
-        <p className="text-white/70 text-sm mb-4">Connecte-toi pour gérer tes rappels planifiés.</p>
-        <button
-          type="button"
-          onClick={() => router.push("/login?redirect=/settings/notifications")}
-          className="rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm"
-        >
-          Se connecter
-        </button>
+        <p className="text-white/70 text-sm">Charge ton profil depuis l’onglet Compte pour configurer tes rappels.</p>
+        <Link href="/account" className="mt-4 rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm text-center">
+          Aller au Compte
+        </Link>
       </div>
     );
   }

@@ -97,7 +97,7 @@ const averageScore = 45;
 
 export default function AnalysisResultPage() {
   const router = useRouter();
-  const { user: supabaseUser } = useSupabaseAuth();
+  // MVP : pas de compte Supabase
   const [userScore, setUserScore] = useState<number | null>(null);
   const [teaser, setTeaser] = useState<{ pointSensible: string; pointFort: string } | null>(null);
   const [savedToCloud, setSavedToCloud] = useState(false);
@@ -139,11 +139,11 @@ export default function AnalysisResultPage() {
       }).then(({ ok }) => {
         if (ok) {
           setSavedToCloud(true);
-          if (!supabaseUser) incrementGuestActions();
+          incrementGuestActions();
         }
       });
     }
-  }, [savedToCloud, supabaseUser]);
+  }, [savedToCloud]);
 
   const score = userScore ?? 0;
 
@@ -244,23 +244,8 @@ export default function AnalysisResultPage() {
           </div>
         </div>
 
-        {/* Bloc Sauvegarde — si non connecté et parcours terminé (pas pendant l'onboarding) */}
-        {!supabaseUser && showSavePrompt && (
-          <div className="w-full max-w-[420px] mx-auto mb-6 rounded-2xl bg-white/5 border border-white/10 px-5 py-5">
-            <h3 className="text-white font-semibold text-base mb-2">Sauvegarde tes résultats</h3>
-            <p className="text-white/80 text-sm mb-4">Connecte-toi pour retrouver tes résultats sur tous tes appareils.</p>
-            <button
-              type="button"
-              onClick={() => router.push("/login?redirect=/analysis/result")}
-              className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
-            >
-              Se connecter pour sauvegarder
-            </button>
-          </div>
-        )}
-
-        {supabaseUser && savedToCloud && (
-          <p className="text-emerald-300/90 text-sm text-center mb-4">✓ Résultats sauvegardés</p>
+        {savedToCloud && (
+          <p className="text-emerald-300/90 text-sm text-center mb-4">✓ Résultats enregistrés</p>
         )}
 
         {/* Bloc Défi à 2 : partage du résultat */}
