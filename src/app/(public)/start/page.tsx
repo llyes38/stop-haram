@@ -3,7 +3,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
-import { supabase } from "@/lib/supabase/client";
 import { setAuth, setState, isLoggedIn, isOnboardingComplete } from "@/lib/authState";
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
@@ -50,14 +49,12 @@ export default function StartCarouselPage() {
     setSlideIndex(Math.min(index, 1));
   };
 
-  const handleCommencer = async () => {
-    // Déjà connecté et parcours terminé → home
+  const handleCommencer = () => {
+    // Déjà payé et parcours terminé → home
     if (isLoggedIn() && isOnboardingComplete()) {
       router.push("/home");
       return;
     }
-    // Commencer sans compte : déconnecter toute session Supabase pour forcer le mode invité
-    await supabase.auth.signOut();
     clearDecouverteSeen();
     resetTemptationStats();
     clearDefiDaysStatus();
@@ -215,12 +212,6 @@ export default function StartCarouselPage() {
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
-              <p className="text-center text-sm text-white/60">
-                Déjà un compte ?{" "}
-                <a href="/login?from=start" className="font-medium text-white/90 underline hover:text-white">
-                  Se connecter
-                </a>
-              </p>
             </div>
           </div>
         </section>

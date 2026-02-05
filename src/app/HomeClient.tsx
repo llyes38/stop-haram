@@ -145,12 +145,6 @@ function WelcomeScreen() {
             Commencer l&apos;introspection
             <span aria-hidden className="text-lg leading-none">→</span>
           </Link>
-          <Link
-            href="/login"
-            className="text-white/70 text-sm font-normal hover:text-white/90 focus:outline-none focus:underline transition-colors"
-          >
-            Déjà inscrit ?
-          </Link>
           {(process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_ENABLE_TEST_LINK === "true") && (
             <Link
               href="/test"
