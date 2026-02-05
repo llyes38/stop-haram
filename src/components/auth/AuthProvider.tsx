@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (pathname === "/app" || pathname?.startsWith("/app/")) {
+    if (pathname === "/app" || pathname?.startsWith("/app/") || pathname === "/home" || pathname?.startsWith("/home")) {
       syncPaid();
     }
   }, [pathname]);

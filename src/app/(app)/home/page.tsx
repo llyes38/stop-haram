@@ -664,16 +664,16 @@ export default function HomePage() {
       <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative">
         {isGuest ? (
           <>
-            <p className="text-amber-200 text-sm font-semibold text-center mb-2">Mode essai</p>
+            <p className="text-amber-200 text-sm font-semibold text-center mb-2">Débloque tout le parcours</p>
             <p className="text-white/90 text-sm text-center mb-4">
-              Valide tes actions du jour et invite un proche. Crée un compte pour débloquer tout le parcours.
+              Abonne-toi pour débloquer le défi 30 jours, les actions du jour et tout le contenu.
             </p>
             <button
               type="button"
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/paywall")}
               className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
             >
-              Créer un compte
+              S&apos;abonner
             </button>
           </>
         ) : (
@@ -1106,19 +1106,19 @@ export default function HomePage() {
           copyLinkLabel="Copier le lien"
         />
 
-        {/* CTA mode essai : inciter à créer un compte */}
+        {/* CTA non abonné : inciter à s'abonner */}
         {isGuest && (
         <div className="rounded-2xl bg-amber-500/15 border-2 border-amber-400/40 px-5 py-5">
           <p className="text-amber-200 font-semibold text-center mb-2">Débloque tout le parcours</p>
           <p className="text-white/90 text-sm text-center mb-4">
-            Crée un compte pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours et à la synchronisation sur tous tes appareils.
+            Abonne-toi pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours et à tout le contenu.
           </p>
           <button
             type="button"
-            onClick={() => router.push("/login")}
+            onClick={() => router.push("/paywall")}
             className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-bold text-sm hover:bg-white/95 transition-colors"
           >
-            Créer un compte
+            S&apos;abonner
           </button>
         </div>
         )}

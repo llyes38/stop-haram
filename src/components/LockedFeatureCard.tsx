@@ -7,14 +7,14 @@ type Props = {
   description?: string;
 };
 
-/** Carte affichée en mode invité pour une fonctionnalité réservée aux comptes. Affiche un cadenas et incite à créer un compte. */
+/** Carte affichée si non abonné pour une fonctionnalité réservée aux abonnés. CTA = S'abonner (MVP). */
 export default function LockedFeatureCard({ title, description }: Props) {
   const router = useRouter();
 
   return (
     <button
       type="button"
-      onClick={() => router.push("/login")}
+      onClick={() => router.push("/paywall")}
       className="w-full rounded-2xl border-2 border-white/20 bg-white/5 px-5 py-5 text-left transition-colors hover:bg-white/10 hover:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
     >
       <div className="flex items-start gap-4">
@@ -30,7 +30,7 @@ export default function LockedFeatureCard({ title, description }: Props) {
             <p className="text-white/60 text-sm mt-0.5">{description}</p>
           )}
           <p className="text-amber-200/90 text-sm font-medium mt-2">
-            Crée un compte pour débloquer
+            S&apos;abonner pour débloquer
           </p>
         </div>
         <span className="text-white/40 shrink-0" aria-hidden>
