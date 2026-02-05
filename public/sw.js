@@ -29,13 +29,11 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       if (list.length) {
-        const client = list[0];
-        client.focus();
-        if (typeof client.navigate === "function") {
-          return client.navigate(urlToOpen).catch(function () {});
-        }
+        // L'app est déjà ouverte : on ramène juste l'onglet au premier plan, sans recharger
+        list[0].focus();
         return Promise.resolve();
       }
+      // Aucune fenêtre ouverte : on ouvre l'app
       if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
   );
