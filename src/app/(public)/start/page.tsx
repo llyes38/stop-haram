@@ -180,7 +180,7 @@ export default function StartCarouselPage() {
           </div>
           <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[20%]" style={{ background: "linear-gradient(0deg, rgba(20,184,166,0.2) 0%, rgba(255,255,255,0.06) 50%, transparent 100%)" }} aria-hidden />
 
-          <div className="relative z-10 flex flex-1 flex-col px-6 pt-10 pb-28 min-h-0">
+          <div className="relative z-30 flex flex-1 flex-col px-6 pt-10 pb-28 min-h-0">
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Bienvenue !</h1>
             {freeMonthReceived && (
               <div className="mt-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-3">

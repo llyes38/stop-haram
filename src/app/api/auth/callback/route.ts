@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   const redirectTo = searchParams.get("redirect") ?? "/home";
   const next = redirectTo.startsWith("/") ? redirectTo : "/home";
   const origin = new URL(request.url).origin;
+  const isNewSignup = searchParams.get("new_signup") === "1";
 
   if (!code) {
     return NextResponse.redirect(new URL(`${origin}/login?error=callback`, request.url));
@@ -27,6 +28,10 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user?.id) {
     return NextResponse.redirect(new URL(`${origin}/login?error=callback`, request.url));
+  }
+
+  if (isNewSignup) {
+    return NextResponse.redirect(`${origin}${next}`);
   }
 
   const { data: row } = await supabase

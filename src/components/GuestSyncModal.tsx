@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
 import {
   hasGuestProgress,
@@ -24,6 +24,7 @@ const MODAL_DISMISSED_KEY = "stopharam_guest_sync_modal_dismissed";
  */
 export default function GuestSyncModal() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStatus();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,12 +33,13 @@ export default function GuestSyncModal() {
   useEffect(() => {
     if (typeof window === "undefined" || !isAuthenticated || !user?.id) return;
     if (dismissed) return;
+    if (pathname === "/start" || pathname?.startsWith("/start?")) return;
     const alreadyDismissed = window.sessionStorage.getItem(MODAL_DISMISSED_KEY);
     if (alreadyDismissed) return;
     if (!hasGuestProgress()) return;
 
     setOpen(true);
-  }, [isAuthenticated, user?.id, dismissed]);
+  }, [isAuthenticated, user?.id, dismissed, pathname]);
 
   const handleYes = async () => {
     if (!user?.id) return;

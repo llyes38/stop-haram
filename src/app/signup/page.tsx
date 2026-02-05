@@ -28,7 +28,7 @@ export default function SignupPage() {
     try {
       const { data, error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
+        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home&new_signup=1` },
       });
       if (err) setError(err.message);
       else if (data?.url) window.location.href = data.url;
