@@ -7,6 +7,7 @@ import {
   isOnboardingComplete,
   isPublicRoute,
   isParcoursRoute,
+  isAppRoute,
 } from "@/lib/authState";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import InstallPrompt from "./InstallPrompt";
@@ -44,12 +45,18 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Pas payé : autoriser le parcours (profile, quiz, plan, offer, checkout) ; bloquer /app et (app)/*
     if (!isEntitled) {
       if (pathname === "/app" || pathname.startsWith("/app/")) {
         router.replace("/paywall");
         return;
       }
-      router.replace("/start");
+      if (isAppRoute(pathname)) {
+        router.replace("/paywall");
+        return;
+      }
+      // Parcours / onboarding : profile, quiz, plan, offer, checkout, etc. → autoriser
+      setReady(true);
       return;
     }
 
