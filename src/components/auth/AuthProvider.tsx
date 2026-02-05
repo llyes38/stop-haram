@@ -108,10 +108,14 @@ function hydrateFromProgress(userId: string, sessionUser: User | null) {
         !!(localUser?.plan?.days && localUser.plan.days.length > 0);
       if (hasGuestCompleted && localState) {
         const profile = getProfile();
-        await saveProgress(
-          { state: { ...localState, onboardingComplete: true } as unknown as Record<string, unknown>, profile: profile as unknown as Record<string, unknown>, storage_user: (localUser ?? {}) as unknown as Record<string, unknown> },
-          userId
-        );
+        const payload: Record<string, unknown> = {
+          state: { ...localState, onboardingComplete: true } as unknown as Record<string, unknown>,
+          profile: (profile ?? {}) as unknown as Record<string, unknown>,
+        };
+        if (localUser && typeof localUser === "object" && Object.keys(localUser).length > 0) {
+          payload.storage_user = localUser as unknown as Record<string, unknown>;
+        }
+        await saveProgress(payload, userId);
         setState({ ...localState, onboardingComplete: true });
         if (localUser) saveUser(localUser);
       } else {
