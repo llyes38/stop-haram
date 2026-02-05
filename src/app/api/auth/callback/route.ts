@@ -3,17 +3,17 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * Callback OAuth (Google, etc.) — route API uniquement, pas de page.
- * Sur Vercel, seul le serveur traite la requête : lecture du code verifier
- * dans les cookies, échange du code contre une session, redirection.
+ * Seuls les comptes ayant fait l'onboarding + paiement + inscription (présents dans user_progress) peuvent se reconnecter.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const redirectTo = searchParams.get("redirect") ?? "/home";
   const next = redirectTo.startsWith("/") ? redirectTo : "/home";
+  const origin = new URL(request.url).origin;
 
   if (!code) {
-    return NextResponse.redirect(new URL("/login?error=callback", request.url));
+    return NextResponse.redirect(new URL(`${origin}/login?error=callback`, request.url));
   }
 
   const supabase = await createClient();
@@ -21,9 +21,30 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("[api/auth/callback]", error.message);
-    return NextResponse.redirect(new URL("/login?error=callback", request.url));
+    return NextResponse.redirect(new URL(`${origin}/login?error=callback`, request.url));
   }
 
-  const origin = new URL(request.url).origin;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.id) {
+    return NextResponse.redirect(new URL(`${origin}/login?error=callback`, request.url));
+  }
+
+  const { data: row } = await supabase
+    .from("user_progress")
+    .select("data")
+    .eq("user_id", user.id)
+    .single();
+
+  const data = row?.data as { storage_user?: unknown } | null;
+  const hasStorageUser =
+    data?.storage_user &&
+    typeof data.storage_user === "object" &&
+    Object.keys(data.storage_user as object).length > 0;
+
+  if (!hasStorageUser) {
+    await supabase.auth.signOut();
+    return NextResponse.redirect(new URL(`${origin}/login?error=not_registered`, request.url));
+  }
+
   return NextResponse.redirect(`${origin}${next}`);
 }

@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const callbackError = searchParams.get("error") === "callback";
+  const notRegisteredError = searchParams.get("error") === "not_registered";
 
   useEffect(() => {
     if (fromStart) return;
@@ -75,7 +76,18 @@ export default function LoginPage() {
             Continuer avec Google
           </button>
 
-          {(error || callbackError) && (
+          {notRegisteredError && (
+            <div className="rounded-xl bg-amber-500/20 border border-amber-400/40 px-4 py-3 text-center">
+              <p className="text-amber-200 text-sm">
+                Ce compte Google n&apos;a pas encore de parcours StopHaram. Fais le parcours (quiz, objectifs, plan), paie, puis inscris-toi avec ce compte Google pour pouvoir te reconnecter ensuite.
+              </p>
+              <Link href="/start" className="mt-2 inline-block text-emerald-400 text-sm font-medium hover:underline">
+                Commencer le parcours
+              </Link>
+            </div>
+          )}
+
+          {(error || callbackError) && !notRegisteredError && (
             <div className="text-center space-y-2">
               <p className="text-red-300 text-sm">
                 {callbackError ? "La connexion a échoué. Réessaie ou utilise un autre moyen." : error}

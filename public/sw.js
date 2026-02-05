@@ -30,9 +30,11 @@ self.addEventListener("notificationclick", (event) => {
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
       if (list.length) {
         const client = list[0];
-        return client.navigate(urlToOpen).then(() => client.focus()).catch(() => {
-          if (clients.openWindow) return clients.openWindow(urlToOpen);
-        });
+        client.focus();
+        if (typeof client.navigate === "function") {
+          return client.navigate(urlToOpen).catch(function () {});
+        }
+        return Promise.resolve();
       }
       if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
