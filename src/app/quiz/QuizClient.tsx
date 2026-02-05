@@ -248,8 +248,6 @@ export default function QuizClient() {
     }
   };
 
-  const handleSkip = () => router.push("/profile");
-
   const handleFinishQuiz = async () => {
     setIsUpdatingPlan(true);
     try {
@@ -543,8 +541,8 @@ export default function QuizClient() {
           );
         })()}
 
-        {/* Skip test : retour à la page d'où on vient (accueil, parcours ou compte) */}
-        {currentStep < 12 && (
+        {/* Skip test : uniquement pour un user déjà dans l'app (parcours, compte, companion). Pas pour le parcours onboarding (nouveau user). */}
+        {currentStep < 12 && (fromAccount || fromParcours || fromCompanion) && (
           <div className="mt-auto pt-6">
             <button
               type="button"
