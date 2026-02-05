@@ -1,6 +1,6 @@
-/** URL de l'app — centralisée pour le partage (Vercel : NEXT_PUBLIC_SITE_URL) */
+/** URL de l'app — centralisée pour le partage (Vercel : NEXT_PUBLIC_SITE_URL ou NEXT_PUBLIC_APP_URL) */
 export const APP_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
 
 export function canShare(): boolean {
   return typeof navigator !== "undefined" && !!navigator.share;

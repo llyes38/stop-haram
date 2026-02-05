@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import { supabase } from "@/lib/supabase/client";
-import { getSiteUrl } from "@/lib/siteUrl";
 import { setAuth, setState, isLoggedIn, isOnboardingComplete } from "@/lib/authState";
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
@@ -28,11 +27,6 @@ export default function StartCarouselPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
   const [freeMonthReceived, setFreeMonthReceived] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [magicEmail, setMagicEmail] = useState("");
-  const [magicLoading, setMagicLoading] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
-  const [magicError, setMagicError] = useState<string | null>(null);
 
   useEffect(() => {
     const offer = searchParams.get("offer");
@@ -80,70 +74,6 @@ export default function StartCarouselPage() {
       window.localStorage.setItem("stopharam_guest_mode", "true");
     }
     router.push("/profile");
-  };
-
-  const handleGoogleCommencer = async () => {
-    setGoogleLoading(true);
-    try {
-      // Déjà inscrit (onboarding + paiement terminés) → connexion Google directe vers l'app
-      if (isOnboardingComplete()) {
-        const { data, error: err } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home` },
-        });
-        if (err) return;
-        if (data?.url) {
-          window.location.href = data.url;
-          return;
-        }
-      }
-      // Nouveau user : ne pas connecter Google tout de suite, faire tout le parcours (onboarding + paiement) puis signup
-      await supabase.auth.signOut();
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("stopharam_intent_google", "true");
-      }
-      clearDecouverteSeen();
-      resetTemptationStats();
-      clearDefiDaysStatus();
-      setAuth({ isLoggedIn: true });
-      setState({
-        onboardingComplete: false,
-        lastRoute: undefined,
-        startDate: undefined,
-        dayCount: 0,
-        relapse: undefined,
-      });
-      persistLocalStateToProgress(null);
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("stopharam_guest_mode");
-      }
-      router.push("/profile");
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!magicEmail.trim()) {
-      setMagicError("Indique ton email");
-      return;
-    }
-    setMagicLoading(true);
-    setMagicError(null);
-    setMagicLinkSent(false);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: magicEmail.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?redirect=/home` },
-      });
-      if (error) setMagicError(error.message);
-      else setMagicLinkSent(true);
-    } catch {
-      setMagicError("Erreur");
-    } finally {
-      setMagicLoading(false);
-    }
   };
 
   return (
@@ -277,51 +207,20 @@ export default function StartCarouselPage() {
             <div className="mt-auto flex max-w-[420px] flex-col gap-3 pt-8 pb-6">
               <button
                 type="button"
-                onClick={handleGoogleCommencer}
-                disabled={googleLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-60"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continuer avec Google
-              </button>
-              <form onSubmit={handleMagicLink} className="flex flex-col gap-2">
-                <input
-                  type="email"
-                  value={magicEmail}
-                  onChange={(e) => setMagicEmail(e.target.value)}
-                  placeholder="ton@email.com"
-                  className="w-full rounded-xl border border-white/30 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  disabled={magicLoading}
-                />
-                <button
-                  type="submit"
-                  disabled={magicLoading}
-                  className="w-full rounded-2xl border border-white/30 bg-white/10 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 disabled:opacity-60"
-                >
-                  {magicLinkSent ? "Mail envoyé" : "Recevoir un mail pour se connecter"}
-                </button>
-              </form>
-              {magicLinkSent && (
-                <p className="text-emerald-300 text-sm text-center">
-                  Mail envoyé. Ouvre ta boîte mail et clique sur le lien.
-                </p>
-              )}
-              {magicError && <p className="text-red-300 text-sm text-center">{magicError}</p>}
-              <button
-                type="button"
                 onClick={handleCommencer}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/30 bg-white/10 py-3.5 text-base font-semibold text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-white py-3.5 text-base font-semibold text-gray-900 shadow-lg transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50"
               >
-                Continuer sans compte
+                Commencer le quizz
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
+              <p className="text-center text-sm text-white/60">
+                Déjà un compte ?{" "}
+                <a href="/login" className="font-medium text-white/90 underline hover:text-white">
+                  Se connecter
+                </a>
+              </p>
             </div>
           </div>
         </section>

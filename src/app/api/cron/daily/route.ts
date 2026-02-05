@@ -25,7 +25,7 @@ type NotificationPrefRow = {
   checkin_2h_enabled?: boolean;
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
 
 function applyQuietHours(
   scheduled: Date,

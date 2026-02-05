@@ -9,7 +9,7 @@ import {
 } from "@/lib/pushSubscriptionStore";
 import webpush from "web-push";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
 
 export type SendPushOptions = {
   title?: string;

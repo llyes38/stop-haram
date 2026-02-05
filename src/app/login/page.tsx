@@ -12,10 +12,8 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") ?? "/";
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const callbackError = searchParams.get("error") === "callback";
 
   useEffect(() => {
@@ -46,29 +44,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError("Indique ton email");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    setMagicLinkSent(false);
-    try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { emailRedirectTo: `${getSiteUrl()}/auth/confirm?redirect=${encodeURIComponent(redirect)}` },
-      });
-      if (err) setError(err.message);
-      else setMagicLinkSent(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <main className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white">
       <div className="w-full max-w-[420px] mx-auto flex flex-col flex-1 px-6 pt-12 pb-8">
@@ -79,7 +54,7 @@ export default function LoginPage() {
             Connecte-toi pour sauvegarder tes résultats et rejoindre les Stopprs.
           </p>
           <p className="text-white/50 text-xs mt-2">
-            Google (1 clic) ou lien par email. Aucun mot de passe.
+            Connexion en 1 clic avec ton compte Google.
           </p>
         </header>
 
@@ -98,37 +73,6 @@ export default function LoginPage() {
             </svg>
             Continuer avec Google
           </button>
-
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-white/20" />
-            <span className="text-white/50 text-xs">ou</span>
-            <div className="flex-1 h-px bg-white/20" />
-          </div>
-
-          <form onSubmit={handleMagicLink} className="space-y-3">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ton@email.com"
-              className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              disabled={loading}
-              autoComplete="email"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors disabled:opacity-60"
-            >
-              Recevoir un lien par email
-            </button>
-          </form>
-
-          {magicLinkSent && (
-            <p className="text-emerald-300 text-sm text-center">
-              Vérifie ta boîte mail : un lien de connexion t&apos;a été envoyé.
-            </p>
-          )}
 
           {(error || callbackError) && (
             <div className="text-center space-y-2">

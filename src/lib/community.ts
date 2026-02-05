@@ -3,7 +3,7 @@
  */
 
 export const APP_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://stop-haram.vercel.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
 export const WHATSAPP_COMMUNITY_URL = "REPLACE_ME_WITH_YOUR_WHATSAPP_LINK";
 
 const CHALLENGE_JOINED_KEY = "community_week_challenge_joined";
