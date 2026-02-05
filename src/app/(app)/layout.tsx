@@ -32,11 +32,6 @@ export default function AppLayout({
     }
   }, []);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && authUser) {
-      window.localStorage.removeItem("stopharam_intent_google");
-    }
-  }, [authUser]);
 
   useEffect(() => {
     if (!isLoggedIn()) {

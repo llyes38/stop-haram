@@ -12,8 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 /**
  * Client Supabase pour le serveur (Route Handlers, Server Components, etc.).
- * Lit et écrit les cookies de la requête pour que le code verifier PKCE
- * soit disponible lors de l'échange du code après la redirection Google.
+ * Lit et écrit les cookies de la requête (session Magic Link / Auth).
  */
 export async function createClient() {
   const cookieStore = await cookies();

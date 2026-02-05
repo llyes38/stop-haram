@@ -60,11 +60,10 @@ function syncAuthState(session: Session | null) {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem("stopharam_guest_mode");
   }
-  // Ne pas écraser le prénom : c'est celui que l'user tape dans "Mon compte", pas le nom Google.
-  // Le profil (prénom) sera chargé par hydrateFromProgress depuis Supabase.
+  // Le profil (prénom) est chargé par hydrateFromProgress depuis Supabase.
 }
 
-function getGoogleFallbackName(user: User): string {
+function getFallbackName(user: User): string {
   return (
     (user.user_metadata?.full_name as string) ??
     (user.user_metadata?.name as string) ??
@@ -78,11 +77,10 @@ function hydrateFromProgress(userId: string, sessionUser: User | null) {
     const hasAccountData = data?.storage_user && typeof data.storage_user === "object" && Object.keys(data.storage_user).length > 0;
     const hasState = data?.state && typeof data.state === "object" && Object.keys(data.state).length > 0;
 
-    // Prénom = celui enregistré dans "Mon compte" (Supabase), jamais le nom Google
     if (data?.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
       setProfile(data.profile as StopharamProfile);
     } else if (sessionUser) {
-      setProfile({ name: getGoogleFallbackName(sessionUser) });
+      setProfile({ name: getFallbackName(sessionUser) });
     }
 
     if (hasAccountData && hasState) {
@@ -99,7 +97,7 @@ function hydrateFromProgress(userId: string, sessionUser: User | null) {
         /* ignore invalid shape */
       }
     } else {
-      // Aucune donnée Supabase : invité qui vient de lier Google → sauvegarder son parcours (quiz, péchés, plan) ; sinon nouveau compte → onboarding
+      // Aucune donnée Supabase : invité qui vient de se connecter (Magic Link) → sauvegarder son parcours (quiz, péchés, plan) ; sinon nouveau compte → onboarding
       const localUser = typeof window !== "undefined" ? getUser() : null;
       const localState = getState();
       // Invité a terminé le parcours si onboardingComplete OU s'il a déjà un plan (quiz fait → plan créé) → on sauvegarde en Supabase
@@ -144,7 +142,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         syncAuthState(s);
         hydrateFromProgress(s.user.id, s.user);
       } else {
-        // Ne pas marquer déconnecté tout de suite : laisse le temps au clic "Continuer avec Google" de lancer la redirection OAuth (évite le flash vers l'onboarding au 1er clic).
         delaySyncNull = window.setTimeout(() => {
           syncAuthState(null);
         }, 400);

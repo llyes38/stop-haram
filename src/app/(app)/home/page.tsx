@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getDailyActionLabels, getDailyActionsWithSins, getSinLabel } from "@/lib/storage";
-import { getProfile } from "@/lib/authState";
+import { getProfile, isLoggedIn, isOnboardingComplete, FIRST_PARCOURS_STEP } from "@/lib/authState";
 import { generatePlan } from "@/lib/programEngine";
 import type { SelectedSin } from "@/lib/storage";
 import { getTemptationStats, incrementTempted } from "@/lib/temptationStats";
@@ -216,6 +216,13 @@ export default function HomePage() {
       setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
     }
   }, []);
+  // Après reconnexion, l'hydratation Supabase met à jour le state ; si après un court délai l'user est connecté mais n'a pas de parcours → envoyer vers le parcours
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (isLoggedIn() && !isOnboardingComplete()) router.replace(FIRST_PARCOURS_STEP);
+    }, 800);
+    return () => clearTimeout(t);
+  }, [router]);
   const isGuest = !supabaseUser || guestModeFlag;
   const pathname = usePathname();
   const [name, setName] = useState("");
@@ -666,7 +673,7 @@ export default function HomePage() {
               onClick={() => router.push("/login")}
               className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
             >
-              Créer un compte (Google ou email)
+              Créer un compte (lien magique)
             </button>
           </>
         ) : (
@@ -1111,7 +1118,7 @@ export default function HomePage() {
             onClick={() => router.push("/login")}
             className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-bold text-sm hover:bg-white/95 transition-colors"
           >
-            Créer un compte (Google ou email)
+            Créer un compte (lien magique)
           </button>
         </div>
         )}

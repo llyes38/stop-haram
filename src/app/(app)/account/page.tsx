@@ -430,7 +430,7 @@ export default function AccountPage() {
                 onClick={() => router.push("/login?redirect=/account")}
                 className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/40 transition-colors"
               >
-                Se connecter (Google ou email)
+                Se connecter
               </button>
             </div>
           )}

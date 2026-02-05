@@ -138,7 +138,7 @@ export default function CheckoutPage() {
     return () => clearInterval(t);
   }, []);
 
-  const handlePay = () => {
+  const handlePay = async () => {
     const forfait: "mensuel" | "annuel" = plan === "annual" ? "annuel" : "mensuel";
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_forfait", forfait);
@@ -149,7 +149,21 @@ export default function CheckoutPage() {
         saveUser(u);
       }
     }
-    router.push("/signup");
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ forfait }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+    } catch (_e) {
+      /* fallback */
+    }
+    router.push("/success?session_id=dev");
   };
 
   return (

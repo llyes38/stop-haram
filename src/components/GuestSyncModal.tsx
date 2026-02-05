@@ -17,7 +17,7 @@ import { setState, setProfile, type StopharamState, type StopharamProfile } from
 const MODAL_DISMISSED_KEY = "stopharam_guest_sync_modal_dismissed";
 
 /**
- * Modal affichée quand l'utilisateur se connecte (Google ou Magic link)
+ * Modal affichée quand l'utilisateur se connecte (Magic Link)
  * et qu'il a des données invité : "Tu veux sauvegarder tes progrès sur ton compte ?"
  * - Oui sauvegarder => push vers Supabase, supprimer guest
  * - Non => ne pas écraser Supabase (par défaut), marquer modal comme vue

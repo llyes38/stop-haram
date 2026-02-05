@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
-import { supabase } from "@/lib/supabase/client";
-import { getSiteUrl } from "@/lib/siteUrl";
 import {
   canShowAuthNudge,
   markAuthNudgeShown,
@@ -46,17 +44,7 @@ export default function AuthNudgePopup() {
     setShow(false);
   };
 
-  const handleGoogle = async () => {
-    markAuthNudgeShown();
-    setShow(false);
-    const { data } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=${encodeURIComponent(pathname || "/home")}` },
-    });
-    if (data?.url) window.location.href = data.url;
-  };
-
-  const handleEmail = () => {
+  const handleLogin = () => {
     markAuthNudgeShown();
     setShow(false);
     router.push("/login");
@@ -72,17 +60,10 @@ export default function AuthNudgePopup() {
       <div className="mt-3 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={handleGoogle}
+          onClick={handleLogin}
           className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100"
         >
-          Google
-        </button>
-        <button
-          type="button"
-          onClick={handleEmail}
-          className="rounded-lg border border-white/40 bg-white/10 px-3 py-1.5 text-sm font-semibold text-white hover:bg-white/20"
-        >
-          Email
+          Se connecter (lien magique)
         </button>
         <button
           type="button"

@@ -18,6 +18,6 @@ if (!supabaseAnonKey) {
 /**
  * Client Supabase pour le navigateur (composants client).
  * Utilise @supabase/ssr pour stocker le code verifier PKCE dans des cookies,
- * ce qui évite l'erreur "PKCE code verifier not found" après la redirection Google.
+ * (session Magic Link / Auth).
  */
 export const supabase: SupabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);

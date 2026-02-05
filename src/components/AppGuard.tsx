@@ -52,10 +52,10 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Pas encore inscrit (onboarding non terminé) → envoyer vers le parcours (ex. /profile), pas vers /home
+    // Pas encore inscrit (onboarding non terminé) → envoyer vers /home pour laisser l'hydratation Supabase charger user_progress (reconnexion), sinon /home redirigera vers le parcours
     if (!onboardingComplete) {
-      if (!isParcours) {
-        router.replace(FIRST_PARCOURS_STEP);
+      if (!isParcours && pathname !== "/home" && !pathname.startsWith("/home")) {
+        router.replace("/home");
         return;
       }
       setReady(true);
