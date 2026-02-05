@@ -68,7 +68,7 @@ export default function LoginPage() {
           <StopHaramLogo size={140} variant="dark" className="block" />
           <h1 className="text-xl font-bold mt-6">Se reconnecter</h1>
           <p className="text-white/70 text-sm mt-1">
-            Entre ton email pour recevoir un lien de connexion. Pas de mot de passe.
+            Tu es déjà inscrit ? Entre ton email : on t’envoie un nouveau lien par mail (pas de mot de passe). Clique sur le lien et tu seras connecté.
           </p>
         </header>
 
