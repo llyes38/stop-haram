@@ -115,7 +115,7 @@ export default function ObjectivesPage() {
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_objectives", JSON.stringify(selected));
     }
-    router.push("/quiz");
+    router.push("/plan");
   };
 
   return (
@@ -166,8 +166,37 @@ export default function ObjectivesPage() {
       {/* Intro */}
       <div className="relative z-0 mx-auto w-full max-w-[420px] px-4 pb-4">
         <p className="text-center text-sm leading-relaxed text-white/80">
-          Sélectionne les objectifs que tu souhaites suivre pendant ton parcours.
+          Sélectionne les objectifs que tu souhaites suivre pendant ton redémarrage.
         </p>
+      </div>
+
+      {/* Bénéfices de l'app (pastilles colorées style Quittr) */}
+      <div className="relative z-0 mx-auto w-full max-w-[420px] px-4 pb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+          </div>
+          <h2 className="text-sm font-semibold text-white/90">
+            Bénéfices de ton plan
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Plus de sérénité au quotidien", color: "bg-cyan-500" },
+            { label: "Plus de discipline personnelle", color: "bg-emerald-600" },
+            { label: "Moins de rechutes", color: "bg-teal-500" },
+            { label: "Moins de culpabilité", color: "bg-violet-500" },
+            { label: "Meilleure estime de soi", color: "bg-amber-500" },
+            { label: "Plus de baraka dans ton temps", color: "bg-lime-600" },
+          ].map(({ label, color }) => (
+            <span
+              key={label}
+              className={`flex items-center justify-center rounded-xl ${color} px-3 py-3 text-xs font-medium text-white shadow-sm text-center`}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Liste scrollable */}
