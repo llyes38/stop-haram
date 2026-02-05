@@ -556,9 +556,19 @@ export default function AccountPage() {
             </div>
           )}
           {pushStatus === "denied" && (
-            <p className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 text-red-200 text-sm">
-              Les notifications sont bloquées. Pour les activer : paramètres du navigateur → Autorisations → Notifications → StopHaram → Autoriser.
-            </p>
+            <div className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 space-y-2">
+              <p className="text-red-200 text-sm">
+                Les notifications sont bloquées. Pour les activer : paramètres du navigateur → Autorisations → Notifications → StopHaram → Autoriser.
+              </p>
+              <p className="text-red-200/80 text-xs">Après avoir autorisé, clique ici pour réessayer :</p>
+              <button
+                type="button"
+                onClick={() => requestPermissionAndSubscribe(supabaseUser?.id)}
+                className="rounded-lg bg-red-500/30 border border-red-400/40 px-3 py-2 text-red-100 text-sm font-medium hover:bg-red-500/40"
+              >
+                Réessayer
+              </button>
+            </div>
           )}
           {pushStatus === "subscribed" && (
             <p className={`rounded-xl px-4 py-3 text-sm ${

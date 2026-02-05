@@ -18,8 +18,18 @@ export function usePushNotifications() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) return;
-    if (Notification.permission !== "granted") return;
+    if (typeof window === "undefined") return;
+    if (typeof Notification === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      setStatus("unsupported");
+      return;
+    }
+    const perm = Notification.permission;
+    if (perm === "denied") {
+      setStatus("denied");
+      setError("Autorisation refusée.");
+      return;
+    }
+    if (perm !== "granted") return;
     navigator.serviceWorker.ready
       .then((reg) => reg.pushManager.getSubscription())
       .then((sub) => {

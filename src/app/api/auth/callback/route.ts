@@ -40,20 +40,9 @@ export async function GET(request: Request) {
     .eq("user_id", user.id)
     .single();
 
-  const data = row?.data as {
-    storage_user?: unknown;
-    state?: { onboardingComplete?: boolean };
-  } | null;
-  const hasStorageUser =
-    data?.storage_user &&
-    typeof data.storage_user === "object" &&
-    Object.keys(data.storage_user as object).length > 0;
-  const hasCompletedOnboarding =
-    data?.state &&
-    typeof data.state === "object" &&
-    data.state.onboardingComplete === true;
-
-  if (!hasStorageUser && !hasCompletedOnboarding) {
+  // Compte inscrit = au moins une ligne user_progress (parcours fait + inscription)
+  const hasProgressRow = row != null && row.data != null;
+  if (!hasProgressRow) {
     await supabase.auth.signOut();
     return NextResponse.redirect(new URL(`${origin}/login?error=not_registered`, request.url));
   }

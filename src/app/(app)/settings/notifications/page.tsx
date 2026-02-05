@@ -203,9 +203,19 @@ export default function SettingsNotificationsPage() {
         </div>
       )}
       {pushStatus === "denied" && (
-        <p className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 text-red-200 text-sm mb-6">
-          Les notifications sont bloquées. Paramètres du navigateur → Notifications → StopHaram → Autoriser.
-        </p>
+        <div className="rounded-xl bg-red-500/15 border border-red-400/25 px-4 py-3 space-y-2 mb-6">
+          <p className="text-red-200 text-sm">
+            Les notifications sont bloquées. Paramètres du navigateur → Notifications → StopHaram → Autoriser.
+          </p>
+          <p className="text-red-200/80 text-xs">Après avoir autorisé, clique ici pour réessayer :</p>
+          <button
+            type="button"
+            onClick={() => requestPermissionAndSubscribe(user?.id)}
+            className="rounded-lg bg-red-500/30 border border-red-400/40 px-3 py-2 text-red-100 text-sm font-medium hover:bg-red-500/40"
+          >
+            Réessayer
+          </button>
+        </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
