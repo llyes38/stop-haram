@@ -99,18 +99,20 @@ function hydrateFromProgress(userId: string, sessionUser: User | null) {
         /* ignore invalid shape */
       }
     } else {
-      // Aucune donnée Supabase : invité qui vient de lier Google → sauvegarder son parcours ; sinon nouveau compte → onboarding
+      // Aucune donnée Supabase : invité qui vient de lier Google → sauvegarder son parcours (quiz, péchés, plan) ; sinon nouveau compte → onboarding
       const localUser = typeof window !== "undefined" ? getUser() : null;
       const localState = getState();
-      // Onboarding terminé côté invité = ne pas renvoyer au parcours (plan peut ne pas être encore en localStorage)
-      const hasGuestCompleted = localState?.onboardingComplete === true;
+      // Invité a terminé le parcours si onboardingComplete OU s'il a déjà un plan (quiz fait → plan créé) → on sauvegarde en Supabase
+      const hasGuestCompleted =
+        localState?.onboardingComplete === true ||
+        !!(localUser?.plan?.days && localUser.plan.days.length > 0);
       if (hasGuestCompleted && localState) {
         const profile = getProfile();
         await saveProgress(
-          { state: localState as unknown as Record<string, unknown>, profile: profile as unknown as Record<string, unknown>, storage_user: (localUser ?? {}) as unknown as Record<string, unknown> },
+          { state: { ...localState, onboardingComplete: true } as unknown as Record<string, unknown>, profile: profile as unknown as Record<string, unknown>, storage_user: (localUser ?? {}) as unknown as Record<string, unknown> },
           userId
         );
-        setState(localState);
+        setState({ ...localState, onboardingComplete: true });
         if (localUser) saveUser(localUser);
       } else {
         setState({ onboardingComplete: false });

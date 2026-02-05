@@ -11,6 +11,7 @@ import {
   clearGuestProgress,
   type ProgressData,
 } from "@/lib/progressStorage";
+import { getUser } from "@/lib/storage";
 import { setState, setProfile, type StopharamState, type StopharamProfile } from "@/lib/authState";
 
 const MODAL_DISMISSED_KEY = "stopharam_guest_sync_modal_dismissed";
@@ -43,18 +44,25 @@ export default function GuestSyncModal() {
     setLoading(true);
     try {
       const guest = getGuestProgressRaw();
-      if (guest) {
+      const localUser = getUser();
+      if (guest || localUser) {
         const existing = await loadProgress(user.id);
-        const merged: ProgressData = { ...guest, ...existing };
+        const toMerge = { ...guest } as ProgressData;
+        if (localUser && Object.keys(localUser).length > 0) {
+          toMerge.storage_user = localUser as unknown as Record<string, unknown>;
+        }
+        const merged: ProgressData = { ...existing, ...toMerge };
         await saveProgress(merged, user.id);
-        if (guest.state && typeof guest.state === "object") {
+        if (guest?.state && typeof guest.state === "object") {
           const state = guest.state as StopharamState;
           setState({ ...state, onboardingComplete: true });
         } else {
           setState({ onboardingComplete: true });
         }
-        if (guest.profile && typeof guest.profile === "object") {
+        if (guest?.profile && typeof guest.profile === "object") {
           setProfile(guest.profile as StopharamProfile);
+        } else if (localUser?.name) {
+          setProfile({ name: localUser.name });
         }
       }
       clearGuestProgress();

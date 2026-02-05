@@ -58,6 +58,12 @@ export default function AppLayout({
     setReady(true);
   }, [router, pathname]);
 
+  // Filet de sécurité : sur mobile, la redirection peut être lente → après 2,5 s on affiche le contenu pour ne pas rester bloqué sur "Chargement..."
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
+
   if (!ready) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e]">

@@ -25,10 +25,16 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const url = event.notification?.data?.url || "/";
+  const urlToOpen = url.startsWith("http") ? url : new URL(url, self.location.origin).href;
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      if (list.length) list[0].focus();
-      else if (clients.openWindow) clients.openWindow(url);
+      if (list.length) {
+        const client = list[0];
+        return client.navigate(urlToOpen).then(() => client.focus()).catch(() => {
+          if (clients.openWindow) return clients.openWindow(urlToOpen);
+        });
+      }
+      if (clients.openWindow) return clients.openWindow(urlToOpen);
     })
   );
 });
