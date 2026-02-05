@@ -1,17 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import type { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabase/client";
-import { getState, setAuth, setProfile, setState } from "@/lib/authState";
-import type { StopharamProfile, StopharamState } from "@/lib/authState";
-import { loadProgress, saveProgress } from "@/lib/progressStorage";
-import { getUser, saveUser } from "@/lib/storage";
-import type { StopHaramUser } from "@/lib/storage";
+import { usePathname } from "next/navigation";
+import { setAuth } from "@/lib/authState";
+
+const PAID_KEY = "stopharam_paid";
 
 type AuthContextType = {
-  user: User | null;
-  session: Session | null;
+  user: null;
+  session: null;
   loading: boolean;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
@@ -35,144 +32,61 @@ export function useSupabaseAuth() {
   return ctx;
 }
 
-/** Hook aligné spec : loading, user { id, email }, isAuthenticated, isGuest */
 export function useAuthStatus() {
   const { user, loading, ...rest } = useSupabaseAuth();
   return {
     loading,
-    user: user ? { id: user.id, email: user.email ?? undefined } : null,
+    user: user ? { id: "", email: undefined } : null,
     isAuthenticated: !!user,
     isGuest: !user,
     ...rest,
   };
 }
 
-function syncAuthState(session: Session | null) {
-  if (!session?.user) {
-    setAuth({ isLoggedIn: false });
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("stopharam_guest_mode");
-    }
-    return;
-  }
-  const u = session.user;
-  setAuth({ isLoggedIn: true, email: u.email ?? undefined });
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem("stopharam_guest_mode");
-  }
-  // Le profil (prénom) est chargé par hydrateFromProgress depuis Supabase.
-}
-
-function getFallbackName(user: User): string {
-  return (
-    (user.user_metadata?.full_name as string) ??
-    (user.user_metadata?.name as string) ??
-    user.email?.split("@")[0] ??
-    "Utilisateur"
-  );
-}
-
-function hydrateFromProgress(userId: string, sessionUser: User | null) {
-  loadProgress(userId).then(async (data) => {
-    const hasAccountData = data?.storage_user && typeof data.storage_user === "object" && Object.keys(data.storage_user).length > 0;
-    const hasState = data?.state && typeof data.state === "object" && Object.keys(data.state).length > 0;
-
-    if (data?.profile && typeof data.profile === "object" && Object.keys(data.profile).length > 0) {
-      setProfile(data.profile as StopharamProfile);
-    } else if (sessionUser) {
-      setProfile({ name: getFallbackName(sessionUser) });
-    }
-
-    if (hasAccountData && hasState) {
-      // Compte existant : restaurer state et user
-      const loaded = data.state as StopharamState;
-      const current = getState();
-      const merged: StopharamState = current?.onboardingComplete === true && loaded?.onboardingComplete !== true
-        ? { ...loaded, onboardingComplete: true }
-        : loaded;
-      setState(merged);
-      try {
-        saveUser(data.storage_user as StopHaramUser);
-      } catch {
-        /* ignore invalid shape */
-      }
-    } else {
-      // Aucune donnée Supabase : invité qui vient de se connecter (Magic Link) → sauvegarder son parcours (quiz, péchés, plan) ; sinon nouveau compte → onboarding
-      const localUser = typeof window !== "undefined" ? getUser() : null;
-      const localState = getState();
-      // Invité a terminé le parcours si onboardingComplete OU s'il a déjà un plan (quiz fait → plan créé) → on sauvegarde en Supabase
-      const hasGuestCompleted =
-        localState?.onboardingComplete === true ||
-        !!(localUser?.plan?.days && localUser.plan.days.length > 0);
-      if (hasGuestCompleted && localState) {
-        const profile = getProfile();
-        const payload: Record<string, unknown> = {
-          state: { ...localState, onboardingComplete: true } as unknown as Record<string, unknown>,
-          profile: (profile ?? {}) as unknown as Record<string, unknown>,
-        };
-        if (localUser && typeof localUser === "object" && Object.keys(localUser).length > 0) {
-          payload.storage_user = localUser as unknown as Record<string, unknown>;
-        }
-        await saveProgress(payload, userId);
-        setState({ ...localState, onboardingComplete: true });
-        if (localUser) saveUser(localUser);
-      } else {
-        setState({ onboardingComplete: false });
-        if (typeof window !== "undefined") {
-          window.localStorage.removeItem("stopharam_user");
-        }
-      }
-    }
-  });
-}
-
+/** MVP : accès = localStorage stopharam_paid === "true". Aucun compte, aucun Supabase. */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const pathname = usePathname();
   const [loading, setLoading] = useState(true);
+  const [isPaid, setIsPaid] = useState(false);
 
-  useEffect(() => {
-    let delaySyncNull: ReturnType<typeof setTimeout> | null = null;
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setLoading(false);
-      if (s?.user) {
-        syncAuthState(s);
-        hydrateFromProgress(s.user.id, s.user);
-      } else {
-        delaySyncNull = window.setTimeout(() => {
-          syncAuthState(null);
-        }, 400);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      setLoading(false);
-      syncAuthState(s);
-      if (s?.user?.id) hydrateFromProgress(s.user.id, s.user);
-    });
-
-    return () => {
-      if (delaySyncNull != null) clearTimeout(delaySyncNull);
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const syncPaid = () => {
+    if (typeof window === "undefined") return;
+    const paid = window.localStorage.getItem(PAID_KEY) === "true";
+    setIsPaid(paid);
+    setAuth({ isLoggedIn: paid });
   };
 
-  const isAuthenticated = !!user;
-  const isGuest = !user;
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    syncPaid();
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (pathname === "/app" || pathname?.startsWith("/app/")) {
+      syncPaid();
+    }
+  }, [pathname]);
+
+  const signOut = async () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(PAID_KEY);
+    }
+    setAuth({ isLoggedIn: false });
+    setIsPaid(false);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, isAuthenticated, isGuest }}>
+    <AuthContext.Provider
+      value={{
+        user: null,
+        session: null,
+        loading,
+        signOut,
+        isAuthenticated: isPaid,
+        isGuest: !isPaid,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

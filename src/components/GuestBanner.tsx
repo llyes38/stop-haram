@@ -5,7 +5,7 @@ import { useAuthStatus } from "@/components/auth/AuthProvider";
 
 /**
  * Bannière affichée si invité sur /home, /quiz, /profile, /parcours.
- * Bouton : lien vers /login (Magic Link).
+ * Bouton : lien vers /login (email + mot de passe).
  */
 export default function GuestBanner() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function GuestBanner() {
             onClick={() => router.push("/login")}
             className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100"
           >
-            Se connecter (lien magique)
+            Se connecter
           </button>
         </div>
       </div>

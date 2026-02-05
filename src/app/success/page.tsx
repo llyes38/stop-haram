@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
-const PENDING_SESSION_KEY = "stopharam_pendingStripeSessionId";
+const PAID_KEY = "stopharam_paid";
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -17,15 +17,14 @@ export default function SuccessPage() {
       setStatus("invalid");
       return;
     }
-    fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`)
+    fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`, { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
-        const subscriptionOk = data.subscriptionStatus === "active" || data.subscriptionStatus === "trialing" || data.paid === true;
-        if (subscriptionOk) {
+        if (data?.ok === true) {
           if (typeof window !== "undefined") {
-            window.localStorage.setItem(PENDING_SESSION_KEY, sessionId);
+            window.localStorage.setItem(PAID_KEY, "true");
           }
-          router.replace(`/create-account?session_id=${encodeURIComponent(sessionId)}`);
+          router.replace("/app");
           return;
         }
         setStatus("invalid");
@@ -44,9 +43,9 @@ export default function SuccessPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1f12] to-[#0a1c2e] text-white px-6">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1f12] to-[#0a1c2e] text-white px-6 max-w-[420px] mx-auto">
       <StopHaramLogo size={120} variant="dark" className="block mb-6" />
-      <p className="text-white/70 text-sm">Paiement confirmé. Redirection vers la création de compte…</p>
+      <p className="text-white/70 text-sm">Paiement confirmé ✅ Redirection…</p>
     </main>
   );
 }

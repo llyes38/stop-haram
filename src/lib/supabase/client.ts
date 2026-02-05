@@ -18,6 +18,6 @@ if (!supabaseAnonKey) {
 /**
  * Client Supabase pour le navigateur (composants client).
  * Utilise @supabase/ssr pour stocker le code verifier PKCE dans des cookies,
- * (session Magic Link / Auth).
+ * (session Auth).
  */
 export const supabase: SupabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey);

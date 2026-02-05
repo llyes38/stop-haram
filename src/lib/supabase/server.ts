@@ -12,7 +12,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 /**
  * Client Supabase pour le serveur (Route Handlers, Server Components, etc.).
- * Lit et écrit les cookies de la requête (session Magic Link / Auth).
+ * Lit et écrit les cookies de la requête (session Auth).
  */
 export async function createClient() {
   const cookieStore = await cookies();

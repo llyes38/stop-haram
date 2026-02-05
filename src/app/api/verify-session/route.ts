@@ -1,20 +1,37 @@
 import { NextResponse } from "next/server";
 
 /**
- * Vérifie la session Stripe Checkout + statut abonnement.
- * Retourne paid + subscriptionStatus (active | trialing | null).
- * Sans Stripe : paid true, subscriptionStatus active si session_id fourni.
+ * GET /api/verify-session?session_id=...
+ * Vérifie via Stripe que la session checkout est payée et que l'abonnement est active/trialing.
+ * Aucun stockage DB.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const sessionId = searchParams.get("session_id");
+  const sessionId = searchParams.get("session_id")?.trim();
   if (!sessionId) {
-    return NextResponse.json({ paid: false, subscriptionStatus: null }, { status: 400 });
+    return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  // Avec Stripe : installer le package stripe, définir STRIPE_SECRET_KEY, et appeler
-  // stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] }) pour
-  // retourner paid + subscriptionStatus (active | trialing | null).
-  // Sans Stripe (dev) : considérer comme payé + abonnement actif.
-  return NextResponse.json({ paid: true, subscriptionStatus: "active" });
+  const stripeSecret = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecret) {
+    return NextResponse.json({ ok: sessionId === "dev" }, { status: 200 });
+  }
+
+  try {
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(stripeSecret);
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["subscription"],
+    });
+    if (session.payment_status !== "paid") {
+      return NextResponse.json({ ok: false });
+    }
+    const sub = session.subscription;
+    const subObj = typeof sub === "object" && sub !== null && "status" in sub ? sub : null;
+    const status = subObj ? (subObj as { status?: string }).status : null;
+    const active = status === "active" || status === "trialing";
+    return NextResponse.json({ ok: active });
+  } catch {
+    return NextResponse.json({ ok: false });
+  }
 }

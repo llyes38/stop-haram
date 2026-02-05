@@ -72,3 +72,19 @@ DROP POLICY IF EXISTS "delete own progress" ON public.user_progress;
 CREATE POLICY "delete own progress" ON public.user_progress FOR DELETE USING (auth.uid() = user_id);
 
 CREATE INDEX IF NOT EXISTS user_progress_updated_at_idx ON public.user_progress(updated_at);
+
+-- 6) Table subscriptions (Stripe, liaison user_id après paiement)
+CREATE TABLE IF NOT EXISTS public.subscriptions (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  status text,
+  current_period_end bigint,
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "subscriptions_select_own" ON public.subscriptions;
+CREATE POLICY "subscriptions_select_own" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
+-- INSERT/UPDATE faits côté serveur (service role) via API link-subscription et webhook Stripe

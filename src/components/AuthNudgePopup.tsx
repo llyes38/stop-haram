@@ -63,7 +63,7 @@ export default function AuthNudgePopup() {
           onClick={handleLogin}
           className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100"
         >
-          Se connecter (lien magique)
+          Se connecter
         </button>
         <button
           type="button"

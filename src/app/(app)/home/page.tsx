@@ -673,7 +673,7 @@ export default function HomePage() {
               onClick={() => router.push("/login")}
               className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
             >
-              Créer un compte (lien magique)
+              Créer un compte
             </button>
           </>
         ) : (
@@ -1118,7 +1118,7 @@ export default function HomePage() {
             onClick={() => router.push("/login")}
             className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-bold text-sm hover:bg-white/95 transition-colors"
           >
-            Créer un compte (lien magique)
+            Créer un compte
           </button>
         </div>
         )}

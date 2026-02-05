@@ -7,7 +7,6 @@ import {
   isOnboardingComplete,
   isPublicRoute,
   isParcoursRoute,
-  FIRST_PARCOURS_STEP,
 } from "@/lib/authState";
 import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import InstallPrompt from "./InstallPrompt";
@@ -16,7 +15,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
-  const { loading: authLoading } = useSupabaseAuth();
+  const { loading: authLoading, isAuthenticated: isEntitled } = useSupabaseAuth();
 
   useEffect(() => {
     if (pathname == null) return;
@@ -37,9 +36,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
 
     if (isPublic) {
       const isLogoDemo = pathname === "/logo" || pathname.startsWith("/logo/");
-      const isStartPage = pathname === "/start" || pathname.startsWith("/start/");
-      // Utilisateur déjà inscrit (logged in + onboarding terminé) → aller directement sur l'app, pas sur /start
-      if (loggedIn && onboardingComplete && !isLogoDemo) {
+      if (isEntitled && onboardingComplete && !isLogoDemo) {
         router.replace("/home");
         return;
       }
@@ -47,7 +44,11 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!loggedIn) {
+    if (!isEntitled) {
+      if (pathname === "/app" || pathname.startsWith("/app/")) {
+        router.replace("/paywall");
+        return;
+      }
       router.replace("/start");
       return;
     }
@@ -63,7 +64,7 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
     }
 
     setReady(true);
-  }, [pathname, router, authLoading]);
+  }, [pathname, router, authLoading, isEntitled]);
 
   if (!ready) {
     return (

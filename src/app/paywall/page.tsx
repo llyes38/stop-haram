@@ -11,7 +11,7 @@ export default function PaywallPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forfait: "annuel" }),
+        body: JSON.stringify({}),
       });
       const data = await res.json().catch(() => ({}));
       if (data.url) {
@@ -19,7 +19,7 @@ export default function PaywallPage() {
         return;
       }
     } catch (_e) {}
-    router.push("/checkout");
+    router.push("/paywall");
   };
 
   return (
@@ -29,7 +29,7 @@ export default function PaywallPage() {
           <StopHaramLogo size={140} variant="dark" className="block mx-auto" />
           <h1 className="text-xl font-bold mt-6">Accès réservé aux abonnés</h1>
           <p className="text-white/70 text-sm mt-1">
-            Abonne-toi pour débloquer tout le parcours et sauvegarder ta progression.
+            Abonne-toi pour débloquer tout le parcours.
           </p>
         </header>
 
