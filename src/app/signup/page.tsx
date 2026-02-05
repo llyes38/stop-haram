@@ -26,9 +26,11 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
+      // redirectTo doit contenir new_signup=1 pour que le callback crée user_progress. Ajouter cette URL complète dans Supabase → Auth → URL Configuration → Redirect URLs.
+      const callbackUrl = `${getSiteUrl()}/api/auth/callback?redirect=/home&new_signup=1`;
       const { data, error: err } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${getSiteUrl()}/api/auth/callback?redirect=/home&new_signup=1` },
+        options: { redirectTo: callbackUrl },
       });
       if (err) setError(err.message);
       else if (data?.url) window.location.href = data.url;
