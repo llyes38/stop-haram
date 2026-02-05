@@ -376,9 +376,8 @@ export default function HomePage() {
     }
   }, []);
 
-  // Re-lit le prénom après hydratation Supabase (connexion) pour afficher "[Prénom], tu es sur la bonne voie"
+  // Re-lit le prénom et streak depuis localStorage pour afficher "[Prénom], tu es sur la bonne voie"
   useEffect(() => {
-    if (!supabaseUser?.id) return;
     const t = setTimeout(() => {
       const u = getUser();
       const profile = getProfile();
@@ -387,7 +386,7 @@ export default function HomePage() {
       if (u?.streakDays != null) setStreakDays(u.streakDays);
     }, 500);
     return () => clearTimeout(t);
-  }, [supabaseUser?.id]);
+  }, []);
 
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
   const currentStatut = getCurrentStatut(streakDays ?? null);
@@ -429,7 +428,7 @@ export default function HomePage() {
     if (profilePhoto) {
       setPhotoModalOpen(true);
     } else {
-      router.push(supabaseUser ? "/account" : "/login");
+      router.push("/account");
     }
   };
 
@@ -445,7 +444,7 @@ export default function HomePage() {
       const updated = { ...u, profileInfo: { ...u.profileInfo, profilePhoto: dataUrl } };
       saveUser(updated);
       setProfilePhoto(dataUrl);
-      if (supabaseUser?.id) await saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, supabaseUser.id);
+      await saveProgress({ storage_user: updated as unknown as Record<string, unknown> }, null);
       setPhotoModalOpen(false);
     } catch {
       // ignore
@@ -505,7 +504,7 @@ export default function HomePage() {
             type="button"
             onClick={handlePhotoClick}
             className="shrink-0 h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 hover:border-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 mt-0.5"
-            aria-label={profilePhoto ? "Voir ou modifier ma photo" : supabaseUser ? "Mon compte" : "Se connecter"}
+            aria-label={profilePhoto ? "Voir ou modifier ma photo" : "Mon compte"}
           >
             {profilePhoto ? (
               <img src={profilePhoto} alt="" className="h-full w-full object-cover" />
