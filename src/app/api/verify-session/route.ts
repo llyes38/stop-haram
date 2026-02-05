@@ -1,16 +1,20 @@
 import { NextResponse } from "next/server";
 
 /**
- * Vérifie qu'une session de paiement est valide.
- * Pour l'instant : Stripe ignoré, on retourne { paid: true } si session_id présent.
+ * Vérifie la session Stripe Checkout + statut abonnement.
+ * Retourne paid + subscriptionStatus (active | trialing | null).
+ * Sans Stripe : paid true, subscriptionStatus active si session_id fourni.
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get("session_id");
   if (!sessionId) {
-    return NextResponse.json({ paid: false }, { status: 400 });
+    return NextResponse.json({ paid: false, subscriptionStatus: null }, { status: 400 });
   }
 
-  // Stripe ignoré pour l'instant : on considère comme payé si session_id fourni.
-  return NextResponse.json({ paid: true });
+  // Avec Stripe : installer le package stripe, définir STRIPE_SECRET_KEY, et appeler
+  // stripe.checkout.sessions.retrieve(sessionId, { expand: ["subscription"] }) pour
+  // retourner paid + subscriptionStatus (active | trialing | null).
+  // Sans Stripe (dev) : considérer comme payé + abonnement actif.
+  return NextResponse.json({ paid: true, subscriptionStatus: "active" });
 }

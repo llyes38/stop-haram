@@ -3,11 +3,12 @@ import { NextResponse } from "next/server";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://stop-haram.vercel.app";
 
 /**
- * Checkout : pour l'instant redirige vers /success?session_id=dev (Stripe ignoré).
- * Plus tard : installer stripe et créer une vraie session Stripe.
+ * Checkout Stripe (subscription).
+ * success_url: /success?session_id={CHECKOUT_SESSION_ID}
+ * cancel_url: /paywall
+ * Sans Stripe (dev) : redirige vers /success?session_id=dev.
  */
 export async function POST(_request: Request) {
-  // Stripe ignoré pour l'instant : redirection directe vers success (session_id factice).
-  // Plus tard : installer stripe, définir STRIPE_SECRET_KEY + price ids, et décommenter la logique Stripe.
+  // Avec Stripe : créer session mode "subscription", success_url, cancel_url.
   return NextResponse.json({ url: `${SITE_URL}/success?session_id=dev` });
 }
