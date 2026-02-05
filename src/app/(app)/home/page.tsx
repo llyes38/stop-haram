@@ -31,7 +31,7 @@ import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
 import LockedFeatureCard from "@/components/LockedFeatureCard";
 import { APP_URL, shareWithNative, copyToClipboard } from "@/lib/share";
-import { useSupabaseAuth } from "@/components/auth/AuthProvider";
+import { useAuthStatus } from "@/components/auth/AuthProvider";
 import { compressImageToBase64 } from "@/lib/profilePhoto";
 import { saveProgress } from "@/lib/progressStorage";
 import {
@@ -205,25 +205,16 @@ function formatElapsed(ms: number): { days: number; hours: number; minutes: numb
   return { days, hours, minutes: min, seconds: sec };
 }
 
-const GUEST_MODE_KEY = "stopharam_guest_mode";
-
 export default function HomePage() {
   const router = useRouter();
-  const { user: supabaseUser } = useSupabaseAuth();
-  const [guestModeFlag, setGuestModeFlag] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setGuestModeFlag(window.localStorage.getItem(GUEST_MODE_KEY) === "true");
-    }
-  }, []);
-  // Après reconnexion, l'hydratation Supabase met à jour le state ; si après un court délai l'user est connecté mais n'a pas de parcours → envoyer vers le parcours
+  const { isGuest } = useAuthStatus();
+  // MVP : sur (app)/home on a forcément payé (AppGuard), donc isGuest = false et on affiche tout.
   useEffect(() => {
     const t = setTimeout(() => {
       if (isLoggedIn() && !isOnboardingComplete()) router.replace(FIRST_PARCOURS_STEP);
     }, 800);
     return () => clearTimeout(t);
   }, [router]);
-  const isGuest = !supabaseUser || guestModeFlag;
   const pathname = usePathname();
   const [name, setName] = useState("");
   const [streakDays, setStreakDays] = useState<number | null>(null);
@@ -660,24 +651,9 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours — ou Mode essai pour invité */}
+      {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours */}
       <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative">
-        {isGuest ? (
-          <>
-            <p className="text-amber-200 text-sm font-semibold text-center mb-2">Débloque tout le parcours</p>
-            <p className="text-white/90 text-sm text-center mb-4">
-              Abonne-toi pour débloquer le défi 30 jours, les actions du jour et tout le contenu.
-            </p>
-            <button
-              type="button"
-              onClick={() => router.push("/paywall")}
-              className="w-full rounded-xl bg-white py-3 text-gray-900 font-semibold text-sm hover:bg-white/95 transition-colors"
-            >
-              S&apos;abonner
-            </button>
-          </>
-        ) : (
-          <>
+        <>
             <button
               type="button"
               onClick={() => setShareNudgeModalOpen(true)}
@@ -715,12 +691,11 @@ export default function HomePage() {
               )}
             </div>
             <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
-          </>
-        )}
+        </>
       </div>
 
       {/* Modale partage : message motivant avant de partager */}
-      {shareNudgeModalOpen && !isGuest && (
+      {shareNudgeModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 px-4 pb-8 pt-8"
           onClick={() => setShareNudgeModalOpen(false)}
@@ -1106,42 +1081,11 @@ export default function HomePage() {
           copyLinkLabel="Copier le lien"
         />
 
-        {/* CTA non abonné : inciter à s'abonner */}
-        {isGuest && (
-        <div className="rounded-2xl bg-amber-500/15 border-2 border-amber-400/40 px-5 py-5">
-          <p className="text-amber-200 font-semibold text-center mb-2">Débloque tout le parcours</p>
-          <p className="text-white/90 text-sm text-center mb-4">
-            Abonne-toi pour sauvegarder ta progression, accéder au quiz du jour, au défi 30 jours et à tout le contenu.
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/paywall")}
-            className="w-full rounded-xl bg-white py-3.5 text-gray-900 font-bold text-sm hover:bg-white/95 transition-colors"
-          >
-            S&apos;abonner
-          </button>
-        </div>
-        )}
+        {/* Rappel prière + Horaires */}
+        <PrayerTimesCard />
 
-        {/* Rappel prière + Horaires — verrouillé en mode essai */}
-        {isGuest ? (
-          <LockedFeatureCard
-            title="Rappel prière et horaires"
-            description="Reçois une notification avant chaque prière et consulte les horaires."
-          />
-        ) : (
-          <PrayerTimesCard />
-        )}
-
-        {/* Quiz du jour — verrouillé en mode essai */}
-        {isGuest ? (
-          <LockedFeatureCard
-            title="Quiz du jour"
-            description="Gagne des points de gratitude à chaque bonne réponse et offre 1 mois gratuit à un proche."
-          />
-        ) : (
-          <QuizLudiqueBlock />
-        )}
+        {/* Quiz du jour */}
+        <QuizLudiqueBlock />
 
         <p className="text-white/50 text-sm leading-relaxed max-w-[320px]">
           Allah voit tes efforts, même ceux que personne ne voit.
