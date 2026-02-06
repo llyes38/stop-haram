@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { updateLastRoute } from "@/lib/authState";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
+
+const PAID_KEY = "stopharam_paid";
 
 // Tarif mensuel normal 9,99 € → annuel 119,88 € ; -50 % Ramadan = 59,94 €/an = 4,99 €/mois
 const MONTHLY_PRICE = 9.99;
@@ -18,9 +21,13 @@ function formatPrice(value: number): string {
 
 export default function OfferPage() {
   const router = useRouter();
+  const [alreadyPaid, setAlreadyPaid] = useState(false);
 
   useEffect(() => {
     updateLastRoute("/offer");
+    if (typeof window !== "undefined" && window.localStorage.getItem(PAID_KEY) === "true") {
+      setAlreadyPaid(true);
+    }
   }, []);
 
   const handleClaim = async () => {
@@ -74,6 +81,19 @@ export default function OfferPage() {
             </svg>
           </button>
         </header>
+
+        {/* Déjà abonné : accès direct à l'app */}
+        {alreadyPaid && (
+          <section className="rounded-2xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-4 mb-6">
+            <p className="text-emerald-200 font-semibold text-center mb-3">Tu as déjà accès</p>
+            <Link
+              href="/app"
+              className="block w-full rounded-xl bg-emerald-500 py-3 text-white font-semibold text-center hover:bg-emerald-600 transition-colors"
+            >
+              Aller à l&apos;app
+            </Link>
+          </section>
+        )}
 
         {/* Titre offre */}
         <section className="text-center mt-4 mb-6">

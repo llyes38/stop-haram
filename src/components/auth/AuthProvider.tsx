@@ -68,12 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname]);
 
+  /** Déconnecte de l'app (redirige vers l'offre) sans supprimer le statut payé :
+   * tu peux te "reconnecter" et rester reconnu comme ayant déjà payé (localStorage conservé). */
   const signOut = async () => {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem(PAID_KEY);
-    }
     setAuth({ isLoggedIn: false });
     setIsPaid(false);
+    // On ne supprime pas PAID_KEY : l'utilisateur reste "payé" sur cet appareil et pourra revenir sans repayer.
   };
 
   return (
