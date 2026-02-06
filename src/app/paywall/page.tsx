@@ -6,12 +6,12 @@ import StopHaramLogo from "@/components/brand/StopHaramLogo";
 export default function PaywallPage() {
   const router = useRouter();
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (plan: "monthly" | "annual") => {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ plan }),
       });
       const data = await res.json().catch(() => ({}));
       if (data.url) {
@@ -33,13 +33,20 @@ export default function PaywallPage() {
           </p>
         </header>
 
-        <section className="flex-1 flex flex-col justify-center">
+        <section className="flex-1 flex flex-col justify-center gap-4">
           <button
             type="button"
-            onClick={handleSubscribe}
-            className="w-full rounded-xl bg-white py-4 text-gray-900 font-semibold text-base hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-colors"
+            onClick={() => handleSubscribe("annual")}
+            className="w-full rounded-xl bg-emerald-600 py-4 text-white font-semibold text-base hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-colors border border-emerald-500/50"
           >
-            S&apos;abonner
+            Abonnement annuel
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubscribe("monthly")}
+            className="w-full rounded-xl bg-white/10 border border-white/20 py-4 text-white font-semibold text-base hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/30 transition-colors"
+          >
+            Abonnement mensuel
           </button>
           <p className="text-center text-white/50 text-xs mt-4">
             Annulable à tout moment · Paiement sécurisé

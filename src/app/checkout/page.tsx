@@ -153,7 +153,7 @@ export default function CheckoutPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ forfait }),
+        body: JSON.stringify({ plan: plan === "annual" ? "annual" : "monthly" }),
       });
       const data = await res.json().catch(() => ({}));
       if (data.url) {

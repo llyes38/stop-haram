@@ -23,7 +23,21 @@ export default function OfferPage() {
     updateLastRoute("/offer");
   }, []);
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "annual" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+    } catch (_e) {
+      /* fallback */
+    }
     router.push("/checkout");
   };
 
