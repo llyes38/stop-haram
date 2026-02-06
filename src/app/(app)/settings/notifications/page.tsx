@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSupabaseAuth } from "@/components/auth/AuthProvider";
 import { usePushNotifications } from "@/lib/usePushNotifications";
-import { supabase } from "@/lib/supabase/client";
+
+const STORAGE_KEY = "stopharam_notification_prefs";
 
 type Prefs = {
   timezone: string;
   daily_checkin_enabled: boolean;
   daily_checkin_time: string;
+  checkin_2h_enabled: boolean;
   actions_morning: boolean;
   actions_morning_time: string;
   actions_evening: boolean;
@@ -27,6 +28,7 @@ const DEFAULT_PREFS: Prefs = {
   timezone: "Europe/Paris",
   daily_checkin_enabled: true,
   daily_checkin_time: "20:30",
+  checkin_2h_enabled: false,
   actions_morning: true,
   actions_morning_time: "08:30",
   actions_evening: true,
@@ -71,84 +73,59 @@ function fromTimeInput(s: string): string {
 
 export default function SettingsNotificationsPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useSupabaseAuth();
   const { status: pushStatus, requestPermissionAndSubscribe } = usePushNotifications();
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user?.id) {
-      if (!authLoading) setLoaded(true);
-      return;
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw) as Partial<Prefs>;
+        setPrefs({
+          ...DEFAULT_PREFS,
+          ...data,
+          daily_checkin_time: toTimeInput(data.daily_checkin_time ?? ""),
+          actions_morning_time: toTimeInput(data.actions_morning_time ?? ""),
+          actions_evening_time: toTimeInput(data.actions_evening_time ?? ""),
+          sin_reminder_time: toTimeInput(data.sin_reminder_time ?? ""),
+          quiet_start: toTimeInput(data.quiet_start ?? ""),
+          quiet_end: toTimeInput(data.quiet_end ?? ""),
+        });
+      }
+    } catch {
+      /* ignore */
     }
-    let cancelled = false;
-    supabase
-      .from("notification_prefs")
-      .select("*")
-      .eq("user_id", user.id)
-      .single()
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (!error && data) {
-          setPrefs({
-            timezone: (data.timezone as string) ?? DEFAULT_PREFS.timezone,
-            daily_checkin_enabled: (data.daily_checkin_enabled as boolean) ?? true,
-            daily_checkin_time: toTimeInput((data.daily_checkin_time as string) ?? ""),
-            checkin_2h_enabled: (data.checkin_2h_enabled as boolean) ?? false,
-            actions_morning: (data.actions_morning as boolean) ?? true,
-            actions_morning_time: toTimeInput((data.actions_morning_time as string) ?? ""),
-            actions_evening: (data.actions_evening as boolean) ?? true,
-            actions_evening_time: toTimeInput((data.actions_evening_time as string) ?? ""),
-            sin_reminder_enabled: (data.sin_reminder_enabled as boolean) ?? false,
-            sin_reminder_time: toTimeInput((data.sin_reminder_time as string) ?? ""),
-            quiet_start: toTimeInput((data.quiet_start as string) ?? ""),
-            quiet_end: toTimeInput((data.quiet_end as string) ?? ""),
-            city: (data.city as string) ?? null,
-            country: (data.country as string) ?? null,
-          });
-        }
-        setLoaded(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id, authLoading]);
+    setLoaded(true);
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) return;
     setSaving(true);
-    const row = {
-      user_id: user.id,
-      timezone: prefs.timezone,
-      daily_checkin_enabled: prefs.daily_checkin_enabled,
-      daily_checkin_time: fromTimeInput(prefs.daily_checkin_time),
-      checkin_2h_enabled: prefs.checkin_2h_enabled,
-      actions_morning: prefs.actions_morning,
-      actions_morning_time: fromTimeInput(prefs.actions_morning_time),
-      actions_evening: prefs.actions_evening,
-      actions_evening_time: fromTimeInput(prefs.actions_evening_time),
-      sin_reminder_enabled: prefs.sin_reminder_enabled,
-      sin_reminder_time: fromTimeInput(prefs.sin_reminder_time),
-      quiet_start: fromTimeInput(prefs.quiet_start),
-      quiet_end: fromTimeInput(prefs.quiet_end),
-      city: prefs.city?.trim() || null,
-      country: prefs.country?.trim() || null,
-      updated_at: new Date().toISOString(),
-    };
-    const { error } = await supabase.from("notification_prefs").upsert(row, {
-      onConflict: "user_id",
-    });
-    setSaving(false);
-    if (error) {
-      alert("Erreur lors de la sauvegarde : " + error.message);
-      return;
+    try {
+      const toSave: Prefs = {
+        ...prefs,
+        daily_checkin_time: fromTimeInput(prefs.daily_checkin_time),
+        actions_morning_time: fromTimeInput(prefs.actions_morning_time),
+        actions_evening_time: fromTimeInput(prefs.actions_evening_time),
+        sin_reminder_time: fromTimeInput(prefs.sin_reminder_time),
+        quiet_start: fromTimeInput(prefs.quiet_start),
+        quiet_end: fromTimeInput(prefs.quiet_end),
+      };
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      }
+      router.replace("/account");
+    } catch (err) {
+      alert("Erreur lors de la sauvegarde.");
+    } finally {
+      setSaving(false);
     }
-    router.replace("/account");
   };
 
-  if (authLoading || !loaded) {
+  if (!loaded) {
     return (
       <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
         <p className="text-white/70 text-sm">Chargement…</p>
@@ -156,8 +133,7 @@ export default function SettingsNotificationsPage() {
     );
   }
 
-  if (!user) {
-    return (
+  return (
       <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
         <p className="text-white/70 text-sm">Charge ton profil depuis l’onglet Compte pour configurer tes rappels.</p>
         <Link href="/account" className="mt-4 rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm text-center">
@@ -191,7 +167,7 @@ export default function SettingsNotificationsPage() {
           <p className="text-white/70 text-xs mb-3">Pour recevoir les rappels à l’heure choisie, ton téléphone doit autoriser l’app. Clique ci-dessous : le navigateur affichera « Autoriser ».</p>
           <button
             type="button"
-            onClick={() => requestPermissionAndSubscribe(user?.id)}
+            onClick={() => requestPermissionAndSubscribe()}
             className="w-full rounded-xl bg-amber-500/40 border border-amber-400/50 py-3 text-amber-100 font-semibold text-sm hover:bg-amber-500/50 transition-colors"
           >
             Activer les notifications
@@ -206,7 +182,7 @@ export default function SettingsNotificationsPage() {
           <p className="text-red-200/80 text-xs">Après avoir autorisé, clique ici pour réessayer :</p>
           <button
             type="button"
-            onClick={() => requestPermissionAndSubscribe(user?.id)}
+            onClick={() => requestPermissionAndSubscribe()}
             className="rounded-lg bg-red-500/30 border border-red-400/40 px-3 py-2 text-red-100 text-sm font-medium hover:bg-red-500/40"
           >
             Réessayer

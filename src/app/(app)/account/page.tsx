@@ -27,6 +27,7 @@ import { setAuth, setProfile, resetOnboarding } from "@/lib/authState";
 import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 import { usePushNotifications } from "@/lib/usePushNotifications";
+import { getDeviceId } from "@/lib/deviceId";
 import {
   getNotifPriere,
   setNotifPriere,
@@ -594,6 +595,7 @@ export default function AccountPage() {
                     body: JSON.stringify({
                       title: "StopHaram — Test",
                       body: "Si tu vois ce message, les notifs push fonctionnent.",
+                      device_key: getDeviceId(),
                     }),
                   });
                   const data = await res.json().catch(() => ({}));

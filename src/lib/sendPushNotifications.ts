@@ -5,6 +5,7 @@
 import {
   getAllSubscriptions,
   getSubscriptionsByUserId,
+  getSubscriptionsByDeviceKey,
   removePushSubscriptionByEndpoint,
 } from "@/lib/pushSubscriptionStore";
 import webpush from "web-push";
@@ -85,6 +86,44 @@ export async function sendPushToUser(
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.includes("410") || msg.includes("Gone")) {
         await removePushSubscriptionByEndpoint(sub.endpoint, userId);
+        removed++;
+      }
+    }
+  }
+  return { sent, total: subs.length, removed };
+}
+
+/** Envoie une notif aux subscriptions d'un appareil (MVP sans compte). */
+export async function sendPushToDevice(
+  deviceKey: string,
+  options: SendPushOptions
+): Promise<SendPushToUserResult> {
+  const wp = getWebPush();
+  if (!wp) return { sent: 0, total: 0, removed: 0 };
+
+  const title = options.title ?? "StopHaram";
+  const body = options.body ?? "Rappel";
+  const payload = JSON.stringify({
+    title,
+    body,
+    url: options.url ?? "/",
+    icon: options.icon ?? `${SITE_URL}/favicon.png`,
+    vibrate: [300, 100, 300, 100, 300],
+  });
+
+  const subs = await getSubscriptionsByDeviceKey(deviceKey);
+  if (!subs.length) return { sent: 0, total: 0, removed: 0 };
+
+  let sent = 0;
+  let removed = 0;
+  for (const sub of subs) {
+    try {
+      await wp.sendNotification(sub, payload);
+      sent++;
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("410") || msg.includes("Gone")) {
+        await removePushSubscriptionByEndpoint(sub.endpoint, undefined, deviceKey);
         removed++;
       }
     }

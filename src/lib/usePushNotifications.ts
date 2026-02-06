@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { getDeviceId } from "@/lib/deviceId";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -73,10 +74,11 @@ export function usePushNotifications() {
         });
       }
       const subJson = subscription.toJSON();
+      const deviceKey = typeof window !== "undefined" ? getDeviceId() : undefined;
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subJson, userId: userId ?? undefined }),
+        body: JSON.stringify({ subscription: subJson, userId: userId ?? undefined, device_key: deviceKey || undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
