@@ -589,6 +589,9 @@ export default function AccountPage() {
               type="button"
               onClick={async () => {
                 try {
+                  if (pushStatus !== "subscribed" && pushStatus !== "denied") {
+                    await requestPermissionAndSubscribe();
+                  }
                   const res = await fetch("/api/push/send-test", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
