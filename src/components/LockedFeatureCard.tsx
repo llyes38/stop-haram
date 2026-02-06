@@ -14,7 +14,7 @@ export default function LockedFeatureCard({ title, description }: Props) {
   return (
     <button
       type="button"
-      onClick={() => router.push("/paywall")}
+      onClick={() => router.push("/start")}
       className="w-full rounded-2xl border-2 border-white/20 bg-white/5 px-5 py-5 text-left transition-colors hover:bg-white/10 hover:border-amber-500/40 focus:outline-none focus:ring-2 focus:ring-amber-400/50"
     >
       <div className="flex items-start gap-4">

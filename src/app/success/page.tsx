@@ -34,7 +34,7 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (status === "invalid") {
-      router.replace("/paywall");
+      router.replace("/start");
     }
   }, [status, router]);
 

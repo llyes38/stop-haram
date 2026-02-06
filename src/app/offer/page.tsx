@@ -82,98 +82,105 @@ export default function OfferPage() {
           </button>
         </header>
 
-        {/* Déjà abonné : accès direct à l'app */}
-        {alreadyPaid && (
-          <section className="rounded-2xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-4 mb-6">
-            <p className="text-emerald-200 font-semibold text-center mb-3">Tu as déjà accès</p>
-            <Link
-              href="/app"
-              className="block w-full rounded-xl bg-emerald-500 py-3 text-white font-semibold text-center hover:bg-emerald-600 transition-colors"
-            >
-              Aller à l&apos;app
-            </Link>
+        {/* Déjà client : uniquement "Tu as déjà accès" + Aller à l'app (pas l'offre en dessous) */}
+        {alreadyPaid ? (
+          <section className="flex-1 flex flex-col justify-center">
+            <div className="rounded-2xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-6">
+              <p className="text-emerald-200 font-semibold text-center mb-4">Tu as déjà accès</p>
+              <Link
+                href="/app"
+                className="block w-full rounded-xl bg-emerald-500 py-3 text-white font-semibold text-center hover:bg-emerald-600 transition-colors"
+              >
+                Aller à l&apos;app
+              </Link>
+            </div>
+            <footer className="mt-8 pt-4 border-t border-white/10 text-center text-[11px] text-white/40">
+              <span className="font-medium text-white/50">StopHaram</span>
+            </footer>
           </section>
+        ) : (
+          <>
+            {/* Titre offre — visible seulement pour les non-clients */}
+            <section className="text-center mt-4 mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-wide text-white">
+                Offre exceptionnelle
+              </h1>
+              <p className="text-sm text-white/80 mt-1">
+                Tu ne la reverras plus.
+              </p>
+            </section>
+
+            {/* Carte -50 % */}
+            <section className="flex flex-col items-center mb-6">
+              <div className="w-full max-w-[280px] rounded-2xl bg-gradient-to-br from-violet-500/40 via-indigo-500/40 to-blue-600/40 border border-white/20 px-6 py-8 text-center shadow-xl">
+                <span className="text-5xl sm:text-6xl font-bold text-white">
+                  {DISCOUNT_PERCENT}%
+                </span>
+                <p className="text-sm font-semibold uppercase tracking-wider text-white/90 mt-1">
+                  de réduction
+                </p>
+              </div>
+              <p className="text-sm text-white/85 mt-4 text-center">
+                Cette offre expire à la fin du Ramadan.
+              </p>
+            </section>
+
+            {/* Badge prix le plus bas */}
+            <div className="flex justify-center mb-3">
+              <span className="inline-flex rounded-full bg-violet-600/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
+                Prix le plus bas
+              </span>
+            </div>
+
+            {/* Carte tarif annuel */}
+            <section className="rounded-2xl border border-white/15 bg-white/5 px-4 py-4 mb-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-lg font-semibold text-white">Annuel</p>
+                  <p className="text-xs text-white/60 mt-0.5">12 mois</p>
+                  <p className="text-sm text-white/50 line-through mt-1">
+                    {formatPrice(YEARLY_FULL)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-white">
+                    {formatPrice(MONTHLY_EQUIVALENT)}
+                    <span className="text-base font-normal text-white/80">/mois</span>
+                  </p>
+                  <p className="text-xs text-white/60 mt-0.5">
+                    {formatPrice(YEARLY_DISCOUNTED)} pour 12 mois
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            {/* CTA principal */}
+            <section className="mt-auto space-y-4 pt-2">
+              <button
+                type="button"
+                onClick={handleClaim}
+                className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 py-4 text-base font-bold text-white shadow-lg hover:from-violet-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-violet-400/60 active:opacity-90 transition-all"
+              >
+                Profiter de l&apos;offre
+              </button>
+              <p className="text-xs text-center text-white/70">
+                Annulable à tout moment · Reprends le contrôle
+              </p>
+              <button
+                type="button"
+                onClick={() => {}}
+                className="block w-full text-center text-sm text-white/60 hover:text-white/80 underline underline-offset-2 transition-colors"
+              >
+                Restaurer un achat
+              </button>
+            </section>
+
+            {/* Footer */}
+            <footer className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
+              <span className="font-medium text-white/50">StopHaram</span>
+            </footer>
+          </>
         )}
-
-        {/* Titre offre */}
-        <section className="text-center mt-4 mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold uppercase tracking-wide text-white">
-            Offre exceptionnelle
-          </h1>
-          <p className="text-sm text-white/80 mt-1">
-            Tu ne la reverras plus.
-          </p>
-        </section>
-
-        {/* Carte -50 % */}
-        <section className="flex flex-col items-center mb-6">
-          <div className="w-full max-w-[280px] rounded-2xl bg-gradient-to-br from-violet-500/40 via-indigo-500/40 to-blue-600/40 border border-white/20 px-6 py-8 text-center shadow-xl">
-            <span className="text-5xl sm:text-6xl font-bold text-white">
-              {DISCOUNT_PERCENT}%
-            </span>
-            <p className="text-sm font-semibold uppercase tracking-wider text-white/90 mt-1">
-              de réduction
-            </p>
-          </div>
-          <p className="text-sm text-white/85 mt-4 text-center">
-            Cette offre expire à la fin du Ramadan.
-          </p>
-        </section>
-
-        {/* Badge prix le plus bas */}
-        <div className="flex justify-center mb-3">
-          <span className="inline-flex rounded-full bg-violet-600/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
-            Prix le plus bas
-          </span>
-        </div>
-
-        {/* Carte tarif annuel */}
-        <section className="rounded-2xl border border-white/15 bg-white/5 px-4 py-4 mb-6">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-lg font-semibold text-white">Annuel</p>
-              <p className="text-xs text-white/60 mt-0.5">12 mois</p>
-              <p className="text-sm text-white/50 line-through mt-1">
-                {formatPrice(YEARLY_FULL)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold text-white">
-                {formatPrice(MONTHLY_EQUIVALENT)}
-                <span className="text-base font-normal text-white/80">/mois</span>
-              </p>
-              <p className="text-xs text-white/60 mt-0.5">
-                {formatPrice(YEARLY_DISCOUNTED)} pour 12 mois
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA principal */}
-        <section className="mt-auto space-y-4 pt-2">
-          <button
-            type="button"
-            onClick={handleClaim}
-            className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 py-4 text-base font-bold text-white shadow-lg hover:from-violet-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-violet-400/60 active:opacity-90 transition-all"
-          >
-            Profiter de l&apos;offre
-          </button>
-          <p className="text-xs text-center text-white/70">
-            Annulable à tout moment · Reprends le contrôle
-          </p>
-          <button
-            type="button"
-            onClick={() => {}}
-            className="block w-full text-center text-sm text-white/60 hover:text-white/80 underline underline-offset-2 transition-colors"
-          >
-            Restaurer un achat
-          </button>
-        </section>
-
-        {/* Footer */}
-        <footer className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/40">
-          <span className="font-medium text-white/50">StopHaram</span>
-        </footer>
       </div>
     </main>
   );

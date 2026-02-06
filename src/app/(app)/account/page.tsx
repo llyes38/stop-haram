@@ -501,8 +501,8 @@ export default function AccountPage() {
                 <button
                   type="button"
                   onClick={async () => {
-                    await signOutApp();
-                    router.replace("/paywall");
+                  await signOutApp();
+                  router.replace("/offer");
                   }}
                   className="w-full flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3.5 text-left hover:bg-white/10 transition-colors text-white/70 text-sm font-medium"
                 >

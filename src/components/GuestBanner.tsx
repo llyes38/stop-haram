@@ -21,7 +21,7 @@ export default function GuestBanner() {
         <div className="mt-3">
           <button
             type="button"
-            onClick={() => router.push("/paywall")}
+            onClick={() => router.push("/start")}
             className="rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 hover:bg-gray-100"
           >
             S&apos;abonner

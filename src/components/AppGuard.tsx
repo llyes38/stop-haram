@@ -45,14 +45,14 @@ export default function AppGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Pas payé : autoriser le parcours (profile, quiz, plan, offer, checkout) ; bloquer /app et (app)/*
+    // Pas payé (pas client) : rediriger vers le début de l'onboarding (parcours nouveau user), pas vers l'offre directe.
     if (!isEntitled) {
       if (pathname === "/app" || pathname.startsWith("/app/")) {
-        router.replace("/paywall");
+        router.replace("/start");
         return;
       }
       if (isAppRoute(pathname)) {
-        router.replace("/paywall");
+        router.replace("/start");
         return;
       }
       // Parcours / onboarding : profile, quiz, plan, offer, checkout, etc. → autoriser

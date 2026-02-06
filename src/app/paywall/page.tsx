@@ -4,13 +4,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * /paywall : redirige vers l'offre (page utile) au lieu d'afficher une page intermédiaire.
+ * /paywall : redirige vers le début de l'onboarding (1ère page) pour refaire le parcours nouveau user.
  */
 export default function PaywallPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace("/offer");
+    router.replace("/start");
   }, [router]);
 
   return (

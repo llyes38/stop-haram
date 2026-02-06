@@ -8,7 +8,7 @@ import StopHaramLogo from "@/components/brand/StopHaramLogo";
 const PAID_KEY = "stopharam_paid";
 
 /**
- * /app : si localStorage.stopharam_paid !== "true" => redirect /paywall, sinon afficher l'app.
+ * /app : si pas payé => redirect /start (début onboarding) ; sinon afficher l'app.
  */
 export default function AppPage() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export default function AppPage() {
     if (typeof window === "undefined") return;
     const paid = window.localStorage.getItem(PAID_KEY) === "true";
     if (!paid) {
-      router.replace("/paywall");
+      router.replace("/start");
       return;
     }
     setAllowed(true);
