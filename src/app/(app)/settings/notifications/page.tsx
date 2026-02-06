@@ -134,16 +134,6 @@ export default function SettingsNotificationsPage() {
   }
 
   return (
-      <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
-        <p className="text-white/70 text-sm">Charge ton profil depuis l’onglet Compte pour configurer tes rappels.</p>
-        <Link href="/account" className="mt-4 rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3 text-emerald-200 font-semibold text-sm text-center">
-          Aller au Compte
-        </Link>
-      </div>
-    );
-  }
-
-  return (
     <div className="w-full flex flex-col px-6 pt-6 pb-8 text-white">
       <header className="mb-6">
         <div className="flex items-center gap-3 mb-2">
