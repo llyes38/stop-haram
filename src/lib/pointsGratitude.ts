@@ -20,8 +20,8 @@ function getTodayDateKey(): string {
 /** Points requis pour débloquer "offrir 1 mois gratuit" */
 export const POINTS_FOR_FREE_MONTH = 100;
 
-/** Points donnés par jour de défi validé (réussi) */
-export const POINTS_PER_DEFI_DAY = 10;
+/** Points donnés par jour de défi validé (désactivé : on ne donne que +1 pt par action) */
+export const POINTS_PER_DEFI_DAY = 0;
 
 /** Points donnés à la fin du quiz d'intro (analyse) */
 export const POINTS_INTRO_QUIZ = 20;
