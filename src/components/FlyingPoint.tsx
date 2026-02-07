@@ -4,7 +4,8 @@ import { useEffect, useState, useRef } from "react";
 
 type FlyingItem = { id: number; fromX: number; fromY: number };
 
-const DURATION_MS = 700;
+const DURATION_MS = 1600;
+const HOLD_START_PCT = 18;
 
 export default function FlyingPoint({ targetRef }: { targetRef: React.RefObject<HTMLDivElement | null> }) {
   const [items, setItems] = useState<FlyingItem[]>([]);
@@ -19,7 +20,7 @@ export default function FlyingPoint({ targetRef }: { targetRef: React.RefObject<
       setItems((prev) => [...prev, { id, fromX, fromY }]);
       setTimeout(() => {
         setItems((prev) => prev.filter((i) => i.id !== id));
-      }, DURATION_MS);
+      }, DURATION_MS + 100);
     };
     window.addEventListener("stopharam-fly-point", handler);
     return () => window.removeEventListener("stopharam-fly-point", handler);
@@ -33,19 +34,23 @@ export default function FlyingPoint({ targetRef }: { targetRef: React.RefObject<
         @keyframes fly-to-badge {
           0% {
             opacity: 1;
+            transform: translate(-50%, -50%) translate(0, 0) scale(1.1);
+          }
+          ${HOLD_START_PCT}% {
+            opacity: 1;
             transform: translate(-50%, -50%) translate(0, 0) scale(1);
           }
-          60% {
+          75% {
             opacity: 1;
-            transform: translate(-50%, -50%) translate(var(--fly-tx, 0), var(--fly-ty, 0)) scale(0.8);
+            transform: translate(-50%, -50%) translate(var(--fly-tx, 0), var(--fly-ty, 0)) scale(0.85);
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) translate(var(--fly-tx, 0), var(--fly-ty, 0)) scale(0.5);
+            transform: translate(-50%, -50%) translate(var(--fly-tx, 0), var(--fly-ty, 0)) scale(0.6);
           }
         }
         .flying-pt {
-          animation: fly-to-badge ${DURATION_MS}ms cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+          animation: fly-to-badge ${DURATION_MS}ms cubic-bezier(0.25, 0.5, 0.35, 1) forwards;
           pointer-events: none;
         }
       `}} />
@@ -88,7 +93,7 @@ function FlyingPointItem({
 
   return (
     <div
-      className="flying-pt fixed z-[100] flex items-center justify-center rounded-full bg-amber-400/95 px-2 py-1 shadow-lg border border-amber-300/80 text-amber-900 font-bold text-sm whitespace-nowrap"
+      className="flying-pt fixed z-[100] flex items-center justify-center rounded-full bg-amber-400/95 px-3 py-1.5 shadow-xl border-2 border-amber-300/90 text-amber-900 font-bold text-base whitespace-nowrap"
       style={{
         left: fromX,
         top: fromY,
@@ -97,7 +102,7 @@ function FlyingPointItem({
       }}
       aria-hidden
     >
-      +1 pt
+      + 1 point
     </div>
   );
 }
