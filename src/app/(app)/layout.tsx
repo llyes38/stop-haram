@@ -19,6 +19,7 @@ export default function AppLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoggedIn()) {
@@ -53,8 +54,6 @@ export default function AppLayout({
       </div>
     );
   }
-
-  const badgeRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="min-h-screen w-full flex flex-col bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e]">
