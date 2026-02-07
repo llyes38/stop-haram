@@ -9,13 +9,19 @@ const KEYS = {
   defiAwarded: "stopharam_points_defi_awarded",
   introQuizAwarded: "stopharam_points_intro_quiz_awarded",
   pointsSpent: "stopharam_points_spent",
+  actionAwardedPrefix: "stopharam_points_action_",
 } as const;
+
+function getTodayDateKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 /** Points requis pour débloquer "offrir 1 mois gratuit" */
 export const POINTS_FOR_FREE_MONTH = 100;
 
-/** Points donnés par jour de défi validé */
-export const POINTS_PER_DEFI_DAY = 5;
+/** Points donnés par jour de défi validé (réussi) */
+export const POINTS_PER_DEFI_DAY = 10;
 
 /** Points donnés à la fin du quiz d'intro (analyse) */
 export const POINTS_INTRO_QUIZ = 20;
@@ -61,6 +67,32 @@ function getRawTotal(): number {
 /** Total des points de gratitude (quiz + défis - dépensés) */
 export function getTotalPoints(): number {
   return Math.max(0, getRawTotal() - getPointsSpent());
+}
+
+/** +1 pt par action réalisée (une seule fois par action par jour). Retourne true si un point a été ajouté. */
+export function addActionPoint(title: string): boolean {
+  if (typeof window === "undefined") return false;
+  const key = KEYS.actionAwardedPrefix + getTodayDateKey();
+  try {
+    const raw = window.localStorage.getItem(key);
+    const awarded: string[] = raw ? (JSON.parse(raw) as string[]) : [];
+    if (awarded.includes(title)) return false;
+    awarded.push(title);
+    window.localStorage.setItem(key, JSON.stringify(awarded));
+  } catch {
+    return false;
+  }
+  addQuizGratitude(1);
+  window.dispatchEvent(new CustomEvent("stopharam-points-updated"));
+  return true;
+}
+
+/** Déclencher l'animation +1 pt vers la cagnotte (depuis la position fromX, fromY). */
+export function flyPointToBadge(fromX: number, fromY: number): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("stopharam-fly-point", { detail: { fromX, fromY } })
+  );
 }
 
 /** Ajouter des points pour un jour de défi validé (une seule fois par jour) */

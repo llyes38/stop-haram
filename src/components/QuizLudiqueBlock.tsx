@@ -11,7 +11,8 @@ import { getTotalPoints } from "@/lib/pointsGratitude";
 
 type Phase = "intro" | "quiz" | "result";
 
-const POINTS_PER_CORRECT = 10;
+/** 1 pt par bonne réponse au quiz */
+const POINTS_PER_CORRECT = 1;
 
 export default function QuizLudiqueBlock() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function QuizLudiqueBlock() {
           </div>
         </div>
         <p className="text-white/80 text-sm mb-4">
-          Gagne des <strong className="text-amber-200">points de gratitude</strong> à chaque bonne réponse. Tu en gagnes aussi en validant tes jours de défi. À partir de 100 pts, tu peux offrir 1 mois gratuit à un proche.
+          Gagne <strong className="text-amber-200">1 pt</strong> par bonne réponse. Tu gagnes <strong>10 pts</strong> par jour de défi réussi. À partir de 100 pts, tu peux offrir 1 mois gratuit à un proche.
         </p>
         {total > 0 && (
           <p className="text-amber-200/90 text-xs mb-4">

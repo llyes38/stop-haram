@@ -25,7 +25,7 @@ import QuizLudiqueBlock from "@/components/QuizLudiqueBlock";
 import { todayKey } from "@/lib/date";
 import { hasDonToday } from "@/lib/sadaqaStorage";
 import { getDefiDaysStatus, setDefiDayStatus } from "@/lib/defiDaysStatus";
-import { addDefiDayPoints } from "@/lib/pointsGratitude";
+import { addDefiDayPoints, addActionPoint, flyPointToBadge } from "@/lib/pointsGratitude";
 import { getLevelFromDay, LEVEL_EMOJIS, LEVEL_NAMES } from "@/lib/defiLevels";
 import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import ShareCard from "@/components/ShareCard";
@@ -453,7 +453,7 @@ export default function HomePage() {
     }
   };
 
-  const handleToggleActionByTitle = (title: string) => {
+  const handleToggleActionByTitle = (title: string, fromEvent?: React.MouseEvent) => {
     const aboutToMarkDone = !completedTitles.includes(title);
     if (aboutToMarkDone && isVerseAction(title)) {
       const n = versetsFromActionLabel(title);
@@ -463,6 +463,14 @@ export default function HomePage() {
     setCompletedTitles(getCompletedActionTitlesForToday());
     const cnt = actionItems.length || actionLabels.length || 3;
     setActionsState(getTodayActionsState(cnt));
+    if (aboutToMarkDone) {
+      const added = addActionPoint(title);
+      if (added) {
+        const x = fromEvent?.clientX ?? window.innerWidth / 2;
+        const y = fromEvent?.clientY ?? window.innerHeight / 2;
+        flyPointToBadge(x, y);
+      }
+    }
   };
 
   const handleShareResult = async () => {
@@ -1284,7 +1292,7 @@ export default function HomePage() {
                     <p className="text-white/70 text-sm">Touche pour compter (vibration à chaque touche).</p>
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
                         if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(50);
                         const next = incrementDhikrFoisCount(item.title, foisTarget);
                         setDhikrFoisCount(next);
@@ -1292,7 +1300,7 @@ export default function HomePage() {
                           setCompletedTitles((prev) =>
                             prev.includes(item.title) ? prev : [...prev, item.title]
                           );
-                          handleToggleActionByTitle(item.title);
+                          handleToggleActionByTitle(item.title, e);
                         }
                       }}
                       disabled={done}
@@ -1329,8 +1337,8 @@ export default function HomePage() {
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      handleToggleActionByTitle(item.title);
+                    onClick={(e) => {
+                      handleToggleActionByTitle(item.title, e);
                       setSelectedActionIndex(null);
                     }}
                     className="w-full rounded-xl bg-emerald-500/30 border border-emerald-400/50 py-3.5 text-emerald-200 font-semibold hover:bg-emerald-500/40 transition-colors"
