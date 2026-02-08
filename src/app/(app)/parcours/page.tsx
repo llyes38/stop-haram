@@ -504,6 +504,9 @@ export default function ParcoursPage() {
             <button type="button" onClick={() => router.push("/checkout?mode=offrir")} className="w-full rounded-xl bg-violet-500/30 border border-violet-400/50 py-3.5 text-violet-200 font-semibold text-sm hover:bg-violet-500/40 transition-colors">
               Offrir à un proche
             </button>
+            <a href="/recuperer-lien-cadeau" className="block mt-2 text-center text-violet-300/80 text-xs hover:text-violet-200 underline">
+              Tu viens de payer ? Récupère le lien à partager
+            </a>
           </div>
         </section>
       ) : (
