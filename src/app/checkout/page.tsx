@@ -153,7 +153,10 @@ export default function CheckoutPage() {
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: plan === "annual" ? "annual" : "monthly" }),
+        body: JSON.stringify({
+          plan: plan === "annual" ? "annual" : "monthly",
+          ...(isOffrir && { mode: "offrir" }),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (data.url) {
@@ -225,14 +228,16 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        {/* Badge économie */}
-        <div className="flex justify-center mb-3">
-          <span className="inline-flex rounded-full bg-violet-600/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
-            Économise 50 %
-          </span>
-        </div>
+        {/* Badge économie (masqué en mode offrir) */}
+        {!isOffrir && (
+          <div className="flex justify-center mb-3">
+            <span className="inline-flex rounded-full bg-violet-600/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white">
+              Économise 50 %
+            </span>
+          </div>
+        )}
 
-        {/* Choix mensuel / annuel */}
+        {/* Choix mensuel / annuel (ou 1 mois gratuit / annuel en mode offrir) */}
         <section className="space-y-3 mb-6">
           <button
             type="button"
@@ -245,13 +250,17 @@ export default function CheckoutPage() {
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-white">Annuel</p>
-                <p className="text-xs text-white/60 mt-0.5">12 mois · {formatPrice(YEARLY_DISCOUNTED)}</p>
+                <p className="text-lg font-semibold text-white">{isOffrir ? "Offre annuelle" : "Annuel"}</p>
+                <p className="text-xs text-white/60 mt-0.5">
+                  {isOffrir ? "12 mois pour ton proche" : `12 mois · ${formatPrice(YEARLY_DISCOUNTED)}`}
+                </p>
               </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-white">{formatPrice(MONTHLY_EQUIVALENT)}<span className="text-sm font-normal text-white/80">/mois</span></p>
-                <p className="text-xs text-emerald-400/90 mt-0.5">-50 % Ramadan</p>
-              </div>
+              {!isOffrir && (
+                <div className="text-right">
+                  <p className="text-xl font-bold text-white">{formatPrice(MONTHLY_EQUIVALENT)}<span className="text-sm font-normal text-white/80">/mois</span></p>
+                  <p className="text-xs text-emerald-400/90 mt-0.5">-50 % Ramadan</p>
+                </div>
+              )}
             </div>
           </button>
 
@@ -266,12 +275,16 @@ export default function CheckoutPage() {
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-lg font-semibold text-white">Mensuel</p>
-                <p className="text-xs text-white/60 mt-0.5">Résiliable à tout moment</p>
+                <p className="text-lg font-semibold text-white">{isOffrir ? "1 mois gratuit" : "Mensuel"}</p>
+                <p className="text-xs text-white/60 mt-0.5">
+                  {isOffrir ? "Offre 1 mois pour un proche" : "Résiliable à tout moment"}
+                </p>
               </div>
-              <div className="text-right">
-                <p className="text-xl font-bold text-white">{formatPrice(MONTHLY_PRICE)}<span className="text-sm font-normal text-white/80">/mois</span></p>
-              </div>
+              {!isOffrir && (
+                <div className="text-right">
+                  <p className="text-xl font-bold text-white">{formatPrice(MONTHLY_PRICE)}<span className="text-sm font-normal text-white/80">/mois</span></p>
+                </div>
+              )}
             </div>
           </button>
         </section>
@@ -291,7 +304,7 @@ export default function CheckoutPage() {
             {isOffrir
               ? plan === "annual"
                 ? "Offrir l'offre annuelle"
-                : "Offrir l'abonnement mensuel"
+                : "Offrir 1 mois gratuit"
               : plan === "annual"
               ? "Profiter de l'offre annuelle"
               : "S'abonner mensuellement"}

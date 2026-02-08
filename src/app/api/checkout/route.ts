@@ -4,16 +4,22 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP
 
 /**
  * POST /api/checkout
- * Body: { plan?: "monthly" | "annual" }
+ * Body: { plan?: "monthly" | "annual", mode?: "offrir" }
  * Crée une session Stripe Checkout avec le prix mensuel ou annuel.
+ * Si mode === "offrir", utilise les prix "offrir à un proche" (1 mois gratuit / annuel).
  */
 export async function POST(request: NextRequest) {
   const stripeSecret = process.env.STRIPE_SECRET_KEY;
-  const priceMonthly = process.env.STRIPE_PRICE_ID_MONTHLY ?? process.env.STRIPE_PRICE_ID;
-  const priceAnnual = process.env.STRIPE_PRICE_ID_ANNUAL;
-
-  const body = await request.json().catch(() => ({})) as { plan?: string };
+  const body = await request.json().catch(() => ({})) as { plan?: string; mode?: string };
   const plan = body.plan === "annual" ? "annual" : "monthly";
+  const isOffrir = body.mode === "offrir";
+
+  const priceMonthly = isOffrir
+    ? (process.env.STRIPE_PRICE_ID_OFFRIR_MONTHLY ?? process.env.STRIPE_PRICE_ID_MONTHLY ?? process.env.STRIPE_PRICE_ID)
+    : (process.env.STRIPE_PRICE_ID_MONTHLY ?? process.env.STRIPE_PRICE_ID);
+  const priceAnnual = isOffrir
+    ? (process.env.STRIPE_PRICE_ID_OFFRIR_ANNUAL ?? process.env.STRIPE_PRICE_ID_ANNUAL)
+    : process.env.STRIPE_PRICE_ID_ANNUAL;
 
   const priceId = plan === "annual" && priceAnnual ? priceAnnual : priceMonthly;
 
