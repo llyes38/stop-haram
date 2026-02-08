@@ -38,8 +38,12 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json({ url: session.url ?? `${SITE_URL}/paywall` });
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
       console.error("[checkout] Stripe error:", e);
-      return NextResponse.json({ error: "Erreur checkout" }, { status: 500 });
+      return NextResponse.json(
+        { error: msg ? `Erreur checkout: ${msg}` : "Erreur checkout" },
+        { status: 500 }
+      );
     }
   }
 
