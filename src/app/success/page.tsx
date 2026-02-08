@@ -11,13 +11,18 @@ export default function SuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
-  const [status, setStatus] = useState<"checking" | "ok" | "gift" | "invalid">("checking");
+  const modeOffrir = searchParams.get("mode") === "offrir";
+  const [status, setStatus] = useState<"checking" | "ok" | "gift" | "invalid" | "dev_offrir">("checking");
   const [giftUrl, setGiftUrl] = useState<string | null>(null);
   const [giftCopied, setGiftCopied] = useState(false);
 
   useEffect(() => {
     if (!sessionId) {
       setStatus("invalid");
+      return;
+    }
+    if (sessionId === "dev" && modeOffrir) {
+      setStatus("dev_offrir");
       return;
     }
     fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`, { credentials: "include" })
@@ -63,6 +68,25 @@ export default function SuccessPage() {
 
   if (status === "invalid") {
     return null;
+  }
+
+  if (status === "dev_offrir") {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1f12] to-[#0a1c2e] text-white px-6 max-w-[420px] mx-auto">
+        <StopHaramLogo size={120} variant="dark" className="block mb-6" />
+        <p className="text-amber-200 font-semibold text-lg mb-2">Mode test (offrir)</p>
+        <p className="text-white/90 text-sm text-center mb-4">
+          Aucun paiement Stripe. En production, après avoir payé, tu verras ici le <strong>lien à partager</strong> à ton proche pour qu&apos;il active l&apos;offre sur son téléphone.
+        </p>
+        <button
+          type="button"
+          onClick={() => router.replace("/app")}
+          className="w-full rounded-xl bg-white/15 border border-white/30 py-3 text-white font-medium text-sm"
+        >
+          Retour à l&apos;app
+        </button>
+      </main>
+    );
   }
 
   if (status === "gift" && giftUrl) {

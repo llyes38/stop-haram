@@ -122,6 +122,8 @@ export default function CheckoutPage() {
   const isOffrir = searchParams.get("mode") === "offrir";
   const [slideIndex, setSlideIndex] = useState(0);
   const [plan, setPlan] = useState<Plan>("annual");
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const goToSlide = useCallback((index: number) => {
     setSlideIndex((Math.max(0, Math.min(index, SLIDES.length - 1))));
@@ -139,6 +141,8 @@ export default function CheckoutPage() {
   }, []);
 
   const handlePay = async () => {
+    setCheckoutError(null);
+    setLoading(true);
     const forfait: "mensuel" | "annuel" = plan === "annual" ? "annuel" : "mensuel";
     if (typeof window !== "undefined") {
       window.localStorage.setItem("stopharam_forfait", forfait);
@@ -163,10 +167,18 @@ export default function CheckoutPage() {
         window.location.href = data.url;
         return;
       }
+      if (!res.ok && data?.error) {
+        setCheckoutError(data.error);
+        setLoading(false);
+        return;
+      }
     } catch (_e) {
-      /* fallback */
+      setCheckoutError("Erreur réseau. Réessaie.");
+      setLoading(false);
+      return;
     }
-    router.push("/success?session_id=dev");
+    setLoading(false);
+    router.push(isOffrir ? "/success?session_id=dev&mode=offrir" : "/success?session_id=dev");
   };
 
   return (
@@ -296,18 +308,24 @@ export default function CheckoutPage() {
               Tu offres StopHaram à un proche — celui qui participe à une bonne œuvre aura la même récompense.
             </p>
           )}
+          {checkoutError && (
+            <p className="text-amber-200 text-sm text-center mb-3">{checkoutError}</p>
+          )}
           <button
             type="button"
             onClick={handlePay}
-            className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 py-4 text-base font-bold text-white shadow-lg hover:from-violet-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-violet-400/60 active:opacity-90 transition-all"
+            disabled={loading}
+            className="w-full rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-600 py-4 text-base font-bold text-white shadow-lg hover:from-violet-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-violet-400/60 active:opacity-90 transition-all disabled:opacity-70"
           >
-            {isOffrir
-              ? plan === "annual"
-                ? "Offrir l'offre annuelle"
-                : "Offrir 1 mois gratuit"
-              : plan === "annual"
-              ? "Profiter de l'offre annuelle"
-              : "S'abonner mensuellement"}
+            {loading
+              ? "Redirection…"
+              : isOffrir
+                ? plan === "annual"
+                  ? "Offrir l'offre annuelle"
+                  : "Offrir 1 mois gratuit"
+                : plan === "annual"
+                  ? "Profiter de l'offre annuelle"
+                  : "S'abonner mensuellement"}
           </button>
           <p className="text-xs text-center text-white/70">
             Annulable à tout moment · Paiement sécurisé
