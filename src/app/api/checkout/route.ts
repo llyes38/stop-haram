@@ -14,14 +14,18 @@ export async function POST(request: NextRequest) {
   const plan = body.plan === "annual" ? "annual" : "monthly";
   const isOffrir = body.mode === "offrir";
 
+  // Offrir : 1 mois = 9,99 € (OFFRIR_MONTHLY), annuel = 59,94 € (OFFRIR_ANNUAL). Pas d'inversion.
   const priceMonthly = isOffrir
     ? (process.env.STRIPE_PRICE_ID_OFFRIR_MONTHLY ?? process.env.STRIPE_PRICE_ID_MONTHLY ?? process.env.STRIPE_PRICE_ID)
     : (process.env.STRIPE_PRICE_ID_MONTHLY ?? process.env.STRIPE_PRICE_ID);
   const priceAnnual = isOffrir
     ? (process.env.STRIPE_PRICE_ID_OFFRIR_ANNUAL ?? process.env.STRIPE_PRICE_ID_ANNUAL)
     : process.env.STRIPE_PRICE_ID_ANNUAL;
+  // Correction inversion : en mode offrir, "1 mois" doit ouvrir le prix 9,99 et "annuel" le prix 59,94.
+  const priceIdMonthly = isOffrir ? priceAnnual : priceMonthly;
+  const priceIdAnnual = isOffrir ? priceMonthly : priceAnnual;
 
-  const priceId = plan === "annual" && priceAnnual ? priceAnnual : priceMonthly;
+  const priceId = plan === "annual" && priceIdAnnual ? priceIdAnnual : priceIdMonthly;
 
   if (stripeSecret && priceId) {
     try {
