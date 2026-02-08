@@ -20,6 +20,13 @@ export default function AppPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const pendingUrl = window.localStorage.getItem(PENDING_GIFT_URL_KEY);
+    if (pendingUrl) {
+      window.localStorage.removeItem(PENDING_GIFT_URL_KEY);
+      setPendingGiftUrl(pendingUrl);
+      setAllowed(true);
+      return;
+    }
     const paid = window.localStorage.getItem(PAID_KEY) === "true";
     if (!paid) {
       router.replace("/start");
@@ -27,15 +34,6 @@ export default function AppPage() {
     }
     setAllowed(true);
   }, [router]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const url = window.localStorage.getItem(PENDING_GIFT_URL_KEY);
-    if (url) {
-      window.localStorage.removeItem(PENDING_GIFT_URL_KEY);
-      setPendingGiftUrl(url);
-    }
-  }, []);
 
   const handleCopyGiftLink = async () => {
     if (pendingGiftUrl && (await copyToClipboard(pendingGiftUrl))) {
