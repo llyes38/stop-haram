@@ -30,7 +30,12 @@ export async function GET(request: Request) {
     const subObj = typeof sub === "object" && sub !== null && "status" in sub ? sub : null;
     const status = subObj ? (subObj as { status?: string }).status : null;
     const active = status === "active" || status === "trialing";
-    return NextResponse.json({ ok: active });
+    const metadata = (session.metadata ?? {}) as Record<string, string>;
+    const isGift = metadata.type === "gift" && (metadata.plan === "monthly" || metadata.plan === "annual");
+    return NextResponse.json({
+      ok: active,
+      ...(isGift && { gift: true, plan: metadata.plan }),
+    });
   } catch {
     return NextResponse.json({ ok: false });
   }

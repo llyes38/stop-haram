@@ -32,6 +32,9 @@ export async function POST(request: NextRequest) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${SITE_URL}/paywall`,
+        ...(isOffrir && {
+          metadata: { type: "gift", plan },
+        }),
       });
       return NextResponse.json({ url: session.url ?? `${SITE_URL}/paywall` });
     } catch (e) {

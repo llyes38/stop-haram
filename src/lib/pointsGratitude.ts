@@ -136,13 +136,35 @@ export function hasActiveFreeMonth(): boolean {
   return Number.isFinite(until) && until > Date.now();
 }
 
-/** Pour le bénéficiaire : activer 1 mois gratuit (appelé depuis le lien ?offer=CODE) */
+/** Pour le bénéficiaire : activer 1 mois gratuit (appelé depuis le lien ?offer=CODE, points gratitude) */
 export function activateFreeMonthFromLink(): void {
   if (typeof window === "undefined") return;
   const d = new Date();
   d.setMonth(d.getMonth() + 1);
   window.localStorage.setItem(FREE_MONTH_UNTIL_KEY, d.toISOString());
   window.localStorage.setItem("stopharam_forfait", "gratuit_1mois");
+}
+
+const GIFT_ANNUAL_UNTIL_KEY = "stopharam_gift_annual_until";
+
+/**
+ * Pour le bénéficiaire : activer un cadeau Stripe (1 mois gratuit ou annuel) sur CE téléphone.
+ * À appeler après validation + redeem du code (lien partagé par le donneur).
+ */
+export function activateGiftFromStripeCode(plan: "monthly" | "annual"): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem("stopharam_paid", "true");
+  if (plan === "monthly") {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    window.localStorage.setItem(FREE_MONTH_UNTIL_KEY, d.toISOString());
+    window.localStorage.setItem("stopharam_forfait", "gratuit_1mois");
+  } else {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    window.localStorage.setItem(GIFT_ANNUAL_UNTIL_KEY, d.toISOString());
+    window.localStorage.setItem("stopharam_forfait", "annuel");
+  }
 }
 
 /** Utiliser 100 points pour générer un lien "1 mois gratuit". Retourne l'URL ou null. */

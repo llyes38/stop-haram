@@ -7,7 +7,7 @@ import { setAuth, setState, isLoggedIn, isOnboardingComplete } from "@/lib/authS
 import { clearDecouverteSeen } from "@/lib/decouverteStorage";
 import { resetTemptationStats } from "@/lib/temptationStats";
 import { clearDefiDaysStatus } from "@/lib/defiDaysStatus";
-import { activateFreeMonthFromLink } from "@/lib/pointsGratitude";
+import { activateFreeMonthFromLink, activateGiftFromStripeCode } from "@/lib/pointsGratitude";
 import { persistLocalStateToProgress } from "@/lib/progressStorage";
 
 const bgStyle1 = {
@@ -26,13 +26,33 @@ export default function StartCarouselPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [slideIndex, setSlideIndex] = useState(0);
   const [freeMonthReceived, setFreeMonthReceived] = useState(false);
+  const [giftPlan, setGiftPlan] = useState<"monthly" | "annual" | null>(null);
 
   useEffect(() => {
     const offer = searchParams.get("offer");
-    if (offer && typeof offer === "string" && offer.length >= 4) {
-      activateFreeMonthFromLink();
-      setFreeMonthReceived(true);
-    }
+    if (!offer || typeof offer !== "string") return;
+    (async () => {
+      const res = await fetch(`/api/gift/validate?code=${encodeURIComponent(offer)}`);
+      const data = await res.json().catch(() => ({}));
+      if (data?.valid === true && (data.plan === "monthly" || data.plan === "annual")) {
+        const redeemRes = await fetch("/api/gift/redeem", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: offer }),
+        });
+        const redeem = await redeemRes.json().catch(() => ({}));
+        if (redeem?.plan) {
+          activateGiftFromStripeCode(redeem.plan);
+          setFreeMonthReceived(true);
+          setGiftPlan(redeem.plan);
+        }
+        return;
+      }
+      if (offer.length >= 4) {
+        activateFreeMonthFromLink();
+        setFreeMonthReceived(true);
+      }
+    })();
   }, [searchParams]);
 
   const goToSlide = (index: number) => {
@@ -181,7 +201,9 @@ export default function StartCarouselPage() {
             <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Bienvenue !</h1>
             {freeMonthReceived && (
               <div className="mt-3 rounded-xl bg-emerald-500/20 border border-emerald-400/40 px-4 py-3">
-                <p className="text-emerald-200 font-semibold text-sm">🎁 1 mois gratuit activé !</p>
+                <p className="text-emerald-200 font-semibold text-sm">
+                  🎁 {giftPlan === "annual" ? "Offre annuelle activée !" : "1 mois gratuit activé !"}
+                </p>
                 <p className="text-white/90 text-xs mt-1">Un proche t&apos;a offert StopHaram. Profite bien de ton parcours.</p>
               </div>
             )}
