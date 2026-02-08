@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const PAID_KEY = "stopharam_paid";
+
 type Objective = {
   id: string;
   label: string;
@@ -75,6 +77,10 @@ export default function ObjectivesPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (window.localStorage.getItem(PAID_KEY) === "true") {
+      router.replace("/app");
+      return;
+    }
     const raw = window.localStorage.getItem("stopharam_objectives");
     if (raw) {
       try {
@@ -84,7 +90,7 @@ export default function ObjectivesPage() {
         /* ignore */
       }
     }
-  }, []);
+  }, [router]);
 
   const toggle = (id: string) => {
     const next = selected.includes(id)

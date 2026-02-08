@@ -4,13 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateLastRoute } from "@/lib/authState";
 
+const PAID_KEY = "stopharam_paid";
+
 export default function AnalysisPage() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage.getItem(PAID_KEY) === "true") {
+      router.replace("/app");
+      return;
+    }
     updateLastRoute("/analysis");
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const duration = 2500; // 2.5 secondes

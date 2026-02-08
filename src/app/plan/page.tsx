@@ -51,7 +51,7 @@ export default function PlanPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage.getItem(PAID_KEY) === "true") {
-      router.replace("/app");
+      window.location.href = "/app";
       return;
     }
     updateLastRoute("/plan");

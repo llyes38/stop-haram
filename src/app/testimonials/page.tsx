@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+const PAID_KEY = "stopharam_paid";
 
 type Entry = {
   type: "scholar" | "user";
@@ -55,6 +58,12 @@ const bgStyle = {
 
 export default function TestimonialsPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage.getItem(PAID_KEY) === "true") {
+      router.replace("/app");
+    }
+  }, [router]);
 
   return (
     <main

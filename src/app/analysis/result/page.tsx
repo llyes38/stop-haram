@@ -95,6 +95,8 @@ const stars = (
 
 const averageScore = 45;
 
+const PAID_KEY = "stopharam_paid";
+
 export default function AnalysisResultPage() {
   const router = useRouter();
   // MVP : pas de compte Supabase
@@ -104,11 +106,15 @@ export default function AnalysisResultPage() {
   const [showSavePrompt, setShowSavePrompt] = useState(false);
 
   useEffect(() => {
-    setShowSavePrompt(isOnboardingComplete());
-  }, []);
+    if (typeof window !== "undefined" && window.localStorage.getItem(PAID_KEY) === "true") {
+      router.replace("/app");
+      return;
+    }
+    updateLastRoute("/analysis/result");
+  }, [router]);
 
   useEffect(() => {
-    updateLastRoute("/analysis/result");
+    setShowSavePrompt(isOnboardingComplete());
   }, []);
 
   useEffect(() => {

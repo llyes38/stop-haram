@@ -32,8 +32,9 @@ export default function StartCarouselPage() {
   const [offerStatus, setOfferStatus] = useState<OfferStatus>("idle");
 
   useEffect(() => {
-    const offer = searchParams.get("offer");
-    if (!offer || typeof offer !== "string") {
+    const rawOffer = searchParams.get("offer");
+    const offer = typeof rawOffer === "string" ? rawOffer.trim() : "";
+    if (!offer) {
       setOfferStatus("no_offer");
       return;
     }

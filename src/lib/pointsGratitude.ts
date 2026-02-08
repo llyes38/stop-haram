@@ -136,9 +136,10 @@ export function hasActiveFreeMonth(): boolean {
   return Number.isFinite(until) && until > Date.now();
 }
 
-/** Pour le bénéficiaire : activer 1 mois gratuit (appelé depuis le lien ?offer=CODE, points gratitude) */
+/** Pour le bénéficiaire : activer 1 mois gratuit (appelé depuis le lien ?offer=CODE, points gratitude ou fallback) */
 export function activateFreeMonthFromLink(): void {
   if (typeof window === "undefined") return;
+  window.localStorage.setItem("stopharam_paid", "true");
   const d = new Date();
   d.setMonth(d.getMonth() + 1);
   window.localStorage.setItem(FREE_MONTH_UNTIL_KEY, d.toISOString());
