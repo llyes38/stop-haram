@@ -20,6 +20,7 @@ import { getDons } from "@/lib/sadaqaStorage";
 import { getCompletedActionTitlesForToday, getActionHistoryLastDays } from "@/lib/dailyActions";
 import { getFoisTarget, getDhikrFoisCount } from "@/lib/dhikrFoisCount";
 import { todayKey } from "@/lib/date";
+import { getRadarScores, getRadarOverallPercent, RADAR_ORDER, RADAR_LABELS } from "@/lib/radarScores";
 import type { SelectedSin } from "@/lib/storage";
 
 function formatDateIso(iso: string): string {
@@ -233,6 +234,93 @@ export default function ParcoursPage() {
                 : "—"}
             </p>
           </div>
+          {/* Radar StopHaram — 6 dimensions */}
+          {(() => {
+            const scores = getRadarScores();
+            const overall = getRadarOverallPercent(scores);
+            const cx = 100;
+            const cy = 100;
+            const R = 78;
+            const angles = RADAR_ORDER.map((_, i) => (-90 + i * 60) * (Math.PI / 180));
+            const axisPoints = angles.map((a) => ({
+              x: cx + R * Math.cos(a),
+              y: cy + R * Math.sin(a),
+            }));
+            const polygonPoints = RADAR_ORDER.map((dim, i) => {
+              const r = (scores[dim] / 100) * R;
+              const a = angles[i];
+              return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+            });
+            const polygonPath = polygonPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") + " Z";
+            const labelOffset = R + 16;
+            return (
+              <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-4">
+                <p className="text-white font-semibold text-base mb-3 text-center">Ton profil StopHaram</p>
+                <div className="relative w-full flex justify-center" style={{ height: 220 }}>
+                  <svg viewBox="0 0 200 200" className="w-52 h-52 mx-auto" aria-hidden>
+                    <defs>
+                      <linearGradient id="radar-fill-stop" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="rgb(52, 211, 153)" stopOpacity="0.5" />
+                        <stop offset="100%" stopColor="rgb(34, 197, 94)" stopOpacity="0.25" />
+                      </linearGradient>
+                    </defs>
+                    {[1, 2, 3, 4, 5].map((level) => (
+                      <circle
+                        key={level}
+                        cx={cx}
+                        cy={cy}
+                        r={(level / 5) * R}
+                        fill="none"
+                        stroke="rgba(255,255,255,0.08)"
+                        strokeWidth="0.5"
+                      />
+                    ))}
+                    {angles.map((a, i) => (
+                      <line
+                        key={i}
+                        x1={cx}
+                        y1={cy}
+                        x2={axisPoints[i].x}
+                        y2={axisPoints[i].y}
+                        stroke="rgba(255,255,255,0.12)"
+                        strokeWidth="0.8"
+                      />
+                    ))}
+                    <path d={polygonPath} fill="url(#radar-fill-stop)" stroke="rgb(52, 211, 153)" strokeWidth="1.5" strokeLinejoin="round" />
+                    {RADAR_ORDER.map((dim, i) => {
+                      const a = angles[i];
+                      const lx = cx + labelOffset * Math.cos(a);
+                      const ly = cy + labelOffset * Math.sin(a);
+                      return (
+                        <text
+                          key={dim}
+                          x={lx}
+                          y={ly}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          fill="rgba(255,255,255,0.85)"
+                          style={{ fontSize: 10, fontWeight: 500 }}
+                        >
+                          {RADAR_LABELS[dim]}
+                        </text>
+                      );
+                    })}
+                    <text
+                      x={cx}
+                      y={cy}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="white"
+                      style={{ fontSize: 20, fontWeight: 700 }}
+                    >
+                      {overall}%
+                    </text>
+                  </svg>
+                </div>
+                <p className="text-white/50 text-xs text-center mt-1">Moyenne des 6 dimensions</p>
+              </div>
+            );
+          })()}
           {/* Progression globale — graphique type QUITTTR */}
           <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
             <div className="flex items-center justify-between gap-2 mb-3">
