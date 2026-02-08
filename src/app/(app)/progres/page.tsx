@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getUser, getDailyActionsWithSins } from "@/lib/storage";
-import { getCompletedActionTitlesForToday } from "@/lib/dailyActions";
+import { getCompletedActionTitlesForToday, getActionHistoryLastDays } from "@/lib/dailyActions";
 import { getDons } from "@/lib/sadaqaStorage";
 import { todayKey } from "@/lib/date";
 

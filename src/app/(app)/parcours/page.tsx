@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getSinLabel, hasDefiStarted, getDailyActionsWithSins } from "@/lib/storage";
 import { generatePlan, ACTION_1 } from "@/lib/programEngine";
@@ -17,7 +17,7 @@ import {
 } from "@/lib/pointsGratitude";
 import { copyToClipboard } from "@/lib/share";
 import { getDons } from "@/lib/sadaqaStorage";
-import { getCompletedActionTitlesForToday } from "@/lib/dailyActions";
+import { getCompletedActionTitlesForToday, getActionHistoryLastDays } from "@/lib/dailyActions";
 import { getFoisTarget, getDhikrFoisCount } from "@/lib/dhikrFoisCount";
 import { todayKey } from "@/lib/date";
 import type { SelectedSin } from "@/lib/storage";
@@ -112,6 +112,15 @@ export default function ParcoursPage() {
   };
 
   const streakDays = user?.streakDays ?? null;
+
+  const chartDataProgres = useMemo(() => {
+    const raw = getActionHistoryLastDays(14);
+    let sum = 0;
+    return raw.map((d) => {
+      sum += d.count;
+      return { ...d, cumulative: sum };
+    });
+  }, [streakDays]);
   const focusSinLabel = user?.plan?.focusSin ? getSinLabel(user.plan.focusSin, user) : null;
   const challengeDay = user?.startDateISO
     ? Math.min(Math.max(getDayNumber(user.startDateISO), 1), DEFI_JOURS)
@@ -223,6 +232,55 @@ export default function ParcoursPage() {
                 ? `${streakDays} jour${streakDays !== 1 ? "s" : ""}`
                 : "—"}
             </p>
+          </div>
+          {/* Progression globale — graphique type QUITTTR */}
+          <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <p className="text-white font-semibold text-base">Progression globale</p>
+              {chartDataProgres.length > 0 && chartDataProgres[0].dateKey && (
+                <span className="text-white/50 text-xs">
+                  Depuis le {formatDateIso(chartDataProgres[0].dateKey)}
+                </span>
+              )}
+            </div>
+            <div className="relative w-full" style={{ height: 160 }}>
+              <svg
+                viewBox="0 0 280 120"
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full"
+                aria-hidden
+              >
+                <defs>
+                  <linearGradient id="parcours-progres-area-fill" x1="0" y1="1" x2="0" y2="0">
+                    <stop offset="0%" stopColor="rgb(52, 211, 153)" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="rgb(52, 211, 153)" stopOpacity="0.02" />
+                  </linearGradient>
+                </defs>
+                {chartDataProgres.length >= 2 && (() => {
+                  const w = 280;
+                  const h = 120;
+                  const maxVal = Math.max(1, ...chartDataProgres.map((d) => d.cumulative));
+                  const pts = chartDataProgres.map((d, i) => {
+                    const x = (i / Math.max(1, chartDataProgres.length - 1)) * w;
+                    const y = h - (d.cumulative / maxVal) * (h - 12);
+                    return { x, y };
+                  });
+                  const areaPath = `M ${pts[0].x} ${h} L ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")} L ${pts[pts.length - 1].x} ${h} Z`;
+                  const linePath = `M ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")}`;
+                  return (
+                    <>
+                      <path d={areaPath} fill="url(#parcours-progres-area-fill)" />
+                      <path d={linePath} fill="none" stroke="rgb(52, 211, 153)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
+            {chartDataProgres.length > 0 && (
+              <p className="text-white/50 text-xs mt-1 text-right">
+                {chartDataProgres[chartDataProgres.length - 1].cumulative} action{chartDataProgres[chartDataProgres.length - 1].cumulative > 1 ? "s" : ""} réalisée{chartDataProgres[chartDataProgres.length - 1].cumulative > 1 ? "s" : ""} sur 14 jours
+              </p>
+            )}
           </div>
           <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4">
             <p className="text-white/70 font-medium text-sm mb-2">Ton statut</p>
