@@ -79,7 +79,7 @@ export default function QuizLudiqueBlock() {
           </div>
         </div>
         <p className="text-white/80 text-sm mb-4">
-          Gagne <strong className="text-amber-200">1 pt</strong> par bonne réponse. Tu gagnes <strong>10 pts</strong> par jour de défi réussi. À partir de 100 pts, tu peux offrir 1 mois gratuit à un proche.
+          Gagne <strong className="text-amber-200">1 pt</strong> par bonne réponse. À partir de 100 pts, tu peux offrir 1 mois gratuit à un proche.
         </p>
         {total > 0 && (
           <p className="text-amber-200/90 text-xs mb-4">

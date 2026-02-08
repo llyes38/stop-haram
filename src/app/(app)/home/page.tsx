@@ -504,6 +504,20 @@ export default function HomePage() {
         }
         .action-todo { animation: action-pulse 2s ease-in-out infinite; }
         .action-todo:hover { animation: none; }
+        @keyframes orb-glow {
+          0%, 100% { filter: brightness(1) saturate(1.2); box-shadow: 0 0 20px 8px rgba(52, 211, 153, 0.25), 0 0 40px 16px rgba(34, 197, 94, 0.15), inset 0 0 30px rgba(255,255,255,0.08); }
+          50% { filter: brightness(1.15) saturate(1.35); box-shadow: 0 0 28px 12px rgba(52, 211, 153, 0.35), 0 0 56px 20px rgba(34, 197, 94, 0.2), inset 0 0 40px rgba(255,255,255,0.12); }
+        }
+        @keyframes orb-rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .home-streak-orb {
+          animation: orb-glow 3s ease-in-out infinite;
+        }
+        .home-streak-orb-inner {
+          animation: orb-rotate 8s linear infinite;
+        }
       `}} />
 
       <header className="mb-8 flex items-start justify-between gap-4">
@@ -659,12 +673,12 @@ export default function HomePage() {
       )}
 
       {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours */}
-      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative">
+      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative overflow-hidden">
         <>
             <button
               type="button"
               onClick={() => setShareNudgeModalOpen(true)}
-              className="absolute top-3 right-3 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+              className="absolute top-3 right-3 z-10 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Partager mon résultat"
               title="Partager mon résultat"
             >
@@ -672,6 +686,28 @@ export default function HomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
             </button>
+            {/* Cercle lumineux animé (inspiré QUITTTR) */}
+            <div className="flex justify-center mb-4">
+              <div
+                className="home-streak-orb relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center overflow-hidden"
+                aria-hidden
+              >
+                <div
+                  className="home-streak-orb-inner absolute inset-0 w-full h-full rounded-full"
+                  style={{
+                    background: "conic-gradient(from 0deg, #34d399 0deg, #22d3ee 72deg, #a78bfa 144deg, #f472b6 216deg, #fbbf24 288deg, #34d399 360deg)",
+                  }}
+                />
+                <div
+                  className="absolute inset-[15%] rounded-full bg-[#0a1f12]/90"
+                  aria-hidden
+                />
+                <div
+                  className="absolute inset-[22%] rounded-full border border-white/25"
+                  aria-hidden
+                />
+              </div>
+            </div>
             <p className="text-emerald-200 text-sm font-semibold text-center mb-3">
               {name ? (
                 <>
