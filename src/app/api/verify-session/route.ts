@@ -26,16 +26,16 @@ export async function GET(request: Request) {
     if (session.payment_status !== "paid") {
       return NextResponse.json({ ok: false });
     }
+    const metadata = (session.metadata ?? {}) as Record<string, string>;
+    const isGift = metadata.type === "gift" && (metadata.plan === "monthly" || metadata.plan === "annual");
+    if (isGift) {
+      return NextResponse.json({ ok: true, gift: true, plan: metadata.plan });
+    }
     const sub = session.subscription;
     const subObj = typeof sub === "object" && sub !== null && "status" in sub ? sub : null;
     const status = subObj ? (subObj as { status?: string }).status : null;
     const active = status === "active" || status === "trialing";
-    const metadata = (session.metadata ?? {}) as Record<string, string>;
-    const isGift = metadata.type === "gift" && (metadata.plan === "monthly" || metadata.plan === "annual");
-    return NextResponse.json({
-      ok: active,
-      ...(isGift && { gift: true, plan: metadata.plan }),
-    });
+    return NextResponse.json({ ok: active });
   } catch {
     return NextResponse.json({ ok: false });
   }

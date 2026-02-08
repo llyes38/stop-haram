@@ -27,8 +27,10 @@ export async function POST(request: NextRequest) {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(stripeSecret);
+      // Offrir à un proche : paiement unique (prix one-time). Abo classique : subscription (prix récurrent).
+      const mode = isOffrir ? "payment" : "subscription";
       const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
+        mode,
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${SITE_URL}/paywall`,
