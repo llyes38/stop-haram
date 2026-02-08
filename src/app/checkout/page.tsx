@@ -164,6 +164,9 @@ export default function CheckoutPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (data.url) {
+        if (isOffrir && data.session_id && typeof window !== "undefined") {
+          window.localStorage.setItem("stopharam_pending_gift_session_id", data.session_id);
+        }
         window.location.href = data.url;
         return;
       }

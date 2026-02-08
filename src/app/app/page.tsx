@@ -8,15 +8,18 @@ import { copyToClipboard } from "@/lib/share";
 
 const PAID_KEY = "stopharam_paid";
 const PENDING_GIFT_URL_KEY = "stopharam_pending_gift_url";
+const PENDING_GIFT_SESSION_ID_KEY = "stopharam_pending_gift_session_id";
 
 /**
  * /app : si pas payé => redirect /start (début onboarding) ; sinon afficher l'app.
+ * Si on a un session_id cadeau en attente (payé mais pas vu la page success), on appelle gift/create pour récupérer le lien.
  */
 export default function AppPage() {
   const router = useRouter();
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [pendingGiftUrl, setPendingGiftUrl] = useState<string | null>(null);
   const [giftCopied, setGiftCopied] = useState(false);
+  const [fetchingGift, setFetchingGift] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,6 +28,35 @@ export default function AppPage() {
       window.localStorage.removeItem(PENDING_GIFT_URL_KEY);
       setPendingGiftUrl(pendingUrl);
       setAllowed(true);
+      return;
+    }
+    const sessionId = window.localStorage.getItem(PENDING_GIFT_SESSION_ID_KEY);
+    if (sessionId) {
+      setFetchingGift(true);
+      fetch("/api/gift/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((res) => res.json().catch(() => ({})))
+        .then((data) => {
+          window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
+          if (data?.url) {
+            setPendingGiftUrl(data.url);
+            setAllowed(true);
+          } else {
+            const paid = window.localStorage.getItem(PAID_KEY) === "true";
+            if (!paid) router.replace("/start");
+            else setAllowed(true);
+          }
+        })
+        .catch(() => {
+          window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
+          const paid = window.localStorage.getItem(PAID_KEY) === "true";
+          if (!paid) router.replace("/start");
+          else setAllowed(true);
+        })
+        .finally(() => setFetchingGift(false));
       return;
     }
     const paid = window.localStorage.getItem(PAID_KEY) === "true";
@@ -42,10 +74,10 @@ export default function AppPage() {
     }
   };
 
-  if (allowed === null) {
+  if (allowed === null || fetchingGift) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e]">
-        <p className="text-white/70 text-sm">Chargement…</p>
+        <p className="text-white/70 text-sm">{fetchingGift ? "Récupération du lien cadeau…" : "Chargement…"}</p>
       </div>
     );
   }

@@ -6,6 +6,7 @@ import StopHaramLogo from "@/components/brand/StopHaramLogo";
 
 const PAID_KEY = "stopharam_paid";
 const PENDING_GIFT_URL_KEY = "stopharam_pending_gift_url";
+const PENDING_GIFT_SESSION_ID_KEY = "stopharam_pending_gift_session_id";
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -34,6 +35,7 @@ export default function SuccessPage() {
       setGiftUrl(gift.url);
       setStatus("gift");
       if (typeof window !== "undefined") {
+        window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
         window.localStorage.setItem(PENDING_GIFT_URL_KEY, gift.url);
         window.location.href = "/app";
       }

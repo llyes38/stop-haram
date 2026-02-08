@@ -6,6 +6,7 @@ import StopHaramLogo from "@/components/brand/StopHaramLogo";
 import { copyToClipboard } from "@/lib/share";
 
 const PENDING_GIFT_URL_KEY = "stopharam_pending_gift_url";
+const PENDING_GIFT_SESSION_ID_KEY = "stopharam_pending_gift_session_id";
 
 function extractSessionId(urlOrInput: string): string | null {
   const s = urlOrInput.trim();
@@ -32,6 +33,27 @@ export default function RecupererLienCadeauPage() {
     if (url) {
       window.localStorage.removeItem(PENDING_GIFT_URL_KEY);
       setGiftUrl(url);
+      return;
+    }
+    const sessionId = window.localStorage.getItem(PENDING_GIFT_SESSION_ID_KEY);
+    if (sessionId) {
+      setLoading(true);
+      fetch("/api/gift/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((res) => res.json().catch(() => ({})))
+        .then((data) => {
+          window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
+          if (data?.url) setGiftUrl(data.url);
+          else setError(data?.error || "Lien non trouvé. Le paiement est peut-être encore en cours.");
+        })
+        .catch(() => {
+          window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
+          setError("Erreur réseau. Réessaie.");
+        })
+        .finally(() => setLoading(false));
     }
   }, []);
 

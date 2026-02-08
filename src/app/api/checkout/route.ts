@@ -42,7 +42,9 @@ export async function POST(request: NextRequest) {
           metadata: { type: "gift", plan },
         }),
       });
-      return NextResponse.json({ url: session.url ?? `${SITE_URL}/paywall` });
+      const payload: { url: string; session_id?: string } = { url: session.url ?? `${SITE_URL}/paywall` };
+      if (isOffrir && session.id) payload.session_id = session.id;
+      return NextResponse.json(payload);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("[checkout] Stripe error:", e);

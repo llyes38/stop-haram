@@ -13,6 +13,7 @@ import { hasRechuteCheckedToday, markRechuteDoneForToday } from "@/lib/rechuteCh
 import { copyToClipboard } from "@/lib/share";
 
 const PENDING_GIFT_URL_KEY = "stopharam_pending_gift_url";
+const PENDING_GIFT_SESSION_ID_KEY = "stopharam_pending_gift_session_id";
 
 export default function AppLayout({
   children,
@@ -52,6 +53,21 @@ export default function AppLayout({
     if (url) {
       window.localStorage.removeItem(PENDING_GIFT_URL_KEY);
       setPendingGiftUrl(url);
+      return;
+    }
+    const sessionId = window.localStorage.getItem(PENDING_GIFT_SESSION_ID_KEY);
+    if (sessionId) {
+      fetch("/api/gift/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId }),
+      })
+        .then((res) => res.json().catch(() => ({})))
+        .then((data) => {
+          window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY);
+          if (data?.url) setPendingGiftUrl(data.url);
+        })
+        .catch(() => window.localStorage.removeItem(PENDING_GIFT_SESSION_ID_KEY));
     }
   }, [ready]);
 
