@@ -44,6 +44,16 @@ export default function ProgresPage() {
   const [donsToday, setDonsToday] = useState(0);
   const [recentDons, setRecentDons] = useState<Array<{ label: string; amount: number; date: string }>>([]);
 
+  const chartDays = 14;
+  const chartData = useMemo(() => {
+    const raw = getActionHistoryLastDays(chartDays);
+    let sum = 0;
+    return raw.map((d) => {
+      sum += d.count;
+      return { ...d, cumulative: sum };
+    });
+  }, [daysClean, completedTitles.length]);
+
   useEffect(() => {
     setDaysClean(getDaysClean());
     const u = getUser();
@@ -96,6 +106,57 @@ export default function ProgresPage() {
               <p className="text-white/60 text-xs">Jours consécutifs sans rechute</p>
             </div>
           </div>
+        </div>
+
+        {/* Progression globale — graphique type QUITTTR */}
+        <div className="rounded-xl bg-white/5 border border-white/10 px-4 py-4">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h2 className="text-white font-semibold text-base">Progression globale</h2>
+            {chartData.length > 0 && chartData[0].dateKey && (
+              <span className="text-white/50 text-xs">
+                Depuis le {formatDateIso(chartData[0].dateKey)}
+              </span>
+            )}
+          </div>
+          <div className="relative w-full" style={{ height: 160 }}>
+            <svg
+              viewBox="0 0 280 120"
+              preserveAspectRatio="none"
+              className="absolute inset-0 w-full h-full"
+              aria-hidden
+            >
+              <defs>
+                <linearGradient id="progres-area-fill" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stopColor="rgb(52, 211, 153)" stopOpacity="0.35" />
+                  <stop offset="100%" stopColor="rgb(52, 211, 153)" stopOpacity="0.02" />
+                </linearGradient>
+              </defs>
+              {(() => {
+                const w = 280;
+                const h = 120;
+                const maxVal = Math.max(1, ...chartData.map((d) => d.cumulative));
+                const pts = chartData.map((d, i) => {
+                  const x = (i / Math.max(1, chartData.length - 1)) * w;
+                  const y = h - (d.cumulative / maxVal) * (h - 12);
+                  return { x, y, ...d };
+                });
+                if (pts.length < 2) return null;
+                const areaPath = `M ${pts[0].x} ${h} L ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")} L ${pts[pts.length - 1].x} ${h} Z`;
+                const linePath = `M ${pts.map((p) => `${p.x} ${p.y}`).join(" L ")}`;
+                return (
+                  <>
+                    <path d={areaPath} fill="url(#progres-area-fill)" />
+                    <path d={linePath} fill="none" stroke="rgb(52, 211, 153)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </>
+                );
+              })()}
+            </svg>
+          </div>
+          {chartData.length > 0 && (
+            <p className="text-white/50 text-xs mt-1 text-right">
+              {chartData[chartData.length - 1].cumulative} action{chartData[chartData.length - 1].cumulative > 1 ? "s" : ""} réalisée{chartData[chartData.length - 1].cumulative > 1 ? "s" : ""} sur {chartDays} jours
+            </p>
+          )}
         </div>
 
         {/* Cartes : Actions du jour (réalisées ou à faire) */}

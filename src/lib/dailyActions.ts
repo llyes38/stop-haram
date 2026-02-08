@@ -117,3 +117,23 @@ export function clearTodayActions(count: number = 3): void {
   titlesData[key] = [];
   saveTitlesRaw(titlesData);
 }
+
+/** Historique des actions réalisées sur les N derniers jours (pour graphique progrès). */
+export function getActionHistoryLastDays(days: number): Array<{ dateKey: string; count: number; label: string }> {
+  if (typeof window === "undefined" || days < 1) return [];
+  const data = loadTitlesRaw();
+  const out: Array<{ dateKey: string; count: number; label: string }> = [];
+  const monthShort = (m: number) => ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."][m] ?? "";
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const y = d.getFullYear();
+    const m = d.getMonth();
+    const day = d.getDate();
+    const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const count = (data[dateKey] ?? []).length;
+    const label = i === 0 ? "Auj." : i === 1 ? "Hier" : `${day} ${monthShort(m)}`;
+    out.push({ dateKey, count, label });
+  }
+  return out;
+}
