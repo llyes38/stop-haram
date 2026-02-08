@@ -20,6 +20,8 @@ const bgStyle2 = {
     "linear-gradient(to bottom, #0a1f12 0%, #0d2818 25%, #064e3b 50%, #0f2d22 75%, #022c22 100%)",
 };
 
+type OfferStatus = "idle" | "checking" | "activated" | "invalid" | "no_offer";
+
 export default function StartCarouselPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -27,30 +29,43 @@ export default function StartCarouselPage() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [freeMonthReceived, setFreeMonthReceived] = useState(false);
   const [giftPlan, setGiftPlan] = useState<"monthly" | "annual" | null>(null);
+  const [offerStatus, setOfferStatus] = useState<OfferStatus>("idle");
 
   useEffect(() => {
     const offer = searchParams.get("offer");
-    if (!offer || typeof offer !== "string") return;
+    if (!offer || typeof offer !== "string") {
+      setOfferStatus("no_offer");
+      return;
+    }
+    setOfferStatus("checking");
     (async () => {
-      const res = await fetch(`/api/gift/validate?code=${encodeURIComponent(offer)}`);
-      const data = await res.json().catch(() => ({}));
-      if (data?.valid === true && (data.plan === "monthly" || data.plan === "annual")) {
-        const redeemRes = await fetch("/api/gift/redeem", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ code: offer }),
-        });
-        const redeem = await redeemRes.json().catch(() => ({}));
-        if (redeem?.plan) {
-          activateGiftFromStripeCode(redeem.plan);
-          setFreeMonthReceived(true);
-          setGiftPlan(redeem.plan);
+      try {
+        const res = await fetch(`/api/gift/validate?code=${encodeURIComponent(offer)}`);
+        const data = await res.json().catch(() => ({}));
+        if (data?.valid === true && (data.plan === "monthly" || data.plan === "annual")) {
+          const redeemRes = await fetch("/api/gift/redeem", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: offer }),
+          });
+          const redeem = await redeemRes.json().catch(() => ({}));
+          if (redeem?.plan) {
+            activateGiftFromStripeCode(redeem.plan);
+            setFreeMonthReceived(true);
+            setGiftPlan(redeem.plan);
+            setOfferStatus("activated");
+            return;
+          }
         }
-        return;
-      }
-      if (offer.length >= 4) {
-        activateFreeMonthFromLink();
-        setFreeMonthReceived(true);
+        if (offer.length >= 4) {
+          activateFreeMonthFromLink();
+          setFreeMonthReceived(true);
+          setOfferStatus("activated");
+          return;
+        }
+        setOfferStatus("invalid");
+      } catch {
+        setOfferStatus("invalid");
       }
     })();
   }, [searchParams]);
@@ -92,6 +107,17 @@ export default function StartCarouselPage() {
     }
     router.push("/profile");
   };
+
+  const hasOfferParam = typeof searchParams.get("offer") === "string" && searchParams.get("offer")?.length;
+  if (offerStatus === "checking" || (hasOfferParam && offerStatus === "idle")) {
+    return (
+      <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center bg-gradient-to-b from-[#0a1f12] via-[#0d2818] to-[#0a1c2e] text-white px-6">
+        <StopHaramLogo size={140} variant="dark" className="block mb-6" />
+        <p className="text-white/90 text-sm font-medium">Activation du cadeau…</p>
+        <p className="text-white/60 text-xs mt-2">Un instant.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-[100dvh] w-full overflow-hidden pb-[env(safe-area-inset-bottom,0px)]">
