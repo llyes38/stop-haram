@@ -13,6 +13,63 @@ const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || "";
 const CHALLENGE_ID = "challenge_30d_v1";
 const LEADERBOARD_LIMIT = 50;
 
+type MainTab = "communaute" | "partenaires";
+
+/** Partenaires de confiance par domaine — bien-être du musulman. À compléter avec tes liens. */
+const PARTENAIRES_PAR_DOMAINE: Array<{
+  id: string;
+  label: string;
+  emoji: string;
+  description: string;
+  liens: Array<{ nom: string; url: string; description?: string }>;
+}> = [
+  {
+    id: "librairies",
+    label: "Librairies",
+    emoji: "📚",
+    description: "Sites de confiance pour livres islamiques, Coran, ouvrages de référence.",
+    liens: [
+      { nom: "Exemple librairie", url: "#", description: "À remplacer par un site de confiance" },
+    ],
+  },
+  {
+    id: "sante",
+    label: "Santé",
+    emoji: "🩺",
+    description: "Ressources santé, bien-être physique et mental, conseils fiables.",
+    liens: [
+      { nom: "Exemple santé", url: "#", description: "À remplacer par un site de confiance" },
+    ],
+  },
+  {
+    id: "vetements",
+    label: "Vêtements & mode modeste",
+    emoji: "👔",
+    description: "Boutiques et marques pour une tenue pudente et élégante.",
+    liens: [
+      { nom: "Exemple mode", url: "#", description: "À remplacer par un partenaire de confiance" },
+    ],
+  },
+  {
+    id: "nourriture",
+    label: "Nourriture halal",
+    emoji: "🥗",
+    description: "Restaurants, épiceries et produits halal de confiance.",
+    liens: [
+      { nom: "Exemple halal", url: "#", description: "À remplacer par un partenaire de confiance" },
+    ],
+  },
+  {
+    id: "education",
+    label: "Éducation & spiritualité",
+    emoji: "📖",
+    description: "Cours en ligne, rappels, accompagnement spirituel.",
+    liens: [
+      { nom: "Exemple formation", url: "#", description: "À remplacer par un site de confiance" },
+    ],
+  },
+];
+
 type LeaderboardEntry = {
   device_key: string;
   display_name: string;
@@ -65,6 +122,7 @@ function LeaderboardSkeleton() {
 }
 
 export default function CommunityPage() {
+  const [mainTab, setMainTab] = useState<MainTab>("communaute");
   const [progress, setProgress] = useState<ChallengeProgress | null>(null);
   const [myEntry, setMyEntry] = useState<MyEntry>(null);
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
@@ -316,6 +374,72 @@ export default function CommunityPage() {
 
   return (
     <div className="w-full flex flex-col px-6 pt-8 pb-8 text-white max-w-[420px] mx-auto">
+      {/* Onglets Communauté / Partenaires (comme Parcours / Progrès) */}
+      <div className="flex rounded-xl bg-white/5 border border-white/10 p-1 mb-6">
+        <button
+          type="button"
+          onClick={() => setMainTab("communaute")}
+          className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+            mainTab === "communaute" ? "bg-white/15 text-white" : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          Communauté
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainTab("partenaires")}
+          className={`flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors ${
+            mainTab === "partenaires" ? "bg-white/15 text-white" : "text-white/60 hover:text-white/80"
+          }`}
+        >
+          Partenaires
+        </button>
+      </div>
+
+      {mainTab === "partenaires" ? (
+        /* === CONTENU PARTENAIRES === */
+        <section className="flex-1 space-y-6">
+          <header className="mb-4">
+            <h1 className="text-lg font-bold text-white">Partenaires de confiance</h1>
+            <p className="text-white/60 text-sm mt-0.5">
+              Librairies, santé, mode modeste, halal… des sites en phase avec ton bien-être.
+            </p>
+          </header>
+          {PARTENAIRES_PAR_DOMAINE.map((domaine) => (
+            <div
+              key={domaine.id}
+              className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xl" aria-hidden>{domaine.emoji}</span>
+                <h2 className="text-white font-semibold text-base">{domaine.label}</h2>
+              </div>
+              <p className="text-white/60 text-xs mb-4">{domaine.description}</p>
+              <ul className="space-y-2">
+                {domaine.liens.map((lien, i) => (
+                  <li key={i}>
+                    <a
+                      href={lien.url}
+                      target={lien.url.startsWith("http") ? "_blank" : undefined}
+                      rel={lien.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className="flex flex-col rounded-xl bg-white/5 border border-white/10 px-4 py-3 hover:bg-white/10 transition-colors"
+                    >
+                      <span className="text-emerald-200 font-medium text-sm">{lien.nom}</span>
+                      {lien.description && (
+                        <span className="text-white/50 text-xs mt-0.5">{lien.description}</span>
+                      )}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <p className="text-white/40 text-xs text-center">
+            Ces liens sont des suggestions. Tu peux les compléter dans le code (PARTENAIRES_PAR_DOMAINE).
+          </p>
+        </section>
+      ) : (
+        <>
       <header className="mb-6">
         <h1 className="text-xl font-bold tracking-tight text-white">Communauté</h1>
         <p className="text-white/60 text-sm mt-1">
@@ -530,6 +654,8 @@ export default function CommunityPage() {
         >
           {toast.message}
         </div>
+      )}
+        </>
       )}
     </div>
   );
