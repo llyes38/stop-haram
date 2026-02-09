@@ -66,7 +66,12 @@ const PARTENAIRES_PAR_DOMAINE: Array<{
     emoji: "🥗",
     description: "Restaurants, épiceries et produits halal de confiance.",
     liens: [
-      { nom: "Exemple halal", url: "#", description: "À remplacer par un partenaire de confiance" },
+      {
+        nom: "Tawakkoul",
+        url: "https://www.tawakkoul.com/",
+        description: "App qui référence les restaurants à viande halal certifiée.",
+        logo: "/partners/tawakkoul.png",
+      },
     ],
   },
   {
