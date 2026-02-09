@@ -47,7 +47,7 @@ const PARTENAIRES_PAR_DOMAINE: Array<{
         nom: "La Médecine Prophétique",
         url: "https://www.medecine-prophetique.com/",
         description: "Un mode de vie sain — médecine prophétique, formations, consultations.",
-        logo: "https://www.google.com/s2/favicons?domain=medecine-prophetique.com&sz=128",
+        logo: "/partners/medecine-prophetique.png",
       },
     ],
   },
@@ -438,7 +438,7 @@ export default function CommunityPage() {
                         <img
                           src={lien.logo}
                           alt=""
-                          className="h-10 w-10 shrink-0 rounded-lg object-contain bg-white/5"
+                          className="h-10 w-10 shrink-0 rounded-lg object-contain bg-emerald-950/50"
                         />
                       )}
                       <div className="min-w-0 flex-1">
