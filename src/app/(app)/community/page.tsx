@@ -458,9 +458,6 @@ export default function CommunityPage() {
               </ul>
             </div>
           ))}
-          <p className="text-white/40 text-xs text-center">
-            Ces liens sont des suggestions. Tu peux les compléter dans le code (PARTENAIRES_PAR_DOMAINE).
-          </p>
         </section>
       ) : (
         <>
