@@ -9,7 +9,7 @@ import {
 } from "@/lib/challengeProgress";
 import { updateLastRoute } from "@/lib/authState";
 
-const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || "";
+const INSTAGRAM_URL = process.env.NEXT_PUBLIC_INSTAGRAM_URL?.trim() || "https://www.instagram.com/stopharam.app/";
 const CHALLENGE_ID = "challenge_30d_v1";
 const LEADERBOARD_LIMIT = 50;
 
@@ -21,7 +21,7 @@ const PARTENAIRES_PAR_DOMAINE: Array<{
   label: string;
   emoji: string;
   description: string;
-  liens: Array<{ nom: string; url: string; description?: string }>;
+  liens: Array<{ nom: string; url: string; description?: string; logo?: string }>;
 }> = [
   {
     id: "librairies",
@@ -38,7 +38,12 @@ const PARTENAIRES_PAR_DOMAINE: Array<{
     emoji: "🩺",
     description: "Ressources santé, bien-être physique et mental, conseils fiables.",
     liens: [
-      { nom: "Exemple santé", url: "#", description: "À remplacer par un site de confiance" },
+      {
+        nom: "La Médecine Prophétique",
+        url: "https://www.medecine-prophetique.com/",
+        description: "Un mode de vie sain — médecine prophétique, formations, consultations.",
+        logo: "https://www.google.com/s2/favicons?domain=medecine-prophetique.com&sz=128",
+      },
     ],
   },
   {
@@ -422,12 +427,21 @@ export default function CommunityPage() {
                       href={lien.url}
                       target={lien.url.startsWith("http") ? "_blank" : undefined}
                       rel={lien.url.startsWith("http") ? "noopener noreferrer" : undefined}
-                      className="flex flex-col rounded-xl bg-white/5 border border-white/10 px-4 py-3 hover:bg-white/10 transition-colors"
+                      className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3 hover:bg-white/10 transition-colors"
                     >
-                      <span className="text-emerald-200 font-medium text-sm">{lien.nom}</span>
-                      {lien.description && (
-                        <span className="text-white/50 text-xs mt-0.5">{lien.description}</span>
+                      {lien.logo && (
+                        <img
+                          src={lien.logo}
+                          alt=""
+                          className="h-10 w-10 shrink-0 rounded-lg object-contain bg-white/5"
+                        />
                       )}
+                      <div className="min-w-0 flex-1">
+                        <span className="text-emerald-200 font-medium text-sm">{lien.nom}</span>
+                        {lien.description && (
+                          <span className="text-white/50 text-xs mt-0.5 block">{lien.description}</span>
+                        )}
+                      </div>
                     </a>
                   </li>
                 ))}
