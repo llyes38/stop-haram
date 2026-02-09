@@ -734,6 +734,7 @@ export default function HomePage() {
               )}
             </div>
             <p className="text-emerald-200/90 text-xs text-center mt-2">sans rechute</p>
+            <p className="text-white/90 text-lg text-center mt-3 font-medium" dir="rtl" lang="ar" aria-label="Al hamdou lillah">الحمد لله</p>
         </>
       </div>
 
