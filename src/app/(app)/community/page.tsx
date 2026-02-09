@@ -29,7 +29,12 @@ const PARTENAIRES_PAR_DOMAINE: Array<{
     emoji: "📚",
     description: "Sites de confiance pour livres islamiques, Coran, ouvrages de référence.",
     liens: [
-      { nom: "Exemple librairie", url: "#", description: "À remplacer par un site de confiance" },
+      {
+        nom: "Maktaba Tawhid",
+        url: "https://maktaba-tawhid.com/fr/",
+        description: "Boutique islamique en ligne — livres, Coran, vêtements, médecine prophétique.",
+        logo: "/partners/maktaba-tawhid.png",
+      },
     ],
   },
   {
