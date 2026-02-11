@@ -460,6 +460,26 @@ export default function AccountPage() {
 
           <div>
             <h2 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">À propos</h2>
+            {/* Contact pour questions / infos */}
+            <div className="rounded-xl bg-blue-500/10 border border-blue-400/20 px-4 py-3.5 mb-3">
+              <p className="text-white/90 text-sm font-medium mb-1">Questions ou infos ?</p>
+              <p className="text-white/70 text-xs mb-3">
+                Pour toute question, demande d&apos;info ou retour, écris-nous à{" "}
+                <a href="mailto:contact.stopharam@gmail.com" className="text-blue-300 hover:text-blue-200 underline">contact.stopharam@gmail.com</a>. On te répond au plus vite.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  const subject = encodeURIComponent("Question / Info - StopHaram");
+                  const body = encodeURIComponent("Bonjour,\n\nJ'aurais besoin d'une info ou j'ai une question :\n\n");
+                  window.location.href = `mailto:contact.stopharam@gmail.com?subject=${subject}&body=${body}`;
+                }}
+                className="w-full rounded-xl bg-blue-500/30 border border-blue-400/40 py-2.5 text-blue-100 text-sm font-medium hover:bg-blue-500/40 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                Envoyer un email
+              </button>
+            </div>
             <div className="space-y-2">
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>}
@@ -476,8 +496,20 @@ export default function AccountPage() {
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
                 label="Nous contacter"
-                onClick={() => window.location.href = "mailto:contact@stop-haram.vercel.app"}
+                onClick={() => window.location.href = "mailto:contact.stopharam@gmail.com"}
                 iconColor="text-blue-400"
+              />
+              <CardRow
+                icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>}
+                label="Se désabonner"
+                onClick={() => {
+                  const subject = encodeURIComponent("Résiliation abonnement StopHaram");
+                  const body = encodeURIComponent(
+                    "Bonjour,\n\nJe souhaite me désabonner de mon abonnement StopHaram.\n\nMerci."
+                  );
+                  window.location.href = `mailto:contact.stopharam@gmail.com?subject=${subject}&body=${body}`;
+                }}
+                iconColor="text-slate-400"
               />
               <CardRow
                 icon={<svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}

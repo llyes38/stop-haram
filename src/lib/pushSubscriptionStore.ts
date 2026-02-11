@@ -112,12 +112,29 @@ export async function removePushSubscriptionByEndpoint(
   if (idx >= 0) memoryStore.splice(idx, 1);
 }
 
+/** Préfixe pour lister toutes les clés d'abonnements (user, device, global). */
+const KEY_PREFIX = "stopharam_push_subs";
+
 export async function getAllSubscriptions(): Promise<PushSubscriptionJSON[]> {
   if (useRedis()) {
     try {
       const redis = await getRedisClient();
-      const raw = await redis.get<PushSubscriptionJSON[]>(KEY_GLOBAL);
-      return Array.isArray(raw) ? raw : [];
+      // Les abonnements sont stockés sous user:xxx et device:xxx, jamais sous KEY_GLOBAL.
+      // On agrège toutes les clés pour le rappel global (ex. daily-reminder).
+      const keys = await redis.keys(`${KEY_PREFIX}*`);
+      const seen = new Set<string>();
+      const out: PushSubscriptionJSON[] = [];
+      for (const key of keys) {
+        const raw = await redis.get<PushSubscriptionJSON[]>(key);
+        const list = Array.isArray(raw) ? raw : [];
+        for (const sub of list) {
+          if (sub?.endpoint && !seen.has(sub.endpoint)) {
+            seen.add(sub.endpoint);
+            out.push(sub);
+          }
+        }
+      }
+      return out;
     } catch {
       return [];
     }

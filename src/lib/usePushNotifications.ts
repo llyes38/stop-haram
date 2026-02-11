@@ -75,10 +75,13 @@ export function usePushNotifications() {
       }
       const subJson = subscription.toJSON();
       const deviceKey = typeof window !== "undefined" ? getDeviceId() : undefined;
+      // Pour que le cron (tick) trouve les abonnements, on enregistre aussi sous user_id = device_id
+      // quand il n’y a pas de compte (userId). Ainsi Redis a une clé cohérente pour les rappels planifiés.
+      const effectiveUserId = userId ?? deviceKey ?? undefined;
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subJson, userId: userId ?? undefined, device_key: deviceKey || undefined }),
+        body: JSON.stringify({ subscription: subJson, userId: effectiveUserId, device_key: deviceKey || undefined }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
