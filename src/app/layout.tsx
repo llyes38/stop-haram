@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className="antialiased">
+      <head>
         <Script
           id="clarity"
           strategy="afterInteractive"
@@ -44,6 +44,8 @@ export default function RootLayout({
             `.trim(),
           }}
         />
+      </head>
+      <body className="antialiased">
         <Providers>
           <AppGuard>{children}</AppGuard>
         </Providers>
