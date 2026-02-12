@@ -104,34 +104,35 @@ export default function UrgencePage() {
   };
 
   const handleConfirmRechute = () => {
-    if (!user || !selectedSinRechute) return;
     setRechuteAlertFlash(false);
     setVibrationActive(false);
-    if (user.startDateISO) {
-      const day = getDayNumber(user.startDateISO);
-      if (day >= 1 && day <= 30) setDefiDayStatus(day, "failed");
-    }
     try {
-      const updatedUser: StopHaramUser = {
-        ...user,
-        streakDays: 0,
-        lastCheckinISO: getTodayISO(),
-        perSinStreak: {
-          ...user.perSinStreak,
-          [selectedSinRechute]: 0,
-        },
-      };
-      saveUser(updatedUser);
-      const savedUser = getUser();
-      const labels = getDailyActionLabels(savedUser);
-      clearTodayActions(labels.length);
+      const currentUser = user ?? getUser();
+      if (currentUser?.startDateISO) {
+        const day = getDayNumber(currentUser.startDateISO);
+        if (day >= 1 && day <= 30) setDefiDayStatus(day, "failed");
+      }
+      if (currentUser && selectedSinRechute) {
+        const updatedUser: StopHaramUser = {
+          ...currentUser,
+          streakDays: 0,
+          lastCheckinISO: getTodayISO(),
+          perSinStreak: {
+            ...currentUser.perSinStreak,
+            [selectedSinRechute]: 0,
+          },
+        };
+        saveUser(updatedUser);
+        const savedUser = getUser();
+        const labels = getDailyActionLabels(savedUser);
+        clearTodayActions(Array.isArray(labels) ? labels.length : 3);
+      }
       if (typeof window !== "undefined") {
         window.localStorage.setItem(LAST_STREAK_START_KEY, new Date().toISOString());
         window.localStorage.setItem(LAST_RECHUTE_KEY, getTodayISO());
         window.localStorage.setItem("days_clean", "0");
       }
     } catch (_) {
-      // En cas d'erreur, on sauvegarde quand même le minimum et on redirige
       if (user) {
         saveUser({ ...user, streakDays: 0, lastCheckinISO: getTodayISO() });
       }
@@ -139,6 +140,7 @@ export default function UrgencePage() {
         window.localStorage.setItem("days_clean", "0");
       }
     }
+    // Toujours rediriger vers l'accueil
     router.replace("/home");
   };
 

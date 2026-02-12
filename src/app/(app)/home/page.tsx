@@ -378,14 +378,20 @@ export default function HomePage() {
 
   // Re-lit le prénom et streak depuis localStorage pour afficher "[Prénom], tu es sur la bonne voie"
   useEffect(() => {
-    const t = setTimeout(() => {
+    const syncFromStorage = () => {
       const u = getUser();
       const profile = getProfile();
       const legacy = typeof window === "undefined" ? "" : window.localStorage.getItem("user_name")?.trim() || "";
       setName(u?.name?.trim() || profile?.name?.trim() || legacy || "");
       if (u?.streakDays != null) setStreakDays(u.streakDays);
-    }, 500);
-    return () => clearTimeout(t);
+    };
+    const t = setTimeout(syncFromStorage, 500);
+    const onVisibility = () => { if (document.visibilityState === "visible") syncFromStorage(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearTimeout(t);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, []);
 
   const hasStreak = streakDays != null && Number.isFinite(streakDays) && streakDays >= 0;
