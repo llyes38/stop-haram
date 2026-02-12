@@ -113,6 +113,11 @@ export default function SettingsNotificationsPage() {
         sin_reminder_time: fromTimeInput(prefs.sin_reminder_time),
         quiet_start: fromTimeInput(prefs.quiet_start),
         quiet_end: fromTimeInput(prefs.quiet_end),
+        // Un seul rappel : les autres désactivés
+        checkin_2h_enabled: false,
+        actions_morning: false,
+        actions_evening: false,
+        sin_reminder_enabled: false,
       };
       if (typeof window !== "undefined") {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
@@ -148,7 +153,7 @@ export default function SettingsNotificationsPage() {
           </Link>
           <h1 className="text-xl font-bold tracking-tight text-white">Rappels planifiés</h1>
         </div>
-        <p className="text-white/70 text-sm">Check-in quotidien, actions du matin/soir et rappel optionnel. Les heures sont dans ton fuseau.</p>
+        <p className="text-white/70 text-sm">Un rappel par jour à l&apos;heure de ton choix. Les heures sont dans ton fuseau.</p>
       </header>
 
       {pushStatus !== "subscribed" && pushStatus !== "denied" && (
@@ -181,30 +186,35 @@ export default function SettingsNotificationsPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Ville / Pays */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="notif-city" className="block text-white/80 text-sm font-medium mb-1.5">Ville</label>
-            <input
-              id="notif-city"
-              type="text"
-              value={prefs.city ?? ""}
-              onChange={(e) => setPrefs((p) => ({ ...p, city: e.target.value || null }))}
-              placeholder="Ex. Lyon"
-              className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            />
+        {/* Un seul bloc : Rappel quotidien */}
+        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <label className="text-white/90 text-sm font-medium block">Rappel quotidien</label>
+              <p className="text-white/55 text-xs mt-0.5">Recevoir une notification de rappel par jour (check-in, actions du jour) à l&apos;heure choisie.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={prefs.daily_checkin_enabled}
+              onClick={() => setPrefs((p) => ({ ...p, daily_checkin_enabled: !p.daily_checkin_enabled }))}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.daily_checkin_enabled ? "bg-emerald-500" : "bg-white/20"}`}
+            >
+              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.daily_checkin_enabled ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
+            </button>
           </div>
-          <div>
-            <label htmlFor="notif-country" className="block text-white/80 text-sm font-medium mb-1.5">Pays</label>
-            <input
-              id="notif-country"
-              type="text"
-              value={prefs.country ?? ""}
-              onChange={(e) => setPrefs((p) => ({ ...p, country: e.target.value || null }))}
-              placeholder="Ex. France"
-              className="w-full rounded-xl bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-            />
-          </div>
+          {prefs.daily_checkin_enabled && (
+            <div>
+              <label htmlFor="daily-checkin-time" className="block text-white/70 text-xs mb-1">Heure du rappel</label>
+              <input
+                id="daily-checkin-time"
+                type="time"
+                value={prefs.daily_checkin_time}
+                onChange={(e) => setPrefs((p) => ({ ...p, daily_checkin_time: e.target.value }))}
+                className="rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+              />
+            </div>
+          )}
         </div>
 
         {/* Fuseau */}
@@ -222,149 +232,6 @@ export default function SettingsNotificationsPage() {
               </option>
             ))}
           </select>
-        </div>
-
-        {/* Check-in quotidien */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <label className="text-white/90 text-sm font-medium block">Check-in quotidien</label>
-              <p className="text-white/55 text-xs mt-0.5">Rappel pour faire ton check-in du jour (comment tu vas, rechute, etc.).</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.daily_checkin_enabled}
-              onClick={() => setPrefs((p) => ({ ...p, daily_checkin_enabled: !p.daily_checkin_enabled }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.daily_checkin_enabled ? "bg-emerald-500" : "bg-white/20"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.daily_checkin_enabled ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
-            </button>
-          </div>
-          {prefs.daily_checkin_enabled && (
-            <div>
-              <label htmlFor="daily-checkin-time" className="block text-white/70 text-xs mb-1">Heure</label>
-              <input
-                id="daily-checkin-time"
-                type="time"
-                value={prefs.daily_checkin_time}
-                onChange={(e) => setPrefs((p) => ({ ...p, daily_checkin_time: e.target.value }))}
-                className="rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Check-in toutes les 2 h */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <label className="text-white/90 text-sm font-medium block">Check-in toutes les 2 h</label>
-              <p className="text-white/55 text-xs mt-0.5">Toutes les 2 h (8h, 10h, 12h… jusqu&apos;à 22h), on te demande comment tu te sens et on t&apos;envoie une invocation adaptée. Respecte les heures calmes.</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.checkin_2h_enabled}
-              onClick={() => setPrefs((p) => ({ ...p, checkin_2h_enabled: !p.checkin_2h_enabled }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.checkin_2h_enabled ? "bg-emerald-500" : "bg-white/20"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.checkin_2h_enabled ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
-            </button>
-          </div>
-        </div>
-
-        {/* Actions matin */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <label className="text-white/90 text-sm font-medium block">Rappel actions du matin</label>
-              <p className="text-white/55 text-xs mt-0.5">Rappel le matin pour penser à tes actions du jour (invocations, objectifs).</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.actions_morning}
-              onClick={() => setPrefs((p) => ({ ...p, actions_morning: !p.actions_morning }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.actions_morning ? "bg-emerald-500" : "bg-white/20"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.actions_morning ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
-            </button>
-          </div>
-          {prefs.actions_morning && (
-            <div>
-              <label htmlFor="actions-morning-time" className="block text-white/70 text-xs mb-1">Heure</label>
-              <input
-                id="actions-morning-time"
-                type="time"
-                value={prefs.actions_morning_time}
-                onChange={(e) => setPrefs((p) => ({ ...p, actions_morning_time: e.target.value }))}
-                className="rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Actions soir */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <label className="text-white/90 text-sm font-medium block">Rappel actions du soir</label>
-              <p className="text-white/55 text-xs mt-0.5">Rappel le soir pour valider ou faire les actions du jour avant la nuit.</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.actions_evening}
-              onClick={() => setPrefs((p) => ({ ...p, actions_evening: !p.actions_evening }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.actions_evening ? "bg-emerald-500" : "bg-white/20"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.actions_evening ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
-            </button>
-          </div>
-          {prefs.actions_evening && (
-            <div>
-              <label htmlFor="actions-evening-time" className="block text-white/70 text-xs mb-1">Heure</label>
-              <input
-                id="actions-evening-time"
-                type="time"
-                value={prefs.actions_evening_time}
-                onChange={(e) => setPrefs((p) => ({ ...p, actions_evening_time: e.target.value }))}
-                className="rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Rappel optionnel (sin) */}
-        <div className="rounded-xl bg-white/5 border border-white/10 p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <label className="text-white/90 text-sm font-medium block">Rappel personnalisé</label>
-              <p className="text-white/55 text-xs mt-0.5">Un rappel à l&apos;heure que tu choisis (optionnel).</p>
-            </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={prefs.sin_reminder_enabled}
-              onClick={() => setPrefs((p) => ({ ...p, sin_reminder_enabled: !p.sin_reminder_enabled }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400/50 ${prefs.sin_reminder_enabled ? "bg-emerald-500" : "bg-white/20"}`}
-            >
-              <span className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${prefs.sin_reminder_enabled ? "translate-x-5" : "translate-x-1"}`} style={{ top: "2px" }} />
-            </button>
-          </div>
-          {prefs.sin_reminder_enabled && (
-            <div>
-              <label htmlFor="sin-reminder-time" className="block text-white/70 text-xs mb-1">Heure</label>
-              <input
-                id="sin-reminder-time"
-                type="time"
-                value={prefs.sin_reminder_time}
-                onChange={(e) => setPrefs((p) => ({ ...p, sin_reminder_time: e.target.value }))}
-                className="rounded-lg bg-white/10 border border-white/20 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
-              />
-            </div>
-          )}
         </div>
 
         {/* Heures calmes */}
