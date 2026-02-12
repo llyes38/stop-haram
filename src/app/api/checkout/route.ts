@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${SITE_URL}/paywall`,
+        allow_promotion_codes: true,
         ...(isOffrir && {
           metadata: { type: "gift", plan },
         }),

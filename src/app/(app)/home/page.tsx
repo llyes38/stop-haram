@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { getUser, saveUser, getDayNumber, getDailyActionLabels, getDailyActionsWithSins, getSinLabel } from "@/lib/storage";
 import { getProfile, isLoggedIn, isOnboardingComplete, FIRST_PARCOURS_STEP } from "@/lib/authState";
@@ -347,6 +347,21 @@ export default function HomePage() {
     }
   }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, dhikrSoirDoneToday, challengeDay]);
 
+  // Affichage immédiat du timer sur premier rendu (mobile inclus) : lecture synchrone avant paint.
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") return;
+    const start = window.localStorage.getItem(LAST_STREAK_START_KEY);
+    const user = getUser();
+    const legacyDays = window.localStorage.getItem("days_clean");
+    const days = user?.streakDays ?? (legacyDays != null && legacyDays !== "" ? parseInt(legacyDays, 10) : null);
+    const effectiveStart = start || (days != null && days > 0 ? new Date(Date.now() - days * 86400000).toISOString() : null);
+    if (effectiveStart) {
+      setElapsed(formatElapsed(Date.now() - new Date(effectiveStart).getTime()));
+    } else if (days === 0) {
+      setElapsed(formatElapsed(0));
+    }
+  }, []);
+
   // Re-lit le compteur et le timer depuis le storage (au montage et à chaque fois qu'on revient sur la page).
   // Le compteur d'heures ne doit pas se remettre à zéro au refresh : on n'écrit jamais une approximation en localStorage
   // (sinon on perd les heures). Il se remet à zéro uniquement quand l'user rechute (comme le compteur de jours).
@@ -684,7 +699,7 @@ export default function HomePage() {
       )}
 
       {/* Cadre prioritaire en haut : [Prénom], tu es sur la bonne voie depuis X jours */}
-      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative overflow-hidden">
+      <div className="rounded-2xl bg-emerald-500/20 border-2 border-emerald-400/40 px-5 py-5 shadow-lg mb-2 relative overflow-visible">
         <>
             <button
               type="button"
@@ -734,9 +749,9 @@ export default function HomePage() {
                   {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
                 </p>
               )}
-              {/* N'afficher le détail du timer que s'il est cohérent avec le compteur : à Jour 0, on n'affiche pas un ancien "5j 11h" */}
+              {/* N'afficher le détail du timer que s'il est cohérent avec le compteur : à Jour 0, on n'affiche pas un ancien "5j 11h". Sur mobile : police plus petite pour que la ligne tienne et ne soit pas coupée. */}
               {elapsed != null && (streakDays !== 0 || elapsed.days === 0) && (
-                <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
+                <p className="text-base sm:text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
                   {elapsed.days > 0 && `${elapsed.days}j `}
                   {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
                 </p>
