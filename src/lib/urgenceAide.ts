@@ -134,6 +134,20 @@ const AIDE_PAR_PECHE: Record<SelectedSin, AideContenu> = {
       "Fais wudhu et prie, même 2 raka'at.",
     ],
   },
+  parents: {
+    rappel: "Un mot doux, une obéissance : le Paradis est aux pieds des mères.",
+    verset: {
+      texte: "« Et ton Seigneur a décrété de n'adorer que Lui, et d'être bienfaisant envers les père et mère. Ne leur dis pas Ouf et ne les repousse pas ; dis-leur des paroles respectueuses. »",
+      ref: "Sourate Al-Isra, 17-23-24",
+    },
+    tips: [
+      "Arrête-toi. Ne réponds pas sur le ton de la colère.",
+      "Respire. Dis « Désolé(e) » ou « Tu as raison » si tu viens de les contredire.",
+      "Fais une chose qu'ils te demandent tout de suite, sans rouspéter.",
+      "Récite « Astaghfirullah » et invoque pour eux : « Rabbi ghfir li wa li walidayya ».",
+      "Rappelle-toi : après l'adoration d'Allah, la bienfaisance envers les parents est la meilleure œuvre.",
+    ],
+  },
   autre: {
     rappel: "Allah sait ce que tu vis. Chaque effort compte.",
     verset: {
@@ -179,6 +193,7 @@ export function getRappelEnfant(sin: SelectedSin, user: StopHaramUser | null): s
     mensonge: `Aimerais-tu qu'on mente à ${enfant} ?`,
     priere: `Quel exemple pour ${enfant} si tu délaisses la prière ?`,
     musique: `Quel exemple pour ${enfant} ?`,
+    parents: `Quel exemple pour ${enfant} si tu désobéis à tes propres parents ? Obéis pour qu'ils t'obéissent.`,
     autre: `Pense à ${enfant}. Quel exemple leur donnes-tu ?`,
   };
 
@@ -208,6 +223,7 @@ export function getRappelMarie(sin: SelectedSin, user: StopHaramUser | null): st
     mensonge: `La confiance de ${c} mérite la vérité. Ne la brise pas ; la sincérité fortifie le couple.`,
     priere: "Ton foyer a besoin de ta prière. Prie ensemble quand tu peux — la prière en couple bénit la maison.",
     musique: `Quel exemple pour ${c} ? Remplace par du dhikr ou du Coran et construisez un foyer pieux.`,
+    parents: "Honorer tes parents honore ton foyer. Le Prophète (saws) a dit : le meilleur d'entre vous est celui qui est meilleur envers sa famille — et cela commence par les parents.",
     autre: `Pense à ${c}. Tu n'es pas ${seul} — tiens bon pour votre foyer et votre engagement devant Allah.`,
   };
 
@@ -235,6 +251,7 @@ export function getRappelConverti(sin: SelectedSin, user: StopHaramUser | null):
     mensonge: "Tu as embrassé la vérité en embrassant l'Islam. Reste fidèle à la vérité — les convertis sont des phares.",
     priere: "La prière est le pilier de ta nouvelle vie. Ne le laisse pas tomber — elle est ton lien direct avec Allah.",
     musique: "Tu as choisi le Coran et le dhikr. Remplace la musique par ce qui t'a guidé vers la lumière.",
+    parents: "L'Islam place le respect des parents juste après l'adoration d'Allah. Chaque geste de bienfaisance envers eux honore ton chahada.",
     autre: "Allah t'a guidé jusqu'ici. Chaque effort honore ton choix de converti. Tu peux tenir — Il ne t'abandonne pas.",
   };
 

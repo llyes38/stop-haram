@@ -24,6 +24,7 @@ const DOMAINS = [
   "Colère / insultes",
   "Musique / temps perdu",
   "Réseaux sociaux / addiction téléphone",
+  "Désobéissance aux parents",
   "Autre / je ne sais pas encore",
 ];
 
@@ -38,6 +39,7 @@ const SIN_TO_DOMAIN: Record<SelectedSin, string> = {
   musique: "Musique / temps perdu",
   jeux: "Réseaux sociaux / addiction téléphone",
   alcool: "Alcool / drogues",
+  parents: "Désobéissance aux parents",
   autre: "Autre / je ne sais pas encore",
 };
 

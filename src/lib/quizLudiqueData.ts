@@ -269,6 +269,44 @@ const QUESTIONS_BY_SIN: Record<SelectedSin, QuizQuestion[]> = {
       explanation: "Chaque regard évité renforce la maîtrise de soi et la sérénité.",
     },
   ],
+  parents: [
+    {
+      id: "parents-1",
+      sin: "parents",
+      question: "Que dit le Coran sur la façon de parler aux parents ?",
+      choices: [
+        "On peut les contredire si on a raison.",
+        "« Ne leur dis pas Ouf et ne les repousse pas ; dis-leur des paroles respectueuses. »",
+        "On doit toujours obéir sans jamais donner son avis.",
+      ],
+      correctIndex: 1,
+      explanation: "Sourate Al-Isra 17:23-24 : même un « Ouf » de fatigue est déconseillé ; les paroles douces sont une adoration.",
+    },
+    {
+      id: "parents-2",
+      sin: "parents",
+      question: "Où le Prophète (ﷺ) a-t-il dit que se trouve le Paradis ?",
+      choices: [
+        "Dans la mosquée.",
+        "Aux pieds des mères.",
+        "Dans le jeûne.",
+      ],
+      correctIndex: 1,
+      explanation: "Honorer sa mère (et son père) est une des plus grandes causes d'entrée au Paradis.",
+    },
+    {
+      id: "parents-3",
+      sin: "parents",
+      question: "Que faire si on vient de répondre avec impolitesse à ses parents ?",
+      choices: [
+        "Ignorer, ils oublieront.",
+        "Demander pardon tout de suite et faire une chose qu'ils aiment sans qu'ils demandent.",
+        "Attendre qu'ils oublient avant de reparler.",
+      ],
+      correctIndex: 1,
+      explanation: "S'excuser et réparer par un acte de bienfaisance apaise le cœur et renforce le lien.",
+    },
+  ],
   autre: [
     {
       id: "autre-1",
@@ -334,7 +372,7 @@ function shuffle<T>(arr: T[]): T[] {
 /** Toutes les questions, tous péchés confondus (pour compléter le pool si < 10). */
 function getAllQuestions(): QuizQuestion[] {
   const all: QuizQuestion[] = [];
-  const sins: SelectedSin[] = ["porno", "musique", "priere", "colere", "drogue", "alcool", "jeux", "mensonge", "regard", "autre"];
+  const sins: SelectedSin[] = ["porno", "musique", "priere", "colere", "drogue", "alcool", "jeux", "mensonge", "regard", "parents", "autre"];
   for (const sin of sins) {
     const list = QUESTIONS_BY_SIN[sin];
     if (list) all.push(...list);

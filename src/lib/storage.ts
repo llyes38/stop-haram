@@ -8,6 +8,7 @@ export type SelectedSin =
   | "jeux"
   | "mensonge"
   | "regard"
+  | "parents"
   | "autre";
 
 export interface PlanDay {
@@ -83,6 +84,7 @@ const DOMAIN_TO_SIN: Record<string, SelectedSin> = {
   "Colère / insultes": "colere",
   "Musique / temps perdu": "musique",
   "Réseaux sociaux / addiction téléphone": "jeux",
+  "Désobéissance aux parents": "parents",
   "Autre / je ne sais pas encore": "autre",
 };
 
@@ -178,6 +180,7 @@ export function getSinLabel(sin: SelectedSin, user?: StopHaramUser | null): stri
     jeux: "Jeux",
     mensonge: "Mensonge",
     regard: "Regard",
+    parents: "Désobéissance aux parents",
     autre: "Autre",
   };
   if (sin === "autre" && user?.profileInfo?.customSinDescription?.trim()) {
