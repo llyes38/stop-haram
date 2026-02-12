@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import "./globals.css";
 import AppGuard from "@/components/AppGuard";
 import { Providers } from "./providers";
+
+const CLARITY_ID = "vg8n0esx45";
 
 export const metadata: Metadata = {
   title: "StopHaram",
@@ -28,6 +31,19 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className="antialiased">
+        <Script
+          id="clarity"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+(function(c,l,a,r,i,t,y){
+  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "${CLARITY_ID}");
+            `.trim(),
+          }}
+        />
         <Providers>
           <AppGuard>{children}</AppGuard>
         </Providers>
