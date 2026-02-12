@@ -347,7 +347,9 @@ export default function HomePage() {
     }
   }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, dhikrSoirDoneToday, challengeDay]);
 
-  // Re-lit le compteur et le timer depuis le storage (au montage et à chaque fois qu'on revient sur la page)
+  // Re-lit le compteur et le timer depuis le storage (au montage et à chaque fois qu'on revient sur la page).
+  // Le compteur d'heures ne doit pas se remettre à zéro au refresh : on n'écrit jamais une approximation en localStorage
+  // (sinon on perd les heures). Il se remet à zéro uniquement quand l'user rechute (comme le compteur de jours).
   useEffect(() => {
     const user = getUser();
     const legacyName = typeof window === "undefined" ? null : window.localStorage.getItem("user_name");
@@ -358,8 +360,9 @@ export default function HomePage() {
     if (typeof window === "undefined") return;
     let start = window.localStorage.getItem(LAST_STREAK_START_KEY);
     if (!start && days != null && days > 0) {
+      // Utiliser une approximation uniquement en mémoire pour l'affichage (legacy), sans l'écrire :
+      // ainsi le timer ne "remet pas les heures à zéro" au prochain refresh pour les users qui ont un vrai start.
       const approx = new Date(Date.now() - days * 86400000).toISOString();
-      window.localStorage.setItem(LAST_STREAK_START_KEY, approx);
       start = approx;
     }
     setStreakStartIso(start || null);
