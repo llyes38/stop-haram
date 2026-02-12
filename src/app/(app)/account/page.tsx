@@ -28,14 +28,7 @@ import { updateLastRoute } from "@/lib/authState";
 import type { SelectedSin } from "@/lib/storage";
 import { usePushNotifications } from "@/lib/usePushNotifications";
 import { getDeviceId } from "@/lib/deviceId";
-import {
-  getNotifPriere,
-  setNotifPriere,
-  getNotifActions,
-  setNotifActions,
-  getNotifVersetHadith,
-  setNotifVersetHadith,
-} from "@/lib/notificationPrefs";
+import { getNotifGeneral, setNotifGeneral } from "@/lib/notificationPrefs";
 import { APP_URL, canShare, shareWithNative, copyToClipboard } from "@/lib/share";
 import { useAuthStatus } from "@/components/auth/AuthProvider";
 import { saveProgress, deleteAllUserDataFromSupabase } from "@/lib/progressStorage";
@@ -195,9 +188,7 @@ export default function AccountPage() {
   const [saved, setSaved] = useState(false);
   const [photoUploading, setPhotoUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [notifPriere, setNotifPriereState] = useState(true);
-  const [notifActions, setNotifActionsState] = useState(true);
-  const [notifVersetHadith, setNotifVersetHadithState] = useState(true);
+  const [notifGeneral, setNotifGeneralState] = useState(true);
   const { status: pushStatus, requestPermissionAndSubscribe, subscribe } = usePushNotifications();
 
   useEffect(() => {
@@ -240,9 +231,7 @@ export default function AccountPage() {
       setEditEnfantsFilles(u.profileInfo?.enfantsFilles != null ? String(u.profileInfo.enfantsFilles) : "");
       setEditEnfantsGarcons(u.profileInfo?.enfantsGarcons != null ? String(u.profileInfo.enfantsGarcons) : "");
     }
-    setNotifPriereState(getNotifPriere());
-    setNotifActionsState(getNotifActions());
-    setNotifVersetHadithState(getNotifVersetHadith());
+    setNotifGeneralState(getNotifGeneral());
   }, []);
 
   // Ré-enregistrer l'appareil avec le compte quand on ouvre l'onglet Notifications (pour les abonnements créés avant la liaison user_id)
@@ -252,19 +241,9 @@ export default function AccountPage() {
     }
   }, [tab, pushStatus, undefined, subscribe]);
 
-  const handleNotifPriereChange = (v: boolean) => {
-    setNotifPriere(v);
-    setNotifPriereState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
-  };
-  const handleNotifActionsChange = (v: boolean) => {
-    setNotifActions(v);
-    setNotifActionsState(v);
-    if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
-  };
-  const handleNotifVersetHadithChange = (v: boolean) => {
-    setNotifVersetHadith(v);
-    setNotifVersetHadithState(v);
+  const handleNotifGeneralChange = (v: boolean) => {
+    setNotifGeneral(v);
+    setNotifGeneralState(v);
     if (v && pushStatus !== "subscribed" && pushStatus !== "denied") requestPermissionAndSubscribe(undefined);
   };
 
@@ -584,37 +563,25 @@ export default function AccountPage() {
           )}
           {pushStatus === "subscribed" && (
             <p className={`rounded-xl px-4 py-3 text-sm ${
-              notifPriere || notifActions || notifVersetHadith
+              notifGeneral
                 ? "bg-emerald-500/15 border border-emerald-400/25 text-emerald-200"
                 : "bg-amber-500/15 border border-amber-400/25 text-amber-200"
             }`}>
-              {notifPriere || notifActions || notifVersetHadith
-                ? "✓ Notifications push activées. Tu recevras les rappels sur cet appareil."
-                : "✓ Notifications push activées. Active au moins un rappel ci-dessous pour recevoir des notifs."}
+              {notifGeneral
+                ? "✓ Notifications push activées. Tu recevras un rappel par jour sur cet appareil."
+                : "✓ Notifications push activées. Active le rappel ci-dessous pour recevoir une notif par jour."}
             </p>
           )}
           <div className="space-y-3">
             <NotifToggle
-              label="Rappel heure de prière"
-              description="Vibration et notif 5 min avant l&apos;heure de prière (si ville configurée). Fonctionne quand l&apos;app est ouverte ou en arrière-plan."
-              checked={notifPriere}
-              onChange={handleNotifPriereChange}
-            />
-            <NotifToggle
-              label="Rappel actions du jour"
-              description="Rappel pour faire tes actions du jour (matin)."
-              checked={notifActions}
-              onChange={handleNotifActionsChange}
-            />
-            <NotifToggle
-              label="Rappel du jour (verset / hadith)"
-              description="Inclure un verset ou hadith du jour dans la notification du matin."
-              checked={notifVersetHadith}
-              onChange={handleNotifVersetHadithChange}
+              label="Rappel quotidien"
+              description="Recevoir une notification de rappel chaque jour (le matin) pour penser à tes actions et à ton objectif."
+              checked={notifGeneral}
+              onChange={handleNotifGeneralChange}
             />
           </div>
           <div className="mt-6 pt-4 border-t border-white/10">
-            <p className="text-white/60 text-xs mb-2">Tu ne reçois pas les notifs ? Bouge un toggle ci-dessus (ex. « Rappel actions du jour ») : le navigateur affichera « Autoriser » et tu recevras les rappels.</p>
+            <p className="text-white/60 text-xs mb-2">Tu ne reçois pas les notifs ? Active le toggle ci-dessus : le navigateur pourra te demander « Autoriser » et tu recevras le rappel.</p>
             <p className="text-white/60 text-xs mb-2">Tester les notifications push</p>
             <p className="text-amber-200/90 text-xs mb-2">Astuce : si l'app est ouverte, la notif ne s'affiche souvent pas. Minimise l'app ou verrouille l'écran, puis clique — tu verras la notif sur l'écran d'accueil.</p>
             <button

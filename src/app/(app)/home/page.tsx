@@ -347,36 +347,36 @@ export default function HomePage() {
     }
   }, [actionLabels, actionItems, completedTitles, dhikrDoneToday, dhikrSoirDoneToday, challengeDay]);
 
+  // Re-lit le compteur et le timer depuis le storage (au montage et à chaque fois qu'on revient sur la page)
   useEffect(() => {
     const user = getUser();
     const legacyName = typeof window === "undefined" ? null : window.localStorage.getItem("user_name");
     const legacyDays = typeof window === "undefined" ? null : window.localStorage.getItem("days_clean");
+    const days = user?.streakDays ?? (legacyDays != null && legacyDays !== "" ? parseInt(legacyDays, 10) : null);
     setName(user?.name?.trim() || getProfile()?.name?.trim() || legacyName?.trim() || "");
-    setStreakDays(user?.streakDays ?? (legacyDays != null && legacyDays !== "" ? parseInt(legacyDays, 10) : null));
-    if (typeof window !== "undefined") {
-      let start = window.localStorage.getItem(LAST_STREAK_START_KEY);
-      const days = user?.streakDays ?? (legacyDays != null && legacyDays !== "" ? parseInt(legacyDays, 10) : null);
-      if (!start && days != null && days > 0) {
-        const approx = new Date(Date.now() - days * 86400000).toISOString();
-        window.localStorage.setItem(LAST_STREAK_START_KEY, approx);
-        start = approx;
-      }
-      setStreakStartIso(start || null);
-      if (start) {
-        const tick = () => {
-          const startDate = new Date(start!).getTime();
-          setElapsed(formatElapsed(Date.now() - startDate));
-        };
-        tick();
-        const t = setInterval(tick, 1000);
-        return () => clearInterval(t);
-      } else {
-        setElapsed(null);
-      }
+    setStreakDays(days ?? null);
+    if (typeof window === "undefined") return;
+    let start = window.localStorage.getItem(LAST_STREAK_START_KEY);
+    if (!start && days != null && days > 0) {
+      const approx = new Date(Date.now() - days * 86400000).toISOString();
+      window.localStorage.setItem(LAST_STREAK_START_KEY, approx);
+      start = approx;
     }
-  }, []);
+    setStreakStartIso(start || null);
+    if (start) {
+      const tick = () => {
+        const startDate = new Date(start!).getTime();
+        setElapsed(formatElapsed(Date.now() - startDate));
+      };
+      tick();
+      const t = setInterval(tick, 1000);
+      return () => clearInterval(t);
+    } else {
+      setElapsed(days === 0 ? formatElapsed(0) : null);
+    }
+  }, [pathname]);
 
-  // Re-lit le prénom et streak depuis localStorage pour afficher "[Prénom], tu es sur la bonne voie"
+  // Re-lit le prénom, streak et timer depuis localStorage (après rechute, tout doit être cohérent)
   useEffect(() => {
     const syncFromStorage = () => {
       const u = getUser();
@@ -384,6 +384,8 @@ export default function HomePage() {
       const legacy = typeof window === "undefined" ? "" : window.localStorage.getItem("user_name")?.trim() || "";
       setName(u?.name?.trim() || profile?.name?.trim() || legacy || "");
       if (u?.streakDays != null) setStreakDays(u.streakDays);
+      // Quand l'user a rechuté (compteur à 0), le timer affiché doit être 0, pas l'ancien
+      if (u?.streakDays === 0) setElapsed(formatElapsed(0));
     };
     const t = setTimeout(syncFromStorage, 500);
     const onVisibility = () => { if (document.visibilityState === "visible") syncFromStorage(); };
@@ -729,7 +731,8 @@ export default function HomePage() {
                   {streakDays === 0 ? "Jour 0" : `${streakDays} jour${streakDays > 1 ? "s" : ""}`}
                 </p>
               )}
-              {elapsed != null && (
+              {/* N'afficher le détail du timer que s'il est cohérent avec le compteur : à Jour 0, on n'affiche pas un ancien "5j 11h" */}
+              {elapsed != null && (streakDays !== 0 || elapsed.days === 0) && (
                 <p className="text-xl sm:text-2xl font-bold text-white/95 tabular-nums mt-2">
                   {elapsed.days > 0 && `${elapsed.days}j `}
                   {String(elapsed.hours).padStart(2, "0")}h {String(elapsed.minutes).padStart(2, "0")}min {String(elapsed.seconds).padStart(2, "0")}s
